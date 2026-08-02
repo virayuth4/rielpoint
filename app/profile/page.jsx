@@ -8,6 +8,8 @@ import { auth } from '@/app/firebase/config'
 import { checkUserSession, clearUserData } from '../auth/authContext';
 import { useRouter } from 'next/navigation'
 import SignUpForm from '../signup/signUpForm'
+import { Button } from '@/components/ui/button'
+import LoginForm from '../login/loginForm'
 
 
 
@@ -109,7 +111,7 @@ export default function ProfilePage() {
         <p className="mt-2 text-sm text-neutral-500">
           Create an account to unlock your profile and start earning rewards.
         </p>
-        <SignUpForm/>
+        <LoginForm/>
      
       </div>
     )
@@ -147,7 +149,14 @@ export default function ProfilePage() {
             {session?.emailVerified && (
               <span className="text-xs font-medium text-emerald-600">· Verified</span>
             )}
+            
           </div>
+                    <Button
+              onClick={handleSignOut}
+              className="mt-4 w-full rounded-lg border border-neutral-200 bg-white px-4 py-2.5 text-sm font-medium text-neutral-700 transition-colors hover:bg-neutral-50 hover:text-neutral-900"
+            >
+              Sign out
+            </Button>
         </div>
       </div>
 
@@ -168,12 +177,12 @@ export default function ProfilePage() {
         </dl>
       </div>
 
-      <button
+      <Button
         onClick={handleSignOut}
         className="mt-6 w-full rounded-lg border border-neutral-200 bg-white px-4 py-2.5 text-sm font-medium text-neutral-700 transition-colors hover:bg-neutral-50 hover:text-neutral-900"
       >
         Sign out
-      </button>
+      </Button>
     </div>
   )
 }

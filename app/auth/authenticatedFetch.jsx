@@ -1,7 +1,8 @@
 import { getAuth, onAuthStateChanged } from "firebase/auth";
+import { auth } from "@/app/firebase/config";
 
 const authenticatedFetch = async (url, options = {}) => {
-    const auth = getAuth();
+
 
     // Function to get the current user
     const getCurrentUser = () => {

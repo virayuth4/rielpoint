@@ -31,6 +31,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import VerifyCouponModal from '@/app/Components/verifyCouponModal';
 
 export default function MerchantDashboard() {
   const router = useRouter();
@@ -52,7 +53,10 @@ export default function MerchantDashboard() {
   const [newCouponDiscountType, setNewCouponDiscountType] = useState('percent');
   const [newCouponDiscountValue, setNewCouponDiscountValue] = useState('');
   const [newCouponExpiryMode, setNewCouponExpiryMode] = useState('none'); // 'none' | 'date'
+  const [newCouponExpiryDate, setNewCouponExpiryDate] = useState('');
   const [confirmAction, setConfirmAction] = useState(null);
+  const [showVerifyCoupon, setShowVerifyCoupon] = useState(false);
+
 
 
 
@@ -121,18 +125,35 @@ export default function MerchantDashboard() {
     // TODO: persist removal via authenticatedFetch (DELETE /api/merchant/staff/:staffId)
   }
 
-  function toggleCouponActive(coupon) {
+ async function toggleCouponActive(coupon) {
+  console.log('[toggleCouponActive] called with', coupon);
   if (coupon.is_active) {
     // deactivating — needs confirmation
+    console.log('[toggleCouponActive] is_active=true → opening confirm dialog');
     setConfirmAction({ type: 'deactivate', coupon });
-  } else {
-    // activating — no confirmation needed
-    setCoupons((prev) =>
-      prev.map((c) =>
-        c.coupon_id === coupon.coupon_id ? { ...c, is_active: true } : c
-      )
+    return;
+  }
+
+  // activating — no confirmation needed
+  const previous = coupons;
+  setCoupons((prev) =>
+    prev.map((c) =>
+      c.coupon_id === coupon.coupon_id ? { ...c, is_active: true } : c
+    )
+  );
+  try {
+    const res = await authenticatedFetch(
+      `${process.env.NEXT_PUBLIC_BACKEND}/api/merchant/coupon/status/${coupon.coupon_id}`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ is_active: true }),
+      }
     );
-    // TODO: persist toggle via authenticatedFetch (PATCH /api/merchant/coupon/:couponId)
+    if (!res.ok) throw new Error(`Request failed (${res.status})`);
+  } catch (err) {
+    setCoupons(previous); // rollback the optimistic update
+    setError(err.message || 'Failed to activate coupon');
   }
 }
 
@@ -181,23 +202,65 @@ function requestRemoveCoupon(coupon) {
     );
   }
 
-  function handleConfirm() {
-  if (!confirmAction) return;
+async function handleConfirm() {
+   console.log('[handleConfirm] fired, confirmAction =', confirmAction);
+  if (!confirmAction) {
+    console.log('[handleConfirm] no confirmAction, bailing');
+    return;
+  }
   const { type, coupon } = confirmAction;
+  setConfirmAction(null);
 
   if (type === 'deactivate') {
+    const url = `${process.env.NEXT_PUBLIC_BACKEND}/api/merchant/coupon/status/${coupon.coupon_id}`;
+    console.log('[handleConfirm] deactivate → POST', url);
+
+    const previous = coupons;
     setCoupons((prev) =>
       prev.map((c) =>
         c.coupon_id === coupon.coupon_id ? { ...c, is_active: false } : c
       )
     );
-    // TODO: persist toggle via authenticatedFetch (PATCH /api/merchant/coupon/:couponId)
+    try {
+      const res = await authenticatedFetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ is_active: false }),
+      });
+      console.log('[handleConfirm] response status:', res.status);
+      if (!res.ok) {
+        const text = await res.text().catch(() => '');
+        console.log('[handleConfirm] error body:', text);
+        throw new Error(`Request failed (${res.status})`);
+      }
+      const data = await res.json();
+      console.log('[handleConfirm] success body:', data);
+    } catch (err) {
+      console.log('[handleConfirm] caught error:', err);
+      setCoupons(previous);
+      setError(err.message || 'Failed to deactivate coupon');
+    }
+  
   } else if (type === 'remove') {
+    const previous = coupons;
     setCoupons((prev) => prev.filter((c) => c.coupon_id !== coupon.coupon_id));
-    // TODO: persist removal via authenticatedFetch (DELETE /api/merchant/coupon/:couponId)
+    try {
+      const res = await authenticatedFetch(
+        `${process.env.NEXT_PUBLIC_BACKEND}/api/merchant/coupon/${coupon.coupon_id}`,
+        { method: 'DELETE' }
+      );
+      if (!res.ok) throw new Error(`Request failed (${res.status})`);
+      const data = await res.json();
+      if (data.deactivatedInsteadOfDeleted) {
+        // Had existing claims — backend deactivated instead of deleting it,
+        // so put it back in the list reflecting that state.
+        setCoupons((prev) => [...prev, { ...coupon, is_active: false }]);
+      }
+    } catch (err) {
+      setCoupons(previous);
+      setError(err.message || 'Failed to remove coupon');
+    }
   }
-
-  setConfirmAction(null);
 }
 
   if (error) {
@@ -245,6 +308,14 @@ function requestRemoveCoupon(coupon) {
           >
             Add points
           </Button>
+          <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => setShowVerifyCoupon(true)}
+          className="text-[13px] h-auto py-1 px-2"
+        >
+          Verify coupon
+        </Button>
         </div>
 
         {/* Business details */}
@@ -671,9 +742,10 @@ function requestRemoveCoupon(coupon) {
       </TableBody>
     </Table>
   )}
+       <VerifyCouponModal open={showVerifyCoupon} onOpenChange={setShowVerifyCoupon} />
+
 </section>
 
-     
 
      
       </div>
