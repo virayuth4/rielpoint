@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef } from "react";
-import { useAuth } from "../../auth/authContext";
+import { useAuth } from "@/app/auth/authContext";
 
 const STAMPS_FOR_FREE_DRINK = 10;
 

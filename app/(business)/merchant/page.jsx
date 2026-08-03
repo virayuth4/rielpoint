@@ -31,7 +31,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import VerifyCouponModal from '@/app/Components/verifyCouponModal';
 
 export default function MerchantDashboard() {
   const router = useRouter();
@@ -55,7 +54,6 @@ export default function MerchantDashboard() {
   const [newCouponExpiryMode, setNewCouponExpiryMode] = useState('none'); // 'none' | 'date'
   const [newCouponExpiryDate, setNewCouponExpiryDate] = useState('');
   const [confirmAction, setConfirmAction] = useState(null);
-  const [showVerifyCoupon, setShowVerifyCoupon] = useState(false);
 
 
 
@@ -80,11 +78,13 @@ export default function MerchantDashboard() {
       );
       if (!res.ok) throw new Error(`Request failed (${res.status})`);
       const data = await res.json();
+  
       setMerchant(data.merchant ?? null);
       setStaffs(data.staffs ?? []);
       setCoupons(data.coupons ?? []);
       setRecentPointTransactions(data.recentPointTransactions ?? []);
       console.log("coupon data", data.coupons);
+      console.log("Recent", data.recentPointTransactions);
     } catch (err) {
       setError(err.message || 'Failed to load dashboard');
     } finally {
@@ -340,7 +340,7 @@ async function handleConfirm() {
         </header>
 
         {/* Add points */}
-        <div className="mb-8 flex justify-center">
+        <div className="mb-8 flex justify-center gap-2">
           <Button
             size="sm"
             onClick={() => router.push('/merchant/points')}
@@ -348,13 +348,13 @@ async function handleConfirm() {
             Add points
           </Button>
           <Button
-          
-          size="sm"
-          onClick={() => setShowVerifyCoupon(true)}
-          className="text-[13px] h-auto py-1 px-2"
-        >
-          Verify coupon
-        </Button>
+            variant="outline"
+            size="sm"
+            onClick={() => router.push('/merchant/verify-coupon')}
+            className="text-[13px] h-auto py-1 px-2"
+          >
+            Verify coupon
+          </Button>
         </div>
 
         {/* Business details */}
@@ -776,17 +776,17 @@ async function handleConfirm() {
               <TableCell className="text-muted-foreground font-mono text-[13px]">
                 ${parseFloat(t.amount).toFixed(2)} {t.currency}
               </TableCell>
-              <TableCell className="text-[13px]">
-                {staffMember ? (
-                  staffMember.fullname
-                ) : t.staff_id ? (
-                  <span className="text-muted-foreground font-mono text-[12px]">
-                    #{t.staff_id}
-                  </span>
-                ) : (
-                  <span className="text-muted-foreground">—</span>
-                )}
-              </TableCell>
+             <TableCell className="text-[13px]">
+              {t.staff_fullname ? (
+                t.staff_fullname
+              ) : t.staff_id ? (
+                <span className="text-muted-foreground font-mono text-[12px]">
+                  #{t.staff_id}
+                </span>
+              ) : (
+                <span className="text-muted-foreground">—</span>
+              )}
+            </TableCell>
               <TableCell className="text-right pr-0">
                 <p className="text-[13px] font-mono">+{t.points.toLocaleString()} pts</p>
                 {t.new_balance !== null && (
@@ -801,8 +801,6 @@ async function handleConfirm() {
       </TableBody>
     </Table>
   )}
-       <VerifyCouponModal open={showVerifyCoupon} onOpenChange={setShowVerifyCoupon} />
-
 </section>
 
 

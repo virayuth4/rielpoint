@@ -198,7 +198,7 @@ function MerchantSignUpForm() {
           Got it, {form.businessName}.
         </p>
         <p className="mt-2 text-sm leading-6 text-zinc-600">
-          We'll reach out to {form.phone} shortly to get your shop set up.
+          We&apos;ll reach out to {form.phone} shortly to get your shop set up.
         </p>
       </div>
     );
@@ -341,7 +341,7 @@ export default function Home() {
             </h1>
             <p className="mt-6 max-w-md text-lg leading-8 text-zinc-600">
               RielPoint is loyalty software, not a punch card. Ask for your
-              customer's phone number at checkout, enter the amount they
+              customer&apos;s phone number at checkout, enter the amount they
               spent, and points are added automatically — no card to find,
               no app to install first.
             </p>

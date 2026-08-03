@@ -209,7 +209,8 @@ useEffect(() => {
 
  const setCurrentUserManually = async () => {
   try {
-    const userData = await checkUserSession(); // { user, session } or null
+    const userData = await checkUserSession(true); // { user, session } or null
+    
     if (userData) {
       setCurrentUser(userData.user);
       setCurrentSession(userData.session);

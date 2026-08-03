@@ -1,10 +1,11 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useContext, useEffect, useState } from 'react';
 import { Inter, Space_Mono } from 'next/font/google';
 import { getAuth } from 'firebase/auth'; // adjust to however you get the current user's ID token
 import authenticatedFetch from '../auth/authenticatedFetch';
 import { onAuthStateChanged } from 'firebase/auth';
+import { AuthContext, getUserId } from '../auth/authContext';
 
 
 const inter = Inter({
@@ -41,6 +42,11 @@ function formatCurrency(amount, currency) {
   return `${currency ?? 'USD'} ${n.toFixed(2)}`;
 }
 
+const DISCOUNT_TYPES = {
+  percent: { label: '% off', format: (v) => `${parseFloat(v)}% off` },
+  amount: { label: '$ off everything', format: (v) => `-$${parseFloat(v)} on everything` },
+};
+
 // Maps a raw row from rielpoint_point_transactions -> the shape the UI wants.
 // Matches the actual API response shape:
 // { id, merchant_id, merchant_name, staff_id, customer_phone, amount, usd_amount,
@@ -67,27 +73,21 @@ function useTransactions() {
   const [balance, setBalance] = useState(null);
   const [status, setStatus] = useState('loading'); // 'loading' | 'success' | 'error'
 
-
-
   useEffect(() => {
     let cancelled = false;
-      const auth = getAuth();
+    const auth = getAuth();
     const unsubscribe = onAuthStateChanged(auth, (user) => {
-        if (!user) {
+      if (!user) {
         // truly signed out
         setStatus('error');
         return;
-        }
-        load(user); // now safe to fetch
+      }
+      load(user); // now safe to fetch
     });
     return () => unsubscribe();
 
     async function load() {
       try {
-
-
-        
-
         const res = await authenticatedFetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/merchant/points/transactions`);
 
         if (!res.ok) throw new Error(`Request failed: ${res.status}`);
@@ -113,7 +113,6 @@ function useTransactions() {
       }
     }
 
-    load();
     return () => {
       cancelled = true;
     };
@@ -122,10 +121,74 @@ function useTransactions() {
   return { transactions, balance, status };
 }
 
+// --- coupons hook --------------------------------------------------------
+
+function useMyCoupons() {
+  const [coupons, setCoupons] = useState([]);
+  const [status, setStatus] = useState('loading'); // 'loading' | 'success' | 'error'
+
+  useEffect(() => {
+    let cancelled = false;
+    const auth = getAuth();
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      if (!user) {
+        setStatus('error');
+        return;
+      }
+      load();
+    });
+    return () => unsubscribe();
+
+    async function load() {
+      try {
+        const res = await authenticatedFetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/merchant/coupons/my`);
+        if (!res.ok) throw new Error(`Request failed: ${res.status}`);
+        const data = await res.json();
+        if (!cancelled) {
+          setCoupons(data.coupons ?? []);
+          setStatus('success');
+        }
+      } catch (err) {
+        console.error('Error loading coupons:', err);
+        if (!cancelled) setStatus('error');
+      }
+    }
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  return { coupons, status, setCoupons };
+}
+
 // --- page ---------------------------------------------------------------
 
 export default function WalletPage() {
   const { transactions, balance, status } = useTransactions();
+  const { coupons: myCoupons, status: couponsStatus } = useMyCoupons();
+
+  const [viewingOtpId, setViewingOtpId] = useState(null);
+  const [otpModal, setOtpModal] = useState(null); // { otp, expiresInSeconds, coupon }
+     const context = useContext(AuthContext);
+     const currentUser = context?.currentUser || null;
+  console.log("currentUser", currentUser)
+
+  async function viewOtp(claim) {
+    setViewingOtpId(claim.claim_id);
+    try {
+      const res = await authenticatedFetch(
+        `${process.env.NEXT_PUBLIC_BACKEND}/api/merchant/coupons/my/${claim.claim_id}/otp`
+      );
+      const body = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(body.error || `Failed (${res.status})`);
+      setOtpModal({ otp: body.otp, expiresInSeconds: body.expiresInSeconds, coupon: claim });
+    } catch (err) {
+      alert(err.message || 'Failed to load code');
+    } finally {
+      setViewingOtpId(null);
+    }
+  }
 
   return (
     <main
@@ -178,15 +241,104 @@ export default function WalletPage() {
           <div className="mt-8 flex items-center justify-between">
             <span
               className="text-xs tracking-wider"
-              style={{ color: '#6E6E68', fontFamily: 'var(--font-mono)' }}
+              style={{ color: '#FFFFFF', fontFamily: 'var(--font-mono)' }}
             >
-              •••• •••• •••• 4821
+              {currentUser?.customer_number}
             </span>
-            <span className="text-xs" style={{ color: '#6E6E68' }}>
-              Sochea N.
+            <span className="text-xs" style={{ color: '#FFFFFF' }}>
+              {currentUser?.fullname.toUpperCase()}
             </span>
           </div>
         </div>
+
+        {/* Your coupons */}
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-sm font-semibold" style={{ color: '#0F0F0E' }}>
+            Your coupons
+          </h2>
+          {couponsStatus === 'success' && (
+            <span className="text-xs" style={{ color: '#9A9A9A' }}>
+              {myCoupons.length}
+            </span>
+          )}
+        </div>
+
+        {couponsStatus === 'loading' && (
+          <p className="text-sm text-center py-10" style={{ color: '#9A9A9A' }}>
+            Loading coupons…
+          </p>
+        )}
+
+        {couponsStatus === 'error' && (
+          <p className="text-sm text-center py-10" style={{ color: '#B3453D' }}>
+            Couldn&apos;t load your coupons. Pull to refresh or try again later.
+          </p>
+        )}
+
+        {couponsStatus === 'success' && (
+          <div className="mb-10">
+            {myCoupons.map((c, i) => {
+              const otpExpired = c.otp_expires_at && new Date(c.otp_expires_at) <= new Date();
+              const isRedeemed = !!c.redeemed_at;
+              const isClickable = !otpExpired && !isRedeemed;
+
+              let statusLabel;
+              let statusColor = '#9A9A9A';
+              if (isRedeemed) {
+                statusLabel = `Redeemed ${new Date(c.redeemed_at).toLocaleDateString('en-US', {
+                  month: 'short',
+                  day: 'numeric',
+                })}`;
+              } else if (otpExpired) {
+                statusLabel = 'Expired';
+              } else if (viewingOtpId === c.claim_id) {
+                statusLabel = 'Loading…';
+              } else {
+                statusLabel = 'Tap for code';
+                statusColor = '#1F5C3F';
+              }
+
+              return (
+                <div
+                  key={c.claim_id}
+                  className="flex items-center justify-between py-4"
+                  style={{
+                    borderTop: i === 0 ? 'none' : '1px solid #EFEFED',
+                    cursor: isClickable ? 'pointer' : 'default',
+                  }}
+                  onClick={() => isClickable && viewOtp(c)}
+                >
+                  <div className="flex items-center gap-3">
+                    <span
+                      className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-xs font-semibold"
+                      style={{ background: '#F3F3EF', color: '#0F0F0E' }}
+                    >
+                      {initialFor(c.merchant_name)}
+                    </span>
+                    <div>
+                      <p className="text-sm font-medium" style={{ color: '#0F0F0E' }}>
+                        {DISCOUNT_TYPES[c.discount_type]?.format(c.discount_value) ?? '—'}
+                      </p>
+                      <p className="text-xs" style={{ color: '#9A9A9A' }}>
+                        {c.merchant_name || 'Unassigned'} &middot; {c.points_cost} pts
+                      </p>
+                    </div>
+                  </div>
+
+                  <p className="text-xs font-medium" style={{ color: statusColor }}>
+                    {statusLabel}
+                  </p>
+                </div>
+              );
+            })}
+
+            {myCoupons.length === 0 && (
+              <p className="text-sm text-center py-10" style={{ color: '#9A9A9A' }}>
+                You haven&apos;t claimed any coupons yet.
+              </p>
+            )}
+          </div>
+        )}
 
         {/* History */}
         <div className="flex items-center justify-between mb-4">
@@ -265,6 +417,46 @@ export default function WalletPage() {
           </div>
         )}
       </div>
+
+      {/* OTP modal */}
+      {otpModal && (
+        <div
+          className="fixed inset-0 flex items-center justify-center z-50 px-6"
+          style={{ background: 'rgba(15,15,14,0.6)' }}
+          onClick={() => setOtpModal(null)}
+        >
+          <div
+            className="rounded-2xl px-6 py-7 w-full max-w-sm"
+            style={{ background: '#FFFFFF' }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <p className="text-sm font-semibold mb-1" style={{ color: '#0F0F0E' }}>
+              Coupon code
+            </p>
+            <p className="text-xs mb-6" style={{ color: '#9A9A9A' }}>
+              Show this code to staff to redeem.
+            </p>
+            <div className="text-center py-4">
+              <p
+                className="text-[32px] font-semibold tracking-[0.2em]"
+                style={{ fontFamily: 'var(--font-mono)', color: '#0F0F0E' }}
+              >
+                {otpModal.otp}
+              </p>
+              <p className="text-xs mt-2" style={{ color: '#9A9A9A' }}>
+                Expires in {Math.round(otpModal.expiresInSeconds / 60)} minutes
+              </p>
+            </div>
+            <button
+              className="w-full rounded-xl py-3 mt-4 text-sm font-medium"
+              style={{ background: '#0F0F0E', color: '#FFFFFF' }}
+              onClick={() => setOtpModal(null)}
+            >
+              Done
+            </button>
+          </div>
+        </div>
+      )}
     </main>
   );
 }

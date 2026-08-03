@@ -1,31 +1,41 @@
 'use client';
 
-import React, { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Loader2, X } from 'lucide-react';
-import { useRouter } from 'next/navigation';
-import { useSignUpLogic } from '../auth/signUpLogic';
 
-export default function SignUpForm() {
+const OTP_LENGTH = 6;
+const RESEND_COOLDOWN = 60;
+
+export default function ForgotPasswordForm() {
   const router = useRouter();
-  const { phoneEmailSignUp } = useSignUpLogic({ isModal: false });
 
-  // Signup fields — all local, never persisted
   const [phoneNumber, setPhoneNumber] = useState('');
-  const [fullName, setFullName] = useState('');
-  const [password, setPassword] = useState('');
-  const [showPassword, setShowPassword] = useState(false);
+  const [newPassword, setNewPassword] = useState('');       // local state only, never persisted
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
   // OTP modal state
   const [showOtpModal, setShowOtpModal] = useState(false);
-  const [otp, setOtp] = useState('');
+  const [otp, setOtp] = useState(Array(OTP_LENGTH).fill(''));
+  const inputRefs = useRef([]);
   const [otpError, setOtpError] = useState('');
   const [isVerifying, setIsVerifying] = useState(false);
-  const [timeLeft, setTimeLeft] = useState(60);
+  const [timeLeft, setTimeLeft] = useState(RESEND_COOLDOWN);
   const [attempts, setAttempts] = useState(1);
+
+  useEffect(() => {
+    if (!showOtpModal || timeLeft <= 0) return;
+    const timer = setInterval(() => setTimeLeft((t) => t - 1), 1000);
+    return () => clearInterval(timer);
+  }, [showOtpModal, timeLeft]);
 
   const handlePhoneChange = (e) => {
     const value = e.target.value.replace(/\D/g, '');
@@ -34,101 +44,114 @@ export default function SignUpForm() {
 
   const isPhoneNumberValid = () => phoneNumber.length >= 8 && phoneNumber.length <= 11;
 
-  // Step 1: submit fullName + phoneNumber + password, get OTP sent
-  const handleSubmit = async (e) => {
+  const formattedPhone = () => (phoneNumber.startsWith('0') ? phoneNumber.substring(1) : phoneNumber);
+
+  const formatTime = (seconds) =>
+    `${Math.floor(seconds / 60).toString().padStart(2, '0')}:${(seconds % 60).toString().padStart(2, '0')}`;
+
+  // Step 1: collect phone + new password locally, request an OTP.
+  // Only the phone number is sent — the password stays in this component.
+  const handleRequestOtp = async (e) => {
     e.preventDefault();
-    setIsLoading(true);
     setError('');
 
+    if (newPassword.length < 8) {
+      setError('Password must be at least 8 characters');
+      return;
+    }
+    if (newPassword !== confirmPassword) {
+      setError('Passwords do not match');
+      return;
+    }
+
+    setIsLoading(true);
     try {
-      const formattedPhoneNumber = phoneNumber.startsWith('0')
-        ? phoneNumber.substring(1)
-        : phoneNumber;
-
-      const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/user/registration/initiate`, {
-        method: "POST",
-        credentials: 'include',
+      const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/user/forgot-password/initiate`, {
+        method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ phoneNumber: formattedPhoneNumber, fullName, password })
+        body: JSON.stringify({ phoneNumber: formattedPhone() }),
       });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.message || 'Failed to send code');
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || errorData.message || 'Failed to send OTP');
-      }
-
-      setTimeLeft(60);
+      setOtp(Array(OTP_LENGTH).fill(''));
+      setOtpError('');
+      setAttempts(1);
+      setTimeLeft(RESEND_COOLDOWN);
       setShowOtpModal(true);
-    } catch (error) {
-      setError(error.message || 'Failed to send OTP. Please try again.');
+    } catch (err) {
+      setError(err.message || 'Something went wrong');
     } finally {
       setIsLoading(false);
     }
   };
 
-  // Countdown for the modal
-  React.useEffect(() => {
-    if (!showOtpModal || timeLeft <= 0) return;
-    const interval = setInterval(() => setTimeLeft(t => t - 1), 1000);
-    return () => clearInterval(interval);
-  }, [showOtpModal, timeLeft]);
+  const handleOtpChange = (index, value) => {
+    if (!/^\d*$/.test(value)) return;
+    const next = [...otp];
+    next[index] = value.slice(-1);
+    setOtp(next);
+    if (value && index < OTP_LENGTH - 1) inputRefs.current[index + 1]?.focus();
+  };
 
-  const formattedPhoneForApi = () =>
-    phoneNumber.startsWith('0') ? phoneNumber.substring(1) : phoneNumber;
+  const handleOtpKeyDown = (index, e) => {
+    if (e.key === 'Backspace' && !otp[index] && index > 0) inputRefs.current[index - 1]?.focus();
+  };
 
-  // Step 2: confirm OTP, then create the account
-  const handleVerifyOTP = async (e) => {
+  // Step 2: send OTP + the password together — only now does the
+  // password leave the browser, and only over this one request.
+  const handleVerifyAndReset = async (e) => {
     e.preventDefault();
-    setIsVerifying(true);
     setOtpError('');
+    const otpCode = otp.join('');
+    if (otpCode.length !== OTP_LENGTH) {
+      setOtpError(`Please enter the ${OTP_LENGTH}-digit code`);
+      return;
+    }
 
+    setIsVerifying(true);
     try {
-      const verifyResponse = await fetch(
-        `${process.env.NEXT_PUBLIC_BACKEND}/api/user/registration/otp/confirmation/${formattedPhoneForApi()}`,
-        {
-          method: "POST",
-          credentials: 'include',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ otp })
-        }
-      );
+      const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/user/forgot-password/otp-confirmation`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phoneNumber: formattedPhone(), otpCode, newPassword }),
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.message || 'Invalid code, please try again');
 
-      if (!verifyResponse.ok) {
-        const errorData = await verifyResponse.json();
-        throw new Error(errorData.error || errorData.message || 'Invalid code');
-      }
-
-      // Backend already created the account using the password from step 1
-      // (see backend notes below) — sign the user in client-side now
-      
-      const result = await phoneEmailSignUp(formattedPhoneForApi(), password, fullName);
-
-      if (result.success) {
-        setPassword(''); // clear from memory, done with it
-        router.push('/');
-      } else {
-        throw new Error(result.error || 'Failed to complete sign in');
-      }
-    } catch (error) {
-      setOtpError(error.message || 'Failed to verify code. Please try again.');
+      setNewPassword('');
+      setConfirmPassword('');
+      router.push('/login?reset=success');
+    } catch (err) {
+      setOtpError(err.message || 'Something went wrong');
+      setOtp(Array(OTP_LENGTH).fill(''));
+      inputRefs.current[0]?.focus();
     } finally {
       setIsVerifying(false);
     }
   };
 
-  const handleResendOTP = async () => {
-    setAttempts(a => a + 1);
-    await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/flutter/user/registration/otp/resend/${formattedPhoneForApi()}`, {
-      method: "POST",
-      credentials: 'include',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ fullName, attempts: attempts + 1 })
-    });
-    setTimeLeft(60);
+  const handleResendOtp = async () => {
+    if (timeLeft > 0) return;
+    setOtpError('');
+    setAttempts((a) => a + 1);
+    setIsVerifying(true);
+    try {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/user/forgot-password/initiate`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phoneNumber: formattedPhone() }),
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.message || 'Failed to resend code');
+      setOtp(Array(OTP_LENGTH).fill(''));
+      setTimeLeft(RESEND_COOLDOWN);
+    } catch (err) {
+      setOtpError(err.message || 'Could not resend code');
+    } finally {
+      setIsVerifying(false);
+    }
   };
-
-  const formatTime = (seconds) =>
-    `${Math.floor(seconds / 60).toString().padStart(2, '0')}:${(seconds % 60).toString().padStart(2, '0')}`;
 
   return (
     <div className="min-h-screen bg-white flex flex-col justify-between p-6 md:p-12 font-mono text-xs uppercase tracking-wider text-black">
@@ -136,7 +159,7 @@ export default function SignUpForm() {
 
       <div className="w-full max-w-[320px] mx-auto my-auto space-y-8">
         <div className="text-left border-b border-black pb-2">
-          <h1 className="text-sm font-normal tracking-widest">Register</h1>
+          <h1 className="text-sm font-normal tracking-widest">Reset Password</h1>
         </div>
 
         {error && (
@@ -145,19 +168,7 @@ export default function SignUpForm() {
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <Input
-            id="fullName"
-            type="text"
-            placeholder="Full Name"
-            value={fullName}
-            onChange={(e) => setFullName(e.target.value)}
-            required
-            className="w-full h-10 px-0 bg-transparent border-0 border-b border-stone-300 rounded-none text-black placeholder:text-stone-400 focus-visible:border-black focus-visible:ring-0 focus-visible:outline-none transition-colors duration-200"
-            disabled={isLoading}
-            autoComplete="name"
-          />
-
+        <form onSubmit={handleRequestOtp} className="space-y-4">
           <Input
             id="phoneNumber"
             type="tel"
@@ -172,21 +183,41 @@ export default function SignUpForm() {
 
           <div className="space-y-1 relative">
             <Input
-              type={showPassword ? "text" : "password"}
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              type={showNewPassword ? "text" : "password"}
+              value={newPassword}
+              onChange={(e) => setNewPassword(e.target.value)}
               required
-              placeholder="Password"
+              placeholder="New Password"
               className="w-full h-10 px-0 pr-12 bg-transparent border-0 border-b border-stone-300 rounded-none text-black placeholder:text-stone-400 focus-visible:border-black focus-visible:ring-0 focus-visible:outline-none transition-colors duration-200"
               disabled={isLoading}
               autoComplete="new-password"
             />
             <button
               type="button"
-              onClick={() => setShowPassword(!showPassword)}
+              onClick={() => setShowNewPassword(!showNewPassword)}
               className="absolute right-0 top-1/2 -translate-y-1/2 text-stone-400 hover:text-black transition-colors duration-200 text-[10px] tracking-widest focus:outline-none"
             >
-              {showPassword ? "HIDE" : "SHOW"}
+              {showNewPassword ? "HIDE" : "SHOW"}
+            </button>
+          </div>
+
+          <div className="space-y-1 relative">
+            <Input
+              type={showConfirmPassword ? "text" : "password"}
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              required
+              placeholder="Confirm New Password"
+              className="w-full h-10 px-0 pr-12 bg-transparent border-0 border-b border-stone-300 rounded-none text-black placeholder:text-stone-400 focus-visible:border-black focus-visible:ring-0 focus-visible:outline-none transition-colors duration-200"
+              disabled={isLoading}
+              autoComplete="new-password"
+            />
+            <button
+              type="button"
+              onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+              className="absolute right-0 top-1/2 -translate-y-1/2 text-stone-400 hover:text-black transition-colors duration-200 text-[10px] tracking-widest focus:outline-none"
+            >
+              {showConfirmPassword ? "HIDE" : "SHOW"}
             </button>
           </div>
 
@@ -194,14 +225,14 @@ export default function SignUpForm() {
             <Button
               type="submit"
               className="w-full h-11 bg-black hover:bg-neutral-800 text-white font-normal tracking-widest rounded-none border-0 shadow-none transition-colors duration-200 disabled:opacity-30 disabled:bg-black"
-              disabled={isLoading || !isPhoneNumberValid() || !fullName || !password}
+              disabled={isLoading || !isPhoneNumberValid() || !newPassword || !confirmPassword}
             >
               {isLoading ? (
                 <div className="flex items-center justify-center space-x-2">
                   <Loader2 className="h-3 w-3 animate-spin" />
                   <span>PROCESSING...</span>
                 </div>
-              ) : <span>Create Account</span>}
+              ) : <span>Send Code</span>}
             </Button>
           </div>
         </form>
@@ -212,14 +243,7 @@ export default function SignUpForm() {
             disabled={isLoading}
             className="text-left hover:text-black transition-colors duration-200 focus:outline-none"
           >
-            Already have an account? Sign in
-          </button>
-           <button
-            onClick={() => router.push('/forgot-password')}
-            disabled={isLoading}
-            className="text-left hover:text-black transition-colors duration-200 focus:outline-none"
-          >
-            Forgot Password
+            Back to Sign In
           </button>
         </div>
       </div>
@@ -252,7 +276,7 @@ export default function SignUpForm() {
             <div className="border-b border-black pb-3 space-y-2 pr-6">
               <h2 className="text-sm font-normal tracking-widest">Verification</h2>
               <p className="text-[10px] text-stone-500 normal-case tracking-normal leading-relaxed">
-                A validation code has been transmitted to +855 {formattedPhoneForApi()}
+                A validation code has been transmitted to +855 {formattedPhone()}
               </p>
             </div>
 
@@ -266,19 +290,23 @@ export default function SignUpForm() {
               </div>
             )}
 
-            <form onSubmit={handleVerifyOTP} className="space-y-6">
-              <Input
-                type="text"
-                value={otp}
-                onChange={(e) => setOtp(e.target.value)}
-                placeholder="ENTER CODE"
-                className="w-full h-10 px-0 bg-transparent border-0 border-b border-stone-300 rounded-none text-black placeholder:text-stone-400 focus-visible:border-black focus-visible:ring-0 focus-visible:outline-none transition-colors duration-200 text-left tracking-widest"
-                required
-                disabled={isVerifying || timeLeft <= 0}
-                maxLength={6}
-                inputMode="numeric"
-                autoFocus
-              />
+            <form onSubmit={handleVerifyAndReset} className="space-y-6">
+              <div className="flex justify-between gap-2">
+                {otp.map((digit, index) => (
+                  <input
+                    key={index}
+                    ref={(el) => (inputRefs.current[index] = el)}
+                    type="text"
+                    inputMode="numeric"
+                    maxLength={1}
+                    value={digit}
+                    onChange={(e) => handleOtpChange(index, e.target.value)}
+                    onKeyDown={(e) => handleOtpKeyDown(index, e)}
+                    disabled={isVerifying || timeLeft <= 0}
+                    className="w-9 h-10 text-center text-sm font-normal bg-transparent border-0 border-b border-stone-300 rounded-none text-black focus:outline-none focus:border-black transition-colors duration-200"
+                  />
+                ))}
+              </div>
 
               <Button
                 type="submit"
@@ -302,7 +330,7 @@ export default function SignUpForm() {
                   </p>
                 ) : (
                   <button
-                    onClick={handleResendOTP}
+                    onClick={handleResendOtp}
                     disabled={isVerifying}
                     className="text-left text-black hover:underline underline-offset-4 focus:outline-none text-[10px] tracking-widest"
                   >

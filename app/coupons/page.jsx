@@ -253,7 +253,7 @@ export default function CouponsPage() {
 
           {myCoupons.length === 0 ? (
             <p className="py-6 text-[13px] text-muted-foreground">
-              You haven't claimed any coupons yet.
+              You haven&apos;t claimed any coupons yet.
             </p>
           ) : (
             <Table>
@@ -425,7 +425,7 @@ export default function CouponsPage() {
           <DialogHeader>
             <DialogTitle>Confirm claim</DialogTitle>
             <DialogDescription>
-              You're about to claim this coupon. This action can't be undone.
+              You&apos;re about to claim this coupon. This action can&apos;t be undone.
             </DialogDescription>
           </DialogHeader>
 
@@ -481,7 +481,7 @@ export default function CouponsPage() {
                   </div>
                   {insufficientPoints && (
                     <p className="text-[12px] text-red-600 pt-1">
-                      You don't have enough points for this coupon.
+                      You don&apos;t have enough points for this coupon.
                     </p>
                   )}
                 </div>
