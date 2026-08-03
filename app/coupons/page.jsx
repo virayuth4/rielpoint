@@ -271,33 +271,55 @@ export default function CouponsPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-              {myCoupons.map((c) => {
-            const otpExpired = c.otp_expires_at && new Date(c.otp_expires_at) <= new Date();
-            return (
-              <TableRow
-                key={c.claim_id}
-                className={otpExpired ? '' : 'cursor-pointer hover:bg-muted/50'}
-                onClick={() => !otpExpired && viewOtp(c)}
-              >
-                <TableCell className="pl-0">
-                  <p className="text-[13px]">
-                    {DISCOUNT_TYPES[c.discount_type]?.format(c.discount_value) ?? '—'}
-                  </p>
-                  <p className="text-[12px] mt-0.5 text-muted-foreground">
-                    {c.points_cost} pts
-                  </p>
-                </TableCell>
-                <TableCell className="text-[13px] text-muted-foreground">
-                  {c.merchant_name || 'Unassigned'}
-                </TableCell>
-                <TableCell className="text-right pr-0">
-                  <Badge variant="secondary">
-                    {otpExpired ? 'Expired' : viewingOtpId === c.claim_id ? 'Loading…' : 'Claimed · Tap to view'}
-                  </Badge>
-                </TableCell>
-              </TableRow>
-            );
-          })}
+            {myCoupons.map((c) => {
+  const otpExpired = c.otp_expires_at && new Date(c.otp_expires_at) <= new Date();
+  const isRedeemed = !!c.redeemed_at;
+  // Once redeemed, there's no OTP left to view — row isn't clickable anymore.
+  const isClickable = !otpExpired && !isRedeemed;
+
+  let statusLabel;
+  if (isRedeemed) {
+    statusLabel = `Redeemed ${new Date(c.redeemed_at).toLocaleDateString(undefined, {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+    })} at ${new Date(c.redeemed_at).toLocaleTimeString(undefined, {
+      hour: 'numeric',
+      minute: '2-digit',
+    })}`;
+  } else if (otpExpired) {
+    statusLabel = 'Expired';
+  } else if (viewingOtpId === c.claim_id) {
+    statusLabel = 'Loading…';
+  } else {
+    statusLabel = 'Unclaimed - Click for Code';
+  }
+
+  return (
+    <TableRow
+      key={c.claim_id}
+      className={isClickable ? 'cursor-pointer hover:bg-muted/50' : ''}
+      onClick={() => isClickable && viewOtp(c)}
+    >
+      <TableCell className="pl-0">
+        <p className="text-[13px]">
+          {DISCOUNT_TYPES[c.discount_type]?.format(c.discount_value) ?? '—'}
+        </p>
+        <p className="text-[12px] mt-0.5 text-muted-foreground">
+          {c.points_cost} pts
+        </p>
+      </TableCell>
+      <TableCell className="text-[13px] text-muted-foreground">
+        {c.merchant_name || 'Unassigned'}
+      </TableCell>
+      <TableCell className="text-right pr-0">
+        <Badge variant={isRedeemed ? 'default' : 'secondary'}>
+          {statusLabel}
+        </Badge>
+      </TableCell>
+    </TableRow>
+  );
+})}
               </TableBody>
             </Table>
           )}

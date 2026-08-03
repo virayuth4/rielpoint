@@ -3,15 +3,8 @@
 import React, { useId, useState } from "react";
 import { ArrowRight, Check, MapPin, Phone } from "lucide-react";
 
-/* ---------------------------------------------------------
-   RielPoint — points-based loyalty software for Cambodian shops
-   Monochrome ink-stamp identity: black, white, zinc only.
-   Audience: shop owners (customers are acquired at checkout,
-   via phone number, not by installing an app first).
-   Mechanic: staff ask for the phone number, enter the purchase
-   amount, and points are awarded automatically. No cards, no
-   punches — just a running points balance per customer.
---------------------------------------------------------- */
+import { useRouter } from "next/navigation";
+
 
 const LOCAL_STYLES = `
 @keyframes marquee {
@@ -141,20 +134,63 @@ const BUSINESS_TYPES = [
   "Other",
 ];
 
-/* "List your shop" sign-up — phone number, business name, business type. */
-function SignUpForm() {
+
+function MerchantSignUpForm() {
+  const router = useRouter();
   const [form, setForm] = useState({ businessName: "", businessType: "", phone: "" });
-  const [submitted, setSubmitted] = useState(false);
+  const [status, setStatus] = useState("idle"); // idle | loading | success | error
+  const [errorMsg, setErrorMsg] = useState("");
+  const [needsAuth, setNeedsAuth] = useState(false);
 
   const update = (field) => (e) => setForm((f) => ({ ...f, [field]: e.target.value }));
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (!form.businessName || !form.businessType || !form.phone) return;
-    setSubmitted(true);
+
+    setStatus("loading");
+    setErrorMsg("");
+    setNeedsAuth(false);
+
+    try {
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_BACKEND}/api/merchant/merchant/create`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            name: form.businessName,
+            contact_phone: form.phone,
+            business_type: form.businessType,
+          }),
+        }
+      );
+
+      if (res.status === 201) {
+        setStatus("success");
+        return;
+      }
+
+      const data = await res.json().catch(() => ({}));
+
+      if (res.status === 409) {
+        setErrorMsg("A shop with this name already exists. Try a different name.");
+      } else if (res.status === 400) {
+        setErrorMsg("Please fill in your business name and phone number.");
+      } else if (res.status === 401) {
+        setErrorMsg("You need to be signed in to list a shop.");
+        setNeedsAuth(true);
+      } else {
+        setErrorMsg(data.error || "Something went wrong. Please try again.");
+      }
+      setStatus("error");
+    } catch (err) {
+      setErrorMsg("Couldn't reach the server. Check your connection and try again.");
+      setStatus("error");
+    }
   };
 
-  if (submitted) {
+  if (status === "success") {
     return (
       <div className="w-full max-w-md border-2 border-black bg-white p-8 text-center text-black">
         <Check className="mx-auto h-8 w-8" />
@@ -189,7 +225,8 @@ function SignUpForm() {
           placeholder="Riel Point "
           value={form.businessName}
           onChange={update("businessName")}
-          className="mt-2 w-full border-2 border-black bg-white px-3 py-2.5 text-sm outline-none placeholder:text-zinc-400 focus:bg-zinc-50"
+          disabled={status === "loading"}
+          className="mt-2 w-full border-2 border-black bg-white px-3 py-2.5 text-sm outline-none placeholder:text-zinc-400 focus:bg-zinc-50 disabled:opacity-50"
         />
       </div>
 
@@ -202,7 +239,8 @@ function SignUpForm() {
           required
           value={form.businessType}
           onChange={update("businessType")}
-          className="mt-2 w-full border-2 border-black bg-white px-3 py-2.5 text-sm text-black outline-none focus:bg-zinc-50"
+          disabled={status === "loading"}
+          className="mt-2 w-full border-2 border-black bg-white px-3 py-2.5 text-sm text-black outline-none focus:bg-zinc-50 disabled:opacity-50"
         >
           <option value="" disabled>
             Select a type
@@ -228,16 +266,35 @@ function SignUpForm() {
             placeholder="012 xxx 456"
             value={form.phone}
             onChange={update("phone")}
-            className="w-full bg-transparent text-sm outline-none placeholder:text-zinc-400"
+            disabled={status === "loading"}
+            className="w-full bg-transparent text-sm outline-none placeholder:text-zinc-400 disabled:opacity-50"
           />
         </div>
       </div>
 
+      {status === "error" && (
+        <div className="mt-4 border-2 border-black bg-zinc-100 px-3 py-2 text-black">
+          <p className="text-xs">{errorMsg}</p>
+          {needsAuth && (
+            <button
+              type="button"
+              onClick={() => router.push("/signup")}
+              className="mt-2 flex items-center gap-2 border-2 border-black bg-black px-4 py-2 font-mono text-xs uppercase tracking-widest text-white hover:bg-zinc-800"
+            >
+              Sign up
+              <ArrowRight className="h-3.5 w-3.5" />
+            </button>
+          )}
+        </div>
+      )}
+
       <button
         type="submit"
-        className="stamp-press mt-6 flex w-full items-center justify-center gap-2 border-2 border-black bg-black px-6 py-3 font-mono text-xs uppercase tracking-widest text-white hover:bg-zinc-800"
+        disabled={status === "loading"}
+        className="stamp-press mt-6 flex w-full items-center justify-center gap-2 border-2 border-black bg-black px-6 py-3 font-mono text-xs uppercase tracking-widest text-white hover:bg-zinc-800 disabled:opacity-60"
       >
-        Submit <ArrowRight className="h-4 w-4" />
+        {status === "loading" ? "Submitting..." : "Submit"}
+        {status !== "loading" && <ArrowRight className="h-4 w-4" />}
       </button>
     </form>
   );
@@ -530,6 +587,7 @@ export default function Home() {
               </p>
               <ul className="mt-8 flex-1 space-y-3">
                 {[
+                  "White label loyalty program",
                   "Unlimited stores",
                   "Custom points rules and integrations",
                   "Dedicated support",
@@ -565,7 +623,7 @@ export default function Home() {
             Free to start. No hardware, no contract, no POS integration.
           </p>
           <div className="mt-10 flex justify-center">
-            <SignUpForm />
+            <MerchantSignUpForm />
           </div>
           <a
             href="#"
