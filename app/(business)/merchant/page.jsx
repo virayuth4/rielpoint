@@ -92,38 +92,77 @@ export default function MerchantDashboard() {
     }
   }
 
-  function toggleStaffActive(staffId) {
-    setStaffs((prev) =>
-      prev.map((s) =>
-        s.staff_id === staffId ? { ...s, is_active: !s.is_active } : s
-      )
-    );
-    // TODO: persist toggle via authenticatedFetch (PATCH /api/merchant/staff/:staffId)
-  }
+async function toggleStaffActive(staffId) {
+  const previous = staffs;
+  const target = staffs.find((s) => s.id === staffId);
+  if (!target) return;
+  const nextActive = !target.is_active;
 
-  function addStaff() {
-    if (!newStaffName.trim() || !newStaffPhone.trim()) return;
-    setStaffs((prev) => [
-      ...prev,
+  // Optimistic update
+  setStaffs((prev) =>
+    prev.map((s) => (s.id === staffId ? { ...s, is_active: nextActive } : s))
+  );
+
+  try {
+    const res = await authenticatedFetch(
+      `${process.env.NEXT_PUBLIC_BACKEND}/api/merchant/staff/status/${staffId}`,
       {
-        staff_id: Date.now(),
-        user_id: null,
-        fullname: newStaffName.trim(),
-        phone_number: newStaffPhone.trim(),
-        is_active: true,
-        created_at: new Date().toISOString(),
-      },
-    ]);
-    setNewStaffName('');
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ is_active: nextActive }),
+      }
+    );
+    if (!res.ok) throw new Error(`Request failed (${res.status})`);
+  } catch (err) {
+    setStaffs(previous); // rollback
+    setError(err.message || 'Failed to update staff status');
+  }
+}
+
+async function addStaff() {
+  if (!newStaffPhone.trim()) return;
+  const previous = staffs;
+  try {
+    const res = await authenticatedFetch(
+      `${process.env.NEXT_PUBLIC_BACKEND}/api/merchant/staff/add`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ staff_phone: newStaffPhone.trim() }),
+      }
+    );
+    if (!res.ok) throw new Error(`Request failed (${res.status})`);
+    const data = await res.json();
+    setStaffs((prev) => [...prev, data.staff]);
     setNewStaffPhone('');
     setShowAddStaff(false);
-    // TODO: persist new staff via authenticatedFetch (POST /api/merchant/staff)
+  } catch (err) {
+    setStaffs(previous);
+    setError(err.message || 'Failed to add staff');
   }
+}
 
-  function removeStaff(staffId) {
-    setStaffs((prev) => prev.filter((s) => s.staff_id !== staffId));
-    // TODO: persist removal via authenticatedFetch (DELETE /api/merchant/staff/:staffId)
+async function removeStaff(rowId) {
+  const previousStaffs = staffs;
+
+  // Optimistic update
+  setStaffs((prev) => prev.filter((s) => s.id !== rowId));
+
+  try {
+    const res = await authenticatedFetch(
+      `${process.env.NEXT_PUBLIC_BACKEND}/api/merchant/staff/remove/${rowId}`,
+      { method: 'POST' }
+    );
+
+    if (!res.ok) {
+      throw new Error('Failed to remove staff');
+    }
+  } catch (err) {
+    console.error('Remove staff error:', err);
+    setStaffs(previousStaffs);
+    setError(err.message || 'Failed to remove staff');
   }
+}
 
  async function toggleCouponActive(coupon) {
   console.log('[toggleCouponActive] called with', coupon);
@@ -309,7 +348,7 @@ async function handleConfirm() {
             Add points
           </Button>
           <Button
-          variant="ghost"
+          
           size="sm"
           onClick={() => setShowVerifyCoupon(true)}
           className="text-[13px] h-auto py-1 px-2"
@@ -391,12 +430,7 @@ async function handleConfirm() {
 
           {showAddStaff && (
             <div className="mb-4 flex flex-col sm:flex-row gap-2 border-b pb-4">
-              <Input
-                placeholder="Full name"
-                value={newStaffName}
-                onChange={(e) => setNewStaffName(e.target.value)}
-                className="flex-1 text-[13px]"
-              />
+             
               <Input
                 type="tel"
                 placeholder="Phone number"
@@ -411,47 +445,72 @@ async function handleConfirm() {
           )}
 
           <div className="divide-y">
-            {staffs.length === 0 ? (
-              <p className="py-6 text-[13px] text-muted-foreground">No staff yet.</p>
-            ) : (
-              staffs.map((s) => (
-                <div
-                  key={s.staff_id}
-                  className="flex items-center justify-between py-4"
-                >
-                  <div className="flex items-center gap-3">
-                    <span
-                      className={`inline-block w-1.5 h-1.5 rounded-full shrink-0 ${
-                        s.is_active ? 'bg-green-500' : 'bg-muted-foreground/30'
-                      }`}
-                    />
-                    <div>
-                      <p className="text-[14px]">{s.fullname}</p>
-                      <p className="text-[12px] mt-0.5 text-muted-foreground font-mono">
-                        {s.phone_number}
-                      </p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => toggleStaffActive(s.staff_id)}
-                    >
-                      {s.is_active ? 'Deactivate' : 'Activate'}
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="text-destructive hover:text-destructive"
-                      onClick={() => removeStaff(s.staff_id)}
-                    >
-                      Remove
-                    </Button>
-                  </div>
-                </div>
-              ))
-            )}
+   {staffs.length === 0 ? (
+  <p className="py-6 text-[13px] text-muted-foreground">No staff yet.</p>
+) : (
+  <Table>
+    <TableHeader>
+      <TableRow className="hover:bg-transparent">
+        <TableHead className="pl-0 h-auto pb-2 text-[10px] tracking-[0.14em] uppercase font-medium text-muted-foreground">
+          Name
+        </TableHead>
+        <TableHead className="h-auto pb-2 text-[10px] tracking-[0.14em] uppercase font-medium text-muted-foreground">
+          Status
+        </TableHead>
+        <TableHead className="text-right pr-0 h-auto pb-2"></TableHead>
+      </TableRow>
+    </TableHeader>
+    <TableBody>
+      {staffs.map((s) => (
+        <TableRow key={s.staff_id}>
+          <TableCell className="pl-0">
+            <div className="flex items-center gap-3">
+              <span
+                className={`inline-block w-1.5 h-1.5 rounded-full shrink-0 ${
+                  s.is_active ? 'bg-green-500' : 'bg-muted-foreground/30'
+                }`}
+              />
+              <div>
+                <p className="text-[14px]">{s.fullname}</p>
+                <p className="text-[12px] mt-0.5 text-muted-foreground font-mono">
+                  {s.phone_number}
+                </p>
+              </div>
+            </div>
+          </TableCell>
+          <TableCell>
+            <span
+              className={`text-[13px] ${
+                s.is_active ? 'text-green-600' : 'text-muted-foreground'
+              }`}
+            >
+              {s.is_active ? 'Active' : 'Inactive'}
+            </span>
+          </TableCell>
+          <TableCell className="text-right pr-0">
+            <div className="flex items-center justify-end gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => toggleStaffActive(s.id)}
+              >
+                {s.is_active ? 'Deactivate' : 'Activate'}
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                className="text-destructive hover:text-destructive"
+                onClick={() => removeStaff(s.id)}
+              >
+                Remove
+              </Button>
+            </div>
+          </TableCell>
+        </TableRow>
+      ))}
+    </TableBody>
+  </Table>
+)}
           </div>
         </section>
 
