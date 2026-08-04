@@ -3,15 +3,6 @@
 import authenticatedFetch from '@/app/auth/authenticatedFetch';
 import { useContext, useEffect, useState, useTransition } from 'react';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableRow,
-  TableHeader,
-  TableHead,
-} from '@/components/ui/table';
 import {
   Dialog,
   DialogContent,
@@ -23,9 +14,46 @@ import {
 import { auth } from '../firebase/config';
 import { AuthContext, getUserId } from '../auth/authContext';
 
+// Pure fallback formatting — used only when the coupon has no `title` set.
+const DISCOUNT_TYPES = {
+  percent: { label: '% off', format: (c) => `${parseFloat(c?.discount_value)}% off` },
+  amount: { label: '$ off everything', format: (c) => `-$${parseFloat(c?.discount_value)} on everything` },
+  custom: { label: 'Custom perk', format: () => 'Custom perk' },
+};
+
+// Display title: prefer the coupon's own `title`, otherwise fall back to the
+// old discount_value + discount_type formatting.
+function getCouponTitle(c) {
+  if (c?.title) return c.title;
+  return DISCOUNT_TYPES[c?.discount_type]?.format(c) ?? '—';
+}
+function getCouponValueLabel(c) {
+  return DISCOUNT_TYPES[c?.discount_type]?.format(c) ?? null;
+}
+
+// Optional secondary line. Only shown when present — no fallback needed here.
+function getCouponDescription(c) {
+  return c?.description || null;
+}
+
+function formatDate(d) {
+  return new Date(d).toLocaleDateString(undefined, {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+  });
+}
+
+function formatTime(d) {
+  return new Date(d).toLocaleTimeString(undefined, {
+    hour: 'numeric',
+    minute: '2-digit',
+  });
+}
+
 export default function CouponsPage() {
-  const [coupons, setCoupons] = useState([]);       // from /coupons (all available)
-  const [myCoupons, setMyCoupons] = useState([]);    // from /coupons/my (user's claims)
+  const [coupons, setCoupons] = useState([]); // from /coupons (all available)
+  const [myCoupons, setMyCoupons] = useState([]); // from /coupons/my (user's claims)
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [isPending, startTransition] = useTransition();
@@ -40,26 +68,20 @@ export default function CouponsPage() {
   const [viewingOtpId, setViewingOtpId] = useState(null);
 
   async function viewOtp(claim) {
-  setViewingOtpId(claim.claim_id);
-  try {
-    const res = await authenticatedFetch(
-      `${process.env.NEXT_PUBLIC_BACKEND}/api/merchant/coupons/my/${claim.claim_id}/otp`
-    );
-    const body = await res.json().catch(() => ({}));
-    if (!res.ok) throw new Error(body.error || `Failed (${res.status})`);
-    setOtpModal({ otp: body.otp, expiresInSeconds: body.expiresInSeconds, coupon: claim });
-  } catch (err) {
-    alert(err.message || 'Failed to load code');
-  } finally {
-    setViewingOtpId(null);
+    setViewingOtpId(claim.claim_id);
+    try {
+      const res = await authenticatedFetch(
+        `${process.env.NEXT_PUBLIC_BACKEND}/api/merchant/coupons/my/${claim.claim_id}/otp`
+      );
+      const body = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(body.error || `Failed (${res.status})`);
+      setOtpModal({ otp: body.otp, expiresInSeconds: body.expiresInSeconds, coupon: claim });
+    } catch (err) {
+      alert(err.message || 'Failed to load code');
+    } finally {
+      setViewingOtpId(null);
+    }
   }
-}
-
-
-  const DISCOUNT_TYPES = {
-    percent: { label: '% off', format: (v) => `${parseFloat(v)}% off` },
-    amount: { label: '$ off everything', format: (v) => `-$${parseFloat(v)} on everything` },
-  };
 
   async function loadCoupons() {
     setLoading(true);
@@ -82,10 +104,8 @@ export default function CouponsPage() {
       if (myRes) {
         if (!myRes.ok) throw new Error(`Request failed (${myRes.status})`);
         myData = await myRes.json();
-            
-
       }
-      
+
       setCoupons(availableData.coupons ?? []);
       setMyCoupons(myData.coupons ?? []);
     } catch (err) {
@@ -118,7 +138,6 @@ export default function CouponsPage() {
           if (!myRes.ok) throw new Error(`Request failed (${myRes.status})`);
           myData = await myRes.json();
         }
-        console.log("myData", myData);
 
         if (ignore) return;
         startTransition(() => {
@@ -190,16 +209,16 @@ export default function CouponsPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-white">
-        <p className="text-sm text-muted-foreground">Loading coupons…</p>
+      <div className="min-h-screen flex items-center justify-center bg-[#FAFAF8]">
+        <p className="text-sm text-neutral-400">Loading coupons…</p>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center gap-4 bg-white">
-        <p className="text-sm">{error}</p>
+      <div className="min-h-screen flex flex-col items-center justify-center gap-4 bg-[#FAFAF8]">
+        <p className="text-sm text-neutral-600">{error}</p>
         <Button variant="outline" onClick={loadCoupons}>
           Retry
         </Button>
@@ -232,190 +251,168 @@ export default function CouponsPage() {
   const insufficientPoints = pointsAfterClaim != null && pointsAfterClaim < 0;
 
   return (
-    <div className="min-h-screen px-6 py-16 font-sans bg-white">
-      <div className="max-w-xl mx-auto">
-        <header className="mb-12 pb-8 border-b">
-          <p className="text-[11px] tracking-[0.18em] uppercase font-medium mb-1 text-muted-foreground">
+    <div className="min-h-screen bg-[#FAFAF8] px-6 py-14 font-sans">
+      <div className="max-w-2xl mx-auto">
+        <header className="mb-10">
+          <h1 className="text-[26px] font-serif font-semibold tracking-tight text-neutral-900">
             Rewards
-          </p>
-          <h1 className="text-[28px] leading-tight tracking-tight font-semibold font-serif">
-            Rewards & Coupons
           </h1>
+          <p className="text-[13px] text-neutral-500 mt-1">
+            Redeem points for coupons at businesses you follow.
+          </p>
         </header>
 
-        {/* Your coupons — from /coupons/my (rielpoint_coupon_claims LEFT JOIN rielpoint_coupons) */}
-        <section className="mb-12">
-          <div className="flex items-center justify-between mb-3">
-            <p className="text-[11px] tracking-[0.18em] uppercase font-medium text-muted-foreground">
-              Your coupons · {myCoupons.length}
+        {/* Your coupons — from /coupons/my */}
+      <section className="mb-10">
+  <h2 className="text-[13px] font-medium text-neutral-900 mb-3">
+    Your coupons {myCoupons.length > 0 && (
+      <span className="text-neutral-400 font-normal">· {myCoupons.length}</span>
+    )}
+  </h2>
+
+  {myCoupons.length === 0 ? (
+    <div className="rounded-xl border border-dashed border-neutral-200 py-8 px-4 text-center">
+      <p className="text-[13px] text-neutral-500">
+        You haven&apos;t claimed any coupons yet — browse what&apos;s below.
+      </p>
+    </div>
+  ) : (
+    <div className="rounded-xl border border-neutral-200 divide-y divide-neutral-200 overflow-hidden bg-white">
+      {myCoupons.map((c) => {
+        const otpExpired = c.otp_expires_at && new Date(c.otp_expires_at) <= new Date();
+        const isRedeemed = !!c.redeemed_at;
+        const isClickable = !otpExpired && !isRedeemed;
+
+        let statusLabel;
+        let statusColor = 'text-neutral-400';
+        if (isRedeemed) {
+          statusLabel = `Redeemed ${formatDate(c.redeemed_at)}`;
+          statusColor = 'text-neutral-400';
+        } else if (otpExpired) {
+          statusLabel = 'Expired';
+          statusColor = 'text-neutral-400';
+        } else if (viewingOtpId === c.claim_id) {
+          statusLabel = 'Loading…';
+          statusColor = 'text-neutral-400';
+        } else {
+          statusLabel = 'Tap for code';
+          statusColor = 'text-amber-700';
+        }
+
+        const description = getCouponDescription(c);
+
+        return (
+          <div
+            key={c.claim_id}
+            className={`flex items-center justify-between px-4 py-3 ${
+              isClickable ? 'cursor-pointer hover:bg-neutral-50' : ''
+            }`}
+            onClick={() => isClickable && viewOtp(c)}
+          >
+            <div className="min-w-0">
+              <div className="flex items-center gap-2 flex-wrap">
+                <p className="text-[13.5px] text-neutral-900 truncate">
+                  {getCouponTitle(c)}
+                </p>
+                {c.title && getCouponValueLabel(c) && (
+                  <span className="text-[11px] font-medium text-green-700 bg-amber-50 px-1.5 py-0.5 rounded-full shrink-0">
+                    {getCouponValueLabel(c)}
+                  </span>
+                )}
+              </div>
+              {description && (
+                <p className="text-[12px] text-neutral-500 truncate">
+                  {description}
+                </p>
+              )}
+              <p className="text-[12px] text-neutral-500 truncate">
+                {c.merchant_name || 'Unassigned'}
+                {c.expires_at && ` · Expires ${formatDate(c.expires_at)}`}
+              </p>
+            </div>
+            <p className={`text-[12px] font-medium shrink-0 ml-3 ${statusColor}`}>
+              {statusLabel}
             </p>
           </div>
-
-          {myCoupons.length === 0 ? (
-            <p className="py-6 text-[13px] text-muted-foreground">
-              You haven&apos;t claimed any coupons yet.
-            </p>
-          ) : (
-            <Table>
-              <TableHeader>
-                <TableRow className="hover:bg-transparent">
-                  <TableHead className="pl-0 h-auto pb-2 text-[10px] tracking-[0.14em] uppercase font-medium text-muted-foreground">
-                    Discount
-                  </TableHead>
-                  <TableHead className="h-auto pb-2 text-[10px] tracking-[0.14em] uppercase font-medium text-muted-foreground">
-                    Business
-                  </TableHead>
-                  <TableHead className="text-right pr-0 h-auto pb-2 text-[10px] tracking-[0.14em] uppercase font-medium text-muted-foreground">
-                    Status
-                  </TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-            {myCoupons.map((c) => {
-  const otpExpired = c.otp_expires_at && new Date(c.otp_expires_at) <= new Date();
-  const isRedeemed = !!c.redeemed_at;
-  // Once redeemed, there's no OTP left to view — row isn't clickable anymore.
-  const isClickable = !otpExpired && !isRedeemed;
-
-  let statusLabel;
-  if (isRedeemed) {
-    statusLabel = `Redeemed ${new Date(c.redeemed_at).toLocaleDateString(undefined, {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-    })} at ${new Date(c.redeemed_at).toLocaleTimeString(undefined, {
-      hour: 'numeric',
-      minute: '2-digit',
-    })}`;
-  } else if (otpExpired) {
-    statusLabel = 'Expired';
-  } else if (viewingOtpId === c.claim_id) {
-    statusLabel = 'Loading…';
-  } else {
-    statusLabel = 'Unclaimed - Tap for Code';
-  }
-
-  return (
-    <TableRow
-      key={c.claim_id}
-      className={isClickable ? 'cursor-pointer hover:bg-muted/50' : ''}
-      onClick={() => isClickable && viewOtp(c)}
-    >
-      <TableCell className="pl-0">
-        <p className="text-[13px]">
-          {DISCOUNT_TYPES[c.discount_type]?.format(c.discount_value) ?? '—'}
-        </p>
-        <p className="text-[12px] mt-0.5 text-muted-foreground">
-          {c.points_cost} pts
-        </p>
-      </TableCell>
-      <TableCell className="text-[13px] text-muted-foreground">
-        {c.merchant_name || 'Unassigned'}
-      </TableCell>
-      <TableCell className="text-right pr-0">
-        <Badge variant={isRedeemed ? 'default' : 'secondary'}>
-          {statusLabel}
-        </Badge>
-      </TableCell>
-    </TableRow>
-  );
-})}
-              </TableBody>
-            </Table>
-          )}
-        </section>
+        );
+      })}
+    </div>
+  )}
+</section>
 
         {/* Available coupons, grouped by merchant — from /coupons */}
         {availableCoupons.length === 0 ? (
           myCoupons.length === 0 && (
-            <p className="py-6 text-[13px] text-muted-foreground">No coupons yet.</p>
+            <p className="py-6 text-[13px] text-neutral-400">No coupons yet.</p>
           )
         ) : (
-          merchantNames.map((merchantName) => {
-            const merchantCoupons = grouped[merchantName];
-            const merchantPoints = merchantCoupons[0]?.user_points;
+          <div className="space-y-9">
+            {merchantNames.map((merchantName) => {
+              const merchantCoupons = grouped[merchantName];
+              const merchantPoints = merchantCoupons[0]?.user_points;
 
-            return (
-              <section key={merchantName} className="mb-10">
-                <div className="flex items-center justify-between mb-3">
-                  <p className="text-[11px] tracking-[0.18em] uppercase font-medium text-muted-foreground">
-                    {merchantName} · {merchantCoupons.length}
-                  </p>
-                  {userPhoneNumber && (
-                    <p className="text-[11px] font-mono text-muted-foreground">
-                      {merchantPoints ?? 0} pts
-                    </p>
-                  )}
-                </div>
+              return (
+                <section key={merchantName}>
+                  <div className="flex items-center justify-between mb-3">
+                    <h2 className="text-[13px] font-medium text-neutral-900">
+                      {merchantName}
+                    </h2>
+                    {userPhoneNumber && (
+                      <span className="text-[11.5px] font-mono text-green-700 bg-amber-50 px-2 py-0.5 rounded-full">
+                       You have:  {merchantPoints ?? 0} pts available
+                      </span>
+                    )}
+                  </div>
 
-                <Table>
-                  <TableHeader>
-                    <TableRow className="hover:bg-transparent">
-                      <TableHead className="pl-0 h-auto pb-2 text-[10px] tracking-[0.14em] uppercase font-medium text-muted-foreground">
-                        Discount
-                      </TableHead>
-                      <TableHead className="h-auto pb-2 text-[10px] tracking-[0.14em] uppercase font-medium text-muted-foreground">
-                        Cost
-                      </TableHead>
-                      <TableHead className="h-auto pb-2 text-[10px] tracking-[0.14em] uppercase font-medium text-muted-foreground">
-                        Status
-                      </TableHead>
-                      <TableHead className="text-right pr-0 h-auto pb-2 text-[10px] tracking-[0.14em] uppercase font-medium text-muted-foreground">
-                        Claim
-                      </TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {merchantCoupons.map((c) => (
-                      <TableRow key={c.coupon_id}>
-                        <TableCell className="pl-0">
-                          <div className="flex items-center gap-3">
-                            <span
-                              className={`inline-block w-1.5 h-1.5 rounded-full shrink-0 ${
-                                c.is_active ? 'bg-green-500' : 'bg-muted-foreground/30'
-                              }`}
-                            />
-                            <div>
-                              <p className="text-[13px]">
-                                {DISCOUNT_TYPES[c.discount_type]?.format(c.discount_value) ?? '—'}
-                              </p>
-                              <p className="text-[12px] mt-0.5 text-muted-foreground">
-                                {c.expires_at
-                                  ? `Expires ${new Date(c.expires_at).toLocaleDateString(undefined, {
-                                      year: 'numeric',
-                                      month: 'short',
-                                      day: 'numeric',
-                                    })}`
-                                  : 'Until turned off'}
-                              </p>
-                            </div>
+                  <div className="grid gap-2.5 sm:grid-cols-2">
+                    {merchantCoupons.map((c) => {
+                      const description = getCouponDescription(c);
+                      return (
+                        <div
+                          key={c.coupon_id}
+                          className={`rounded-xl border bg-white p-4 flex flex-col gap-3 ${
+                            c.is_active ? 'border-neutral-200' : 'border-neutral-100 opacity-60'
+                          }`}
+                        >
+                         <div>
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <p className="text-[15px] font-medium text-neutral-900">
+                            {getCouponTitle(c)}
+                          </p>
+                          {c.title && getCouponValueLabel(c) && (
+                            <span className="text-[11px] font-medium text-green-700 bg-amber-50 px-1.5 py-0.5 rounded-full shrink-0">
+                              {getCouponValueLabel(c)}
+                            </span>
+                          )}
+                        </div>
+                        {description && (
+                          <p className="text-[12px] text-neutral-500 mt-0.5">{description}</p>
+                        )}
+                            <p className="text-[12px] text-neutral-500 mt-0.5">
+                              {c.expires_at ? `Expires ${formatDate(c.expires_at)}` : 'Expires never'}
+                            </p>
                           </div>
-                        </TableCell>
-                        <TableCell className="text-muted-foreground font-mono text-[13px]">
-                          {c.points_cost} pts
-                        </TableCell>
-                        <TableCell>
-                          <Badge variant={c.is_active ? 'default' : 'secondary'}>
-                            {c.is_active ? 'Active' : 'Inactive'}
-                          </Badge>
-                        </TableCell>
-                        <TableCell className="text-right pr-0">
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            disabled={!c.is_active}
-                            onClick={() => openClaimModal(c)}
-                          >
-                            Claim
-                          </Button>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </section>
-            );
-          })
+                          <div className="flex items-center justify-between mt-auto">
+                            <span className="text-[12.5px] font-mono text-neutral-500">
+                              {c.points_cost} pts
+                            </span>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              disabled={!c.is_active}
+                              onClick={() => openClaimModal(c)}
+                            >
+                              {c.is_active ? 'Claim' : 'Inactive'}
+                            </Button>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </section>
+              );
+            })}
+          </div>
         )}
       </div>
 
@@ -425,57 +422,45 @@ export default function CouponsPage() {
           <DialogHeader>
             <DialogTitle>Confirm claim</DialogTitle>
             <DialogDescription>
-              You&apos;re about to claim this coupon. This action can&apos;t be undone.
+              This action can&apos;t be undone.
             </DialogDescription>
           </DialogHeader>
 
           {selectedCoupon && (
-            <div className="py-2 space-y-3">
-              <div>
-                <p className="text-[11px] tracking-[0.14em] uppercase font-medium text-muted-foreground mb-1">
-                  Business
-                </p>
-                <p className="text-[14px] font-medium">
+            <div className="py-1">
+              <div className="rounded-lg bg-neutral-50 p-3.5 mb-3">
+               <p className="text-[14px] font-medium text-neutral-900">
+                    {getCouponTitle(selectedCoupon)}
+                  </p>
+                  {selectedCoupon.title && getCouponValueLabel(selectedCoupon) && (
+                    <p className="text-[12.5px] text-green-700 font-medium mt-0.5">
+                      {getCouponValueLabel(selectedCoupon)}
+                    </p>
+                  )}
+                {getCouponDescription(selectedCoupon) && (
+                  <p className="text-[12.5px] text-neutral-500 mt-0.5">
+                    {getCouponDescription(selectedCoupon)}
+                  </p>
+                )}
+                <p className="text-[12.5px] text-neutral-500 mt-0.5">
                   {selectedCoupon.merchant_name || 'Unassigned'}
+                  {selectedCoupon.expires_at && ` · Expires ${formatDate(selectedCoupon.expires_at)}`}
                 </p>
               </div>
 
-              <div>
-                <p className="text-[11px] tracking-[0.14em] uppercase font-medium text-muted-foreground mb-1">
-                  Coupon
-                </p>
-                <p className="text-[14px]">
-                  {DISCOUNT_TYPES[selectedCoupon.discount_type]?.format(selectedCoupon.discount_value) ?? '—'}
-                </p>
-                <p className="text-[12px] mt-0.5 text-muted-foreground">
-                  {selectedCoupon.expires_at
-                    ? `Expires ${new Date(selectedCoupon.expires_at).toLocaleDateString(undefined, {
-                        year: 'numeric',
-                        month: 'short',
-                        day: 'numeric',
-                      })}`
-                    : 'Until turned off'}
-                </p>
-              </div>
-
-              <div>
-                <p className="text-[11px] tracking-[0.14em] uppercase font-medium text-muted-foreground mb-1">
-                  Cost
-                </p>
-                <p className="text-[14px] font-mono">
-                  {selectedCoupon.points_cost} pts
-                </p>
-              </div>
-
-              {currentPoints != null && (
-                <div className="pt-2 border-t space-y-1">
+              {currentPoints != null ? (
+                <div className="space-y-1.5">
                   <div className="flex items-center justify-between text-[13px]">
-                    <span className="text-muted-foreground">You have</span>
-                    <span className="font-mono">{currentPoints} pts</span>
+                    <span className="text-neutral-500">Cost</span>
+                    <span className="font-mono text-neutral-900">{selectedCoupon.points_cost} pts</span>
                   </div>
                   <div className="flex items-center justify-between text-[13px]">
-                    <span className="text-muted-foreground">After claim</span>
-                    <span className={`font-mono ${insufficientPoints ? 'text-red-600' : ''}`}>
+                    <span className="text-neutral-500">You have</span>
+                    <span className="font-mono text-neutral-900">{currentPoints} pts</span>
+                  </div>
+                  <div className="flex items-center justify-between text-[13px] pt-1.5 border-t border-neutral-100">
+                    <span className="text-neutral-500">After claim</span>
+                    <span className={`font-mono ${insufficientPoints ? 'text-red-600' : 'text-neutral-900'}`}>
                       {pointsAfterClaim} pts
                     </span>
                   </div>
@@ -484,6 +469,11 @@ export default function CouponsPage() {
                       You don&apos;t have enough points for this coupon.
                     </p>
                   )}
+                </div>
+              ) : (
+                <div className="flex items-center justify-between text-[13px]">
+                  <span className="text-neutral-500">Cost</span>
+                  <span className="font-mono text-neutral-900">{selectedCoupon.points_cost} pts</span>
                 </div>
               )}
             </div>
@@ -500,21 +490,19 @@ export default function CouponsPage() {
         </DialogContent>
       </Dialog>
 
-      {/* OTP modal — shown once, right after a successful claim */}
+      {/* OTP modal — shown once, right after a successful claim, or when tapping a code */}
       <Dialog open={!!otpModal} onOpenChange={(open) => !open && setOtpModal(null)}>
         <DialogContent className="sm:max-w-sm">
           <DialogHeader>
             <DialogTitle>Coupon claimed</DialogTitle>
-            <DialogDescription>
-              Show this code to staff to redeem. 
-            </DialogDescription>
+            <DialogDescription>Show this code to staff to redeem.</DialogDescription>
           </DialogHeader>
           {otpModal && (
             <div className="py-4 text-center">
-              <p className="text-[32px] font-mono tracking-[0.2em] font-semibold">
+              <p className="text-[32px] font-mono tracking-[0.2em] font-semibold text-neutral-900">
                 {otpModal.otp}
               </p>
-              <p className="text-[12px] mt-2 text-muted-foreground">
+              <p className="text-[12px] mt-2 text-neutral-500">
                 Expires in {Math.round(otpModal.expiresInSeconds / 60)} minutes
               </p>
             </div>

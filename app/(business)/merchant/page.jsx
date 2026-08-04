@@ -51,6 +51,8 @@ export default function MerchantDashboard() {
   const [newCouponPoints, setNewCouponPoints] = useState('');
   const [newCouponDiscountType, setNewCouponDiscountType] = useState('percent');
   const [newCouponDiscountValue, setNewCouponDiscountValue] = useState('');
+  const [newCouponTitle, setNewCouponTitle] = useState('');
+  const [newCouponDescription, setNewCouponDescription] = useState('');
   const [newCouponExpiryMode, setNewCouponExpiryMode] = useState('none'); // 'none' | 'date'
   const [newCouponExpiryDate, setNewCouponExpiryDate] = useState('');
   const [confirmAction, setConfirmAction] = useState(null);
@@ -60,10 +62,19 @@ export default function MerchantDashboard() {
 
   // discount_value from the API comes back as a string (e.g. "10.00"),
   // so we parseFloat it before formatting to avoid rendering "10.00% off".
-  const DISCOUNT_TYPES = {
-    percent: { label: '% off', format: (v) => `${parseFloat(v)}% off` },
-    amount: { label: '$ off everything', format: (v) => `-$${parseFloat(v)} on everything` },
-  };
+const DISCOUNT_TYPES = {
+  percent: { label: '% off', format: (c) => `${parseFloat(c.discount_value)}% off` },
+  amount: { label: '$ off everything', format: (c) => `-$${parseFloat(c.discount_value)} on everything` },
+  custom: { label: 'Custom perk', format: () => 'Custom perk' },
+};
+
+function getCouponTitle(c) {
+  return c.title || DISCOUNT_TYPES[c.discount_type]?.format(c) || '—';
+}
+
+function getCouponValueLabel(c) {
+  return DISCOUNT_TYPES[c.discount_type]?.format(c) ?? null;
+}
 
   useEffect(() => {
     loadDashboard();
@@ -198,39 +209,43 @@ async function removeStaff(rowId) {
   }
 }
 
-  async function addCoupon() {
-    if (!newCouponPoints.trim() || !newCouponDiscountValue.trim()) return;
-    if (newCouponExpiryMode === 'date' && !newCouponExpiryDate) return;
+async function addCoupon() {
+  if (!newCouponPoints.trim()) return;
+  if (newCouponDiscountType === 'custom' && !newCouponTitle.trim()) return;
+  if (newCouponDiscountType !== 'custom' && !newCouponDiscountValue.trim()) return;
+  if (newCouponExpiryMode === 'date' && !newCouponExpiryDate) return;
 
-    try {
-      const res = await authenticatedFetch(
-        `${process.env.NEXT_PUBLIC_BACKEND}/api/merchant/coupon/create`,
-        {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            points_cost: Number(newCouponPoints.trim()),
-            discount_type: newCouponDiscountType,
-            discount_value: Number(newCouponDiscountValue.trim()),
-            expires_at: newCouponExpiryMode === 'date' ? newCouponExpiryDate : null,
-          }),
-        }
-      );
-
-      if (!res.ok) throw new Error(`Request failed (${res.status})`);
-      const data = await res.json();
-
-      setCoupons((prev) => [...prev, data.coupon]);
-      setNewCouponPoints('');
-      setNewCouponDiscountType('percent');
-      setNewCouponDiscountValue('');
-      setNewCouponExpiryMode('none');
-      setNewCouponExpiryDate('');
-      setShowAddCoupon(false);
-    } catch (err) {
-      setError(err.message || 'Failed to create coupon');
-    }
+  try {
+    const res = await authenticatedFetch(
+      `${process.env.NEXT_PUBLIC_BACKEND}/api/merchant/coupon/create`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+       body: JSON.stringify({
+        points_cost: Number(newCouponPoints.trim()),
+        discount_type: newCouponDiscountType,
+        discount_value: newCouponDiscountType === 'custom' ? null : Number(newCouponDiscountValue.trim()),
+        expires_at: newCouponExpiryMode === 'date' ? newCouponExpiryDate : null,
+        title: newCouponTitle.trim() || null,
+        description: newCouponDescription.trim() || null,
+      }),
+      }
+    );
+    if (!res.ok) throw new Error(`Request failed (${res.status})`);
+    const data = await res.json();
+    setCoupons((prev) => [...prev, data.coupon]);
+    setNewCouponPoints('');
+    setNewCouponDiscountType('percent');
+    setNewCouponDiscountValue('');
+    setNewCouponTitle('');
+    setNewCouponExpiryMode('none');
+    setNewCouponExpiryDate('');
+    setNewCouponDescription('');
+    setShowAddCoupon(false);
+  } catch (err) {
+    setError(err.message || 'Failed to create coupon');
   }
+}
 
 function requestRemoveCoupon(coupon) {
   setConfirmAction({ type: 'remove', coupon });
@@ -282,26 +297,26 @@ async function handleConfirm() {
       setError(err.message || 'Failed to deactivate coupon');
     }
   
-  } else if (type === 'remove') {
-    const previous = coupons;
-    setCoupons((prev) => prev.filter((c) => c.coupon_id !== coupon.coupon_id));
-    try {
-      const res = await authenticatedFetch(
-        `${process.env.NEXT_PUBLIC_BACKEND}/api/merchant/coupon/${coupon.coupon_id}`,
-        { method: 'DELETE' }
-      );
-      if (!res.ok) throw new Error(`Request failed (${res.status})`);
-      const data = await res.json();
-      if (data.deactivatedInsteadOfDeleted) {
-        // Had existing claims — backend deactivated instead of deleting it,
-        // so put it back in the list reflecting that state.
-        setCoupons((prev) => [...prev, { ...coupon, is_active: false }]);
+ } else if (type === 'remove') {
+  const previous = coupons;
+  setCoupons((prev) => prev.filter((c) => c.coupon_id !== coupon.coupon_id));
+  try {
+    const res = await authenticatedFetch(
+      `${process.env.NEXT_PUBLIC_BACKEND}/api/merchant/coupon/delete`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ couponId: coupon.coupon_id }),
       }
-    } catch (err) {
-      setCoupons(previous);
-      setError(err.message || 'Failed to remove coupon');
-    }
+    );
+    if (!res.ok) throw new Error(`Request failed (${res.status})`);
+    // Backend always soft-deletes (is_deleted = true), so no need to
+    // re-add the coupon to the list on success.
+  } catch (err) {
+    setCoupons(previous);
+    setError(err.message || 'Failed to remove coupon');
   }
+}
 }
 
   if (error) {
@@ -565,13 +580,60 @@ async function handleConfirm() {
           </div>
 
           <Dialog open={showAddCoupon} onOpenChange={setShowAddCoupon}>
-            <DialogContent className="sm:max-w-[400px]">
+            <DialogContent className="m:max-w-100">
               <DialogHeader>
                 <DialogTitle>Add coupon</DialogTitle>
                 <DialogDescription>
                   Create a new coupon customers can redeem with points.
                 </DialogDescription>
               </DialogHeader>
+              <div className="flex flex-col gap-1.5">
+  <Label htmlFor="coupon-title">
+    Name {newCouponDiscountType !== 'custom' && <span className="text-muted-foreground">(optional)</span>}
+  </Label>
+  <Input
+    id="coupon-title"
+    placeholder="e.g. Free 1 Drink, Room Upgrade, New Year Special"
+    value={newCouponTitle}
+    onChange={(e) => setNewCouponTitle(e.target.value)}
+  />
+</div>
+<div className="flex flex-col gap-1.5">
+  <Label htmlFor="coupon-description">
+    Description <span className="text-muted-foreground">(optional)</span>
+  </Label>
+  <Input
+    id="coupon-description"
+    placeholder="e.g. Dine-in only, valid weekdays"
+    value={newCouponDescription}
+    onChange={(e) => setNewCouponDescription(e.target.value)}
+  />
+</div>
+
+        <div className="flex flex-col gap-1.5">
+          <Label>Discount</Label>
+          <div className="flex gap-2">
+            {newCouponDiscountType !== 'custom' && (
+              <Input
+                type="number"
+                placeholder={newCouponDiscountType === 'amount' ? '1' : '10'}
+                value={newCouponDiscountValue}
+                onChange={(e) => setNewCouponDiscountValue(e.target.value)}
+                className="flex-1"
+              />
+            )}
+            <Select value={newCouponDiscountType} onValueChange={setNewCouponDiscountType}>
+              <SelectTrigger className={newCouponDiscountType === 'custom' ? 'flex-1' : 'w-[160px]'}>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {Object.entries(DISCOUNT_TYPES).map(([key, { label }]) => (
+                  <SelectItem key={key} value={key}>{label}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
               <div className="flex flex-col gap-4 py-2">
                 <div className="flex flex-col gap-1.5">
                   <Label htmlFor="coupon-points">Points to redeem</Label>
@@ -583,38 +645,7 @@ async function handleConfirm() {
                     onChange={(e) => setNewCouponPoints(e.target.value)}
                   />
                 </div>
-                <div className="flex flex-col gap-1.5">
-                  <Label>Discount</Label>
-                  <div className="flex gap-2">
-                    <Input
-                      type="number"
-                      placeholder={newCouponDiscountType === 'amount' ? '1' : '10'}
-                      value={newCouponDiscountValue}
-                      onChange={(e) => setNewCouponDiscountValue(e.target.value)}
-                      className="flex-1"
-                    />
-                    <Select
-                      value={newCouponDiscountType}
-                      onValueChange={setNewCouponDiscountType}
-                    >
-                      <SelectTrigger className="w-[160px]">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {Object.entries(DISCOUNT_TYPES).map(([key, { label }]) => (
-                          <SelectItem key={key} value={key}>
-                            {label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  {newCouponDiscountValue && (
-                    <p className="text-[12px] text-muted-foreground">
-                      Preview: {DISCOUNT_TYPES[newCouponDiscountType].format(newCouponDiscountValue)}
-                    </p>
-                  )}
-                </div>
+               
                 <div className="flex flex-col gap-1.5">
                   <Label>Expiration</Label>
                   <div className="flex gap-2">
@@ -668,29 +699,39 @@ async function handleConfirm() {
     <TableBody>
       {coupons.map((c) => (
         <TableRow key={c.coupon_id}>
-          <TableCell className="pl-0">
-            <div className="flex items-center gap-3">
-              <span
-                className={`inline-block w-1.5 h-1.5 rounded-full shrink-0 ${
-                  c.is_active ? 'bg-green-500' : 'bg-muted-foreground/30'
-                }`}
-              />
-              <div>
-                <p className="text-[13px]">
-                  {DISCOUNT_TYPES[c.discount_type]?.format(c.discount_value) ?? '—'}
-                </p>
-                <p className="text-[12px] mt-0.5 text-muted-foreground">
-                  {c.expires_at
-                    ? `Expires ${new Date(c.expires_at).toLocaleDateString(undefined, {
-                        year: 'numeric',
-                        month: 'short',
-                        day: 'numeric',
-                      })}`
-                    : 'Until turned off'}
-                </p>
-              </div>
-            </div>
-          </TableCell>
+        <TableCell className="pl-0">
+  <div className="flex items-center gap-3">
+    <span
+      className={`inline-block w-1.5 h-1.5 rounded-full shrink-0 ${
+        c.is_active ? 'bg-green-500' : 'bg-muted-foreground/30'
+      }`}
+    />
+    <div>
+      <div className="flex items-center gap-2 flex-wrap">
+        <p className="text-[13px]">{getCouponTitle(c)}</p>
+        {c.title && getCouponValueLabel(c) && (
+          <Badge variant="secondary" className="text-[10px] font-normal">
+            {getCouponValueLabel(c)}
+          </Badge>
+        )}
+      </div>
+      {c.description && (
+        <p className="text-[12px] mt-0.5 text-muted-foreground">
+          {c.description}
+        </p>
+      )}
+      <p className="text-[12px] mt-0.5 text-muted-foreground">
+        {c.expires_at
+          ? `Expires ${new Date(c.expires_at).toLocaleDateString(undefined, {
+              year: 'numeric',
+              month: 'short',
+              day: 'numeric',
+            })}`
+          : 'Until turned off'}
+      </p>
+    </div>
+  </div>
+</TableCell>
           <TableCell className="text-muted-foreground font-mono text-[13px]">
             {c.points_cost} pts
           </TableCell>
