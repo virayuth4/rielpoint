@@ -192,8 +192,6 @@ export default function WalletPage() {
   const context = useContext(AuthContext);
   const currentUser = context?.currentUser || null;
 
-  const displayBalance = isAuthenticated ? balance : guest.status === 'success' ? guest.balance : null;
-
   async function viewOtp(claim) {
     setViewingOtpId(claim.claim_id);
     try {
@@ -221,223 +219,220 @@ export default function WalletPage() {
           Wallet
         </p>
 
-        {/* Balance card */}
-        <div className="rounded-2xl px-6 py-7 mb-10" style={{ background: '#0F0F0E' }}>
-          <div className="flex items-center justify-between mb-8">
-            <span className="text-xs font-semibold tracking-wide" style={{ color: '#F5F5F0' }}>
-              RielPoint
-            </span>
-            <span className="h-6 w-9 rounded-sm" style={{ background: '#1F5C3F' }} aria-hidden="true" />
-          </div>
-
-          <p className="text-xs mb-1" style={{ color: '#9A9A94' }}>
-            Available balance
-          </p>
-          <div className="flex items-baseline gap-2">
-            <span className="text-4xl font-semibold" style={{ color: '#FFFFFF', fontFamily: 'var(--font-mono)' }}>
-              {(displayBalance ?? 0).toLocaleString()}
-            </span>
-            <span className="text-sm" style={{ color: '#9A9A94' }}>
-              pts
-            </span>
-          </div>
-
-          <div className="mt-8 flex items-center justify-between">
-            <span className="text-xs tracking-wider" style={{ color: '#FFFFFF', fontFamily: 'var(--font-mono)' }}>
-              {currentUser?.customer_number}
-            </span>
-            <span className="text-xs" style={{ color: '#FFFFFF' }}>
-              {currentUser?.fullname?.toUpperCase()}
-            </span>
-          </div>
-        </div>
-
-        {/* Your coupons */}
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-sm font-semibold" style={{ color: '#0F0F0E' }}>
-            Your coupons
-          </h2>
-          {isAuthenticated && couponsStatus === 'success' && (
-            <span className="text-xs" style={{ color: '#9A9A9A' }}>
-              {myCoupons.length}
-            </span>
-          )}
-        </div>
-
         {authLoading && (
           <p className="text-sm text-center py-10" style={{ color: '#9A9A9A' }}>
             Loading…
           </p>
         )}
 
-        {!authLoading && !isAuthenticated && (
-          <div className="rounded-2xl px-5 py-6 mb-10 text-center" style={{ background: '#F8F8F5' }}>
-            <p className="text-sm font-medium mb-1" style={{ color: '#0F0F0E' }}>
-              Log in to see your coupons
-            </p>
-            <p className="text-xs" style={{ color: '#9A9A9A' }}>
-              Claimed coupons and redemption codes are tied to your account.
-            </p>
-          </div>
-        )}
+        {/* Signed-in: balance card, coupons, history */}
+        {!authLoading && isAuthenticated && (
+          <>
+            {/* Balance card */}
+            <div className="rounded-2xl px-6 py-7 mb-10" style={{ background: '#0F0F0E' }}>
+              <div className="flex items-center justify-between mb-8">
+                <span className="text-xs font-semibold tracking-wide" style={{ color: '#F5F5F0' }}>
+                  RielPoint
+                </span>
+                <span className="h-6 w-9 rounded-sm" style={{ background: '#1F5C3F' }} aria-hidden="true" />
+              </div>
 
-        {!authLoading && isAuthenticated && couponsStatus === 'loading' && (
-          <p className="text-sm text-center py-10" style={{ color: '#9A9A9A' }}>
-            Loading coupons…
-          </p>
-        )}
+              <p className="text-xs mb-1" style={{ color: '#9A9A94' }}>
+                Available balance
+              </p>
+              <div className="flex items-baseline gap-2">
+                <span className="text-4xl font-semibold" style={{ color: '#FFFFFF', fontFamily: 'var(--font-mono)' }}>
+                  {(balance ?? 0).toLocaleString()}
+                </span>
+                <span className="text-sm" style={{ color: '#9A9A94' }}>
+                  pts
+                </span>
+              </div>
 
-        {!authLoading && isAuthenticated && couponsStatus === 'error' && (
-          <p className="text-sm text-center py-10" style={{ color: '#B3453D' }}>
-            Couldn&apos;t load your coupons. Pull to refresh or try again later.
-          </p>
-        )}
+              <div className="mt-8 flex items-center justify-between">
+                <span className="text-xs tracking-wider" style={{ color: '#FFFFFF', fontFamily: 'var(--font-mono)' }}>
+                  {currentUser?.customer_number}
+                </span>
+                <span className="text-xs" style={{ color: '#FFFFFF' }}>
+                  {currentUser?.fullname?.toUpperCase()}
+                </span>
+              </div>
+            </div>
 
-        {!authLoading && isAuthenticated && couponsStatus === 'success' && (
-          <div className="mb-10">
-            {myCoupons.map((c, i) => {
-              const otpExpired = c.otp_expires_at && new Date(c.otp_expires_at) <= new Date();
-              const isRedeemed = !!c.redeemed_at;
-              const isClickable = !otpExpired && !isRedeemed;
+            {/* Your coupons */}
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-sm font-semibold" style={{ color: '#0F0F0E' }}>
+                Your coupons
+              </h2>
+              {couponsStatus === 'success' && (
+                <span className="text-xs" style={{ color: '#9A9A9A' }}>
+                  {myCoupons.length}
+                </span>
+              )}
+            </div>
 
-              let statusLabel;
-              let statusColor = '#9A9A9A';
-              if (isRedeemed) {
-                statusLabel = `Redeemed ${new Date(c.redeemed_at).toLocaleDateString('en-US', {
-                  month: 'short',
-                  day: 'numeric',
-                })}`;
-              } else if (otpExpired) {
-                statusLabel = 'Expired';
-              } else if (viewingOtpId === c.claim_id) {
-                statusLabel = 'Loading…';
-              } else {
-                statusLabel = 'Tap for code';
-                statusColor = '#1F5C3F';
-              }
+            {couponsStatus === 'loading' && (
+              <p className="text-sm text-center py-10" style={{ color: '#9A9A9A' }}>
+                Loading coupons…
+              </p>
+            )}
 
-              return (
-                <div
-                  key={c.claim_id}
-                  className="flex items-center justify-between py-4"
-                  style={{
-                    borderTop: i === 0 ? 'none' : '1px solid #EFEFED',
-                    cursor: isClickable ? 'pointer' : 'default',
-                  }}
-                  onClick={() => isClickable && viewOtp(c)}
-                >
-                  <div className="flex items-center gap-3">
-                    <span
-                      className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-xs font-semibold"
-                      style={{ background: '#F3F3EF', color: '#0F0F0E' }}
+            {couponsStatus === 'error' && (
+              <p className="text-sm text-center py-10" style={{ color: '#B3453D' }}>
+                Couldn&apos;t load your coupons. Pull to refresh or try again later.
+              </p>
+            )}
+
+            {couponsStatus === 'success' && (
+              <div className="mb-10">
+                {myCoupons.map((c, i) => {
+                  const otpExpired = c.otp_expires_at && new Date(c.otp_expires_at) <= new Date();
+                  const isRedeemed = !!c.redeemed_at;
+                  const isClickable = !otpExpired && !isRedeemed;
+
+                  let statusLabel;
+                  let statusColor = '#9A9A9A';
+                  if (isRedeemed) {
+                    statusLabel = `Redeemed ${new Date(c.redeemed_at).toLocaleDateString('en-US', {
+                      month: 'short',
+                      day: 'numeric',
+                    })}`;
+                  } else if (otpExpired) {
+                    statusLabel = 'Expired';
+                  } else if (viewingOtpId === c.claim_id) {
+                    statusLabel = 'Loading…';
+                  } else {
+                    statusLabel = 'Tap for code';
+                    statusColor = '#1F5C3F';
+                  }
+
+                  return (
+                    <div
+                      key={c.claim_id}
+                      className="flex items-center justify-between py-4"
+                      style={{
+                        borderTop: i === 0 ? 'none' : '1px solid #EFEFED',
+                        cursor: isClickable ? 'pointer' : 'default',
+                      }}
+                      onClick={() => isClickable && viewOtp(c)}
                     >
-                      {initialFor(c.merchant_name)}
-                    </span>
-                    <div>
-                      <p className="text-sm font-medium" style={{ color: '#0F0F0E' }}>
-                        {DISCOUNT_TYPES[c.discount_type]?.format(c.discount_value) ?? '—'}
+                      <div className="flex items-center gap-3">
+                        <span
+                          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-xs font-semibold"
+                          style={{ background: '#F3F3EF', color: '#0F0F0E' }}
+                        >
+                          {initialFor(c.merchant_name)}
+                        </span>
+                        <div>
+                          <p className="text-sm font-medium" style={{ color: '#0F0F0E' }}>
+                            {DISCOUNT_TYPES[c.discount_type]?.format(c.discount_value) ?? '—'}
+                          </p>
+                          <p className="text-xs" style={{ color: '#9A9A9A' }}>
+                            {c.merchant_name || 'Unassigned'} &middot; {c.points_cost} pts
+                          </p>
+                        </div>
+                      </div>
+
+                      <p className="text-xs font-medium" style={{ color: statusColor }}>
+                        {statusLabel}
                       </p>
-                      <p className="text-xs" style={{ color: '#9A9A9A' }}>
-                        {c.merchant_name || 'Unassigned'} &middot; {c.points_cost} pts
+                    </div>
+                  );
+                })}
+
+                {myCoupons.length === 0 && (
+                  <p className="text-sm text-center py-10" style={{ color: '#9A9A9A' }}>
+                    You haven&apos;t claimed any coupons yet.
+                  </p>
+                )}
+              </div>
+            )}
+
+            {/* History */}
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-sm font-semibold" style={{ color: '#0F0F0E' }}>
+                Points history
+              </h2>
+              {status === 'success' && (
+                <span className="text-xs" style={{ color: '#9A9A9A' }}>
+                  {transactions.length} this month
+                </span>
+              )}
+            </div>
+
+            {status === 'loading' && (
+              <p className="text-sm text-center py-10" style={{ color: '#9A9A9A' }}>
+                Loading redemptions…
+              </p>
+            )}
+
+            {status === 'error' && (
+              <p className="text-sm text-center py-10" style={{ color: '#B3453D' }}>
+                Couldn&apos;t load your redemption history. Pull to refresh or try again later.
+              </p>
+            )}
+
+            {status === 'success' && (
+              <div>
+                {transactions.map((item, i) => (
+                  <div
+                    key={item.id}
+                    className="flex items-center justify-between py-4"
+                    style={{ borderTop: i === 0 ? 'none' : '1px solid #EFEFED' }}
+                  >
+                    <div className="flex items-center gap-3">
+                      <span
+                        className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-xs font-semibold"
+                        style={{ background: '#F3F3EF', color: '#0F0F0E' }}
+                      >
+                        {item.initial}
+                      </span>
+                      <div>
+                        <p className="text-sm font-medium" style={{ color: '#0F0F0E' }}>
+                          {item.shop}
+                        </p>
+                        <p className="text-xs" style={{ color: '#9A9A9A' }}>
+                          {item.date} &middot; {item.time}
+                          {item.amountLabel ? ` \u00b7 ${item.amountLabel}` : ''}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="text-right">
+                      <p className="text-sm font-medium" style={{ color: '#1F5C3F' }}>
+                        {item.points != null ? `+${item.points} pts` : ''}
+                      </p>
+                      <p className="text-[11px]" style={{ color: '#B8B8B2', fontFamily: 'var(--font-mono)' }}>
+                        {item.code}
                       </p>
                     </div>
                   </div>
+                ))}
 
-                  <p className="text-xs font-medium" style={{ color: statusColor }}>
-                    {statusLabel}
+                {transactions.length === 0 && (
+                  <p className="text-sm text-center py-10" style={{ color: '#9A9A9A' }}>
+                    No redemptions yet.
                   </p>
-                </div>
-              );
-            })}
-
-            {myCoupons.length === 0 && (
-              <p className="text-sm text-center py-10" style={{ color: '#9A9A9A' }}>
-                You haven&apos;t claimed any coupons yet.
-              </p>
-            )}
-          </div>
-        )}
-
-        {/* History */}
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-sm font-semibold" style={{ color: '#0F0F0E' }}>
-            Points history
-          </h2>
-          {isAuthenticated && status === 'success' && (
-            <span className="text-xs" style={{ color: '#9A9A9A' }}>
-              {transactions.length} this month
-            </span>
-          )}
-        </div>
-
-        {authLoading && (
-          <p className="text-sm text-center py-10" style={{ color: '#9A9A9A' }}>
-            Loading…
-          </p>
-        )}
-
-        {!authLoading && isAuthenticated && status === 'loading' && (
-          <p className="text-sm text-center py-10" style={{ color: '#9A9A9A' }}>
-            Loading redemptions…
-          </p>
-        )}
-
-        {!authLoading && isAuthenticated && status === 'error' && (
-          <p className="text-sm text-center py-10" style={{ color: '#B3453D' }}>
-            Couldn&apos;t load your redemption history. Pull to refresh or try again later.
-          </p>
-        )}
-
-        {!authLoading && isAuthenticated && status === 'success' && (
-          <div>
-            {transactions.map((item, i) => (
-              <div
-                key={item.id}
-                className="flex items-center justify-between py-4"
-                style={{ borderTop: i === 0 ? 'none' : '1px solid #EFEFED' }}
-              >
-                <div className="flex items-center gap-3">
-                  <span
-                    className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-xs font-semibold"
-                    style={{ background: '#F3F3EF', color: '#0F0F0E' }}
-                  >
-                    {item.initial}
-                  </span>
-                  <div>
-                    <p className="text-sm font-medium" style={{ color: '#0F0F0E' }}>
-                      {item.shop}
-                    </p>
-                    <p className="text-xs" style={{ color: '#9A9A9A' }}>
-                      {item.date} &middot; {item.time}
-                      {item.amountLabel ? ` \u00b7 ${item.amountLabel}` : ''}
-                    </p>
-                  </div>
-                </div>
-
-                <div className="text-right">
-                  <p className="text-sm font-medium" style={{ color: '#1F5C3F' }}>
-                    {item.points != null ? `+${item.points} pts` : ''}
-                  </p>
-                  <p className="text-[11px]" style={{ color: '#B8B8B2', fontFamily: 'var(--font-mono)' }}>
-                    {item.code}
-                  </p>
-                </div>
+                )}
               </div>
-            ))}
-
-            {transactions.length === 0 && (
-              <p className="text-sm text-center py-10" style={{ color: '#9A9A9A' }}>
-                No redemptions yet.
-              </p>
             )}
-          </div>
+          </>
         )}
 
-        {/* Guest: phone lookup instead of coupons/history */}
+        {/* Signed-out: phone lookup + point history only. No wallet, no coupons. */}
         {!authLoading && !isAuthenticated && (
           <div>
+            <h2 className="text-sm font-semibold mb-3" style={{ color: '#0F0F0E' }}>
+              Points history
+            </h2>
+              <p className="text-sm mb-3" style={{ color: '#9A9A9A' }}>
+              Sign in to see your points history.
+            </p>
+              <p className="text-sm mb-3" style={{ color: '#9A9A9A' }}>
+              OR
+            </p>
             <p className="text-sm mb-3" style={{ color: '#9A9A9A' }}>
-              Not logged in. Enter your phone number to check your points and recent transactions.
+              Enter your phone number to check your points and recent transactions.
             </p>
 
             <form
@@ -480,6 +475,20 @@ export default function WalletPage() {
 
             {guest.status === 'success' && (
               <div>
+                {guest.balance != null && (
+                  <div className="flex items-baseline justify-between mb-4">
+                    <span className="text-xs" style={{ color: '#9A9A9A' }}>
+                      Total points
+                    </span>
+                    <span
+                      className="text-lg font-semibold"
+                      style={{ color: '#0F0F0E', fontFamily: 'var(--font-mono)' }}
+                    >
+                      {guest.balance.toLocaleString()} pts
+                    </span>
+                  </div>
+                )}
+
                 {guest.transactions.map((item, i) => (
                   <div
                     key={item.id}
