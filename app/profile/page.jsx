@@ -92,28 +92,9 @@ export default function ProfilePage() {
 
   if (status === 'unauthenticated') {
     return (
-      <div className="max-w-lg mx-auto py-12 px-6 text-center">
-        <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-neutral-900">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            className="h-6 w-6 text-white"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-            strokeWidth={2}
-          >
-            <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-          </svg>
-        </div>
-        <h1 className="mt-4 text-lg font-semibold text-neutral-900">
-          Sign up and claim your reward
-        </h1>
-        <p className="mt-2 text-sm text-neutral-500">
-          Create an account to unlock your profile and start earning rewards.
-        </p>
-        <LoginForm/>
+      router.push('/login')
      
-      </div>
+    
     )
   }
 

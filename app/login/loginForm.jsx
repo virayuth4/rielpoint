@@ -1,11 +1,11 @@
 'use client'
 import React, { useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Loader2 } from 'lucide-react';
 import { useRouter, useSearchParams } from 'next/navigation';
 
 import { useLoginLogic } from '../auth/useLoginLogic';
+
+
 
 export default function LoginForm() {
   const [phone, setPhone] = useState('');
@@ -14,28 +14,28 @@ export default function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const callback = searchParams.get('callback');
-  
+
   const { error, isLoading, phoneEmailSignIn, goToSignup } = useLoginLogic({ isModal: false });
- 
-  
+
+
   const handlePhoneChange = (e) => {
     const value = e.target.value.replace(/\D/g, '');
     if (value.length <= 11) {
       setPhone(value);
     }
   };
-  
+
   const isPhoneNumberValid = () => {
     return phone.length >= 8 && phone.length <= 11;
   };
 
   const handleSignIn = async (e) => {
     e.preventDefault();
-    
-    const formattedPhone = phone.startsWith('0') 
-      ? phone.substring(1) 
+
+    const formattedPhone = phone.startsWith('0')
+      ? phone.substring(1)
       : phone;
-    
+
     try {
       const result = await phoneEmailSignIn(formattedPhone, password);
       if (result) {
@@ -51,106 +51,117 @@ export default function LoginForm() {
   };
 
   return (
-    <div className="min-h-screen bg-white flex flex-col justify-between p-6 md:p-12 font-mono text-xs uppercase tracking-wider text-black">
-      {/* Top spacing to replicate luxury e-commerce grid flow */}
+    <div className="font-body min-h-screen bg-[var(--paper)] text-[var(--ink)] flex flex-col justify-between p-6 md:p-12">
+      <style></style>
+
+      {/* Top spacing */}
       <div className="hidden md:block"></div>
 
-      <div className="w-full max-w-[320px] mx-auto my-auto space-y-8">
+      <div className="w-full max-w-[360px] mx-auto my-auto">
         {/* Header */}
-        <div className="text-left border-b border-black pb-2">
-          <h1 className="text-sm font-normal tracking-widest">
-            {("Login")}
+        <div className="border-b border-[var(--ink)]/15 pb-4">
+          <p className="font-tape text-[10px] uppercase tracking-[0.22em] text-[var(--ink)]/50">
+            Welcome back
+          </p>
+          <h1 className="mt-1  text-3xl font-semibold tracking-tight">
+            Login
           </h1>
         </div>
 
         {/* Error Message */}
         {error && (
-          <div className="p-3 border border-black bg-neutral-50 text-stone-600 normal-case tracking-normal">
-            <p>{error}</p>
+          <div className="mt-6 border border-[var(--ink)]/20 bg-[var(--paper-dim)] px-3 py-2 text-[var(--ink)]">
+            <p className="text-sm">{error}</p>
           </div>
         )}
 
         {/* Form */}
-        <form onSubmit={handleSignIn} className="space-y-4">
+        <form onSubmit={handleSignIn} className="mt-8 space-y-5">
           {/* Phone Number Field */}
-          <div className="space-y-1">
-            <Input
+          <div>
+            <label htmlFor="phone" className="font-tape text-[10px] uppercase tracking-[0.22em] text-[var(--ink)]/50">
+              Phone number
+            </label>
+            <input
               id="phone"
               type="tel"
-              placeholder={("Phone Number")}
+              placeholder="012 xxx 456"
               value={phone}
               onChange={handlePhoneChange}
               required
-              className="w-full h-10 px-0 bg-transparent border-0 border-b border-stone-300 rounded-none text-black placeholder:text-stone-400 focus-visible:border-black focus-visible:ring-0 focus-visible:outline-none transition-colors duration-200"
+              className="mt-2 w-full border border-[var(--ink)]/25 bg-white px-3 py-2.5 text-sm text-[var(--ink)] outline-none placeholder:text-[var(--ink)]/30 focus:border-[var(--ink)] disabled:opacity-50 transition-colors duration-200"
               disabled={isLoading}
               autoComplete="tel"
             />
           </div>
 
           {/* Password Field */}
-          <div className="space-y-1 relative">
-            <Input
+          <div>
+            <div className="flex items-baseline justify-between">
+              <label htmlFor="password" className="font-tape text-[10px] uppercase tracking-[0.22em] text-[var(--ink)]/50">
+                Password
+              </label>
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="font-tape text-[10px] uppercase tracking-[0.18em] text-[var(--ink)]/50 hover:text-[var(--ink)] transition-colors duration-200 focus:outline-none"
+                aria-label={showPassword ? "Hide password" : "Show password"}
+              >
+                {showPassword ? "Hide" : "Show"}
+              </button>
+            </div>
+            <input
               id="password"
               type={showPassword ? "text" : "password"}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
-              placeholder={("Password")}
-              className="w-full h-10 px-0 pr-12 bg-transparent border-0 border-b border-stone-300 rounded-none text-black placeholder:text-stone-400 focus-visible:border-black focus-visible:ring-0 focus-visible:outline-none transition-colors duration-200"
+              placeholder="••••••••"
+              className="mt-2 w-full border border-[var(--ink)]/25 bg-white px-3 py-2.5 text-sm text-[var(--ink)] outline-none placeholder:text-[var(--ink)]/30 focus:border-[var(--ink)] disabled:opacity-50 transition-colors duration-200"
               disabled={isLoading}
               autoComplete="current-password"
             />
-            <button
-              type="button"
-              onClick={() => setShowPassword(!showPassword)}
-              className="absolute right-0 top-1/2 -translate-y-1/2 text-stone-400 hover:text-black transition-colors duration-200 text-[10px] tracking-widest focus:outline-none"
-              aria-label={showPassword ? "Hide password" : "Show password"}
-            >
-              {showPassword ? "HIDE" : "SHOW"}
-            </button>
           </div>
 
           {/* Submit Button */}
-          <div className="pt-4">
-            <Button 
-              className="w-full h-11 bg-black hover:bg-neutral-800 text-white font-normal tracking-widest rounded-none border-0 shadow-none transition-colors duration-200 disabled:opacity-30 disabled:bg-black"
-              type="submit" 
-              disabled={isLoading || !isPhoneNumberValid() || !password}
-            >
-              {isLoading ? (
-                <div className="flex items-center justify-center space-x-2">
-                  <Loader2 className="h-3 w-3 animate-spin" />
-                  <span>PROCESSING...</span>
-                </div>
-              ) : (
-                <span>LOGIN</span>
-              )}
-            </Button>
-          </div>
+          <button
+            type="submit"
+            disabled={isLoading || !isPhoneNumberValid() || !password}
+            className="press flex w-full items-center justify-center gap-2 bg-[var(--ink)] px-6 py-3 font-tape text-xs uppercase tracking-[0.2em] text-[var(--paper)] hover:opacity-90 disabled:opacity-30 transition-colors duration-200"
+          >
+            {isLoading ? (
+              <>
+                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                <span>Processing...</span>
+              </>
+            ) : (
+              <span>Login</span>
+            )}
+          </button>
         </form>
 
         {/* Footer Links */}
-        <div className="flex flex-col space-y-2 text-[10px] text-stone-500 tracking-widest pt-2">
-          <button 
+        <div className="mt-6 flex flex-col gap-2 border-t border-dashed border-(--ink)/20 pt-6">
+          <button
             onClick={goToSignup}
             disabled={isLoading}
-            className="text-left hover:text-black transition-colors duration-200 focus:outline-none"
+            className="text-left font-tape text-[10px] uppercase tracking-[0.18em] text-(--ink)/55 hover:text-ink transition-colors duration-200 focus:outline-none"
           >
-            {("Create an account")}
+            Create an account
           </button>
           <button
             onClick={() => router.push('/forgot-password')}
             disabled={isLoading}
-            className="text-left hover:text-black transition-colors duration-200 focus:outline-none"
+            className="text-left font-tape text-[10px] uppercase tracking-[0.18em] text-[var(--ink)]/55 hover:text-[var(--ink)] transition-colors duration-200 focus:outline-none"
           >
-            {("Forgot password?")}
+            Forgot password?
           </button>
         </div>
       </div>
 
-      {/* Subtle branding or copyright alignment at the bottom */}
-      <div className="text-center md:text-left text-[9px] text-stone-400 tracking-widest mt-auto pt-12">
-        © {new Date().getFullYear()} ALL RIGHTS RESERVED
+      {/* Branding footer */}
+      <div className="text-center md:text-left font-tape text-[9px] uppercase tracking-[0.22em] text-[var(--ink)]/40 mt-auto pt-12">
+        © {new Date().getFullYear()} RielPoint. All rights reserved.
       </div>
     </div>
   );

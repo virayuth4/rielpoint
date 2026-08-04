@@ -70,7 +70,7 @@ const EmployeeNavigationBar = () => {
         </div>
 
         <button 
-          onClick={handleSwitchAccount}
+          onClick={handleSignOut}
           className="text-xs text-stone-300 hover:text-white transition-colors py-1.5 px-3 rounded-full bg-white/10 hover:bg-white/15 border border-white/10"
         >
           Switch account
