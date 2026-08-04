@@ -239,7 +239,7 @@ export default function CouponsPage() {
             Rewards
           </p>
           <h1 className="text-[28px] leading-tight tracking-tight font-semibold font-serif">
-            Coupons
+            Rewards & Coupons
           </h1>
         </header>
 

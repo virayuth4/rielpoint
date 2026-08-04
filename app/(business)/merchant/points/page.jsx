@@ -34,19 +34,18 @@ export default function CreditPointsPage() {
   // "same submission, resend" apart from "new submission". Cleared once
   // the attempt succeeds or the form is reset.
   function generateId() {
-  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
-    return crypto.randomUUID();
+    if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+      return crypto.randomUUID();
+    }
+    // Fallback UUID v4 generator for insecure contexts / older browsers
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
+      const r = (Math.random() * 16) | 0;
+      const v = c === 'x' ? r : (r & 0x3) | 0x8;
+      return v.toString(16);
+    });
   }
-  // Fallback UUID v4 generator for insecure contexts / older browsers
-  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
-    const r = (Math.random() * 16) | 0;
-    const v = c === 'x' ? r : (r & 0x3) | 0x8;
-    return v.toString(16);
-  });
-}
 
   const idempotencyKeyRef = useRef(null);
-  
 
   const numericAmount = Number(amount);
   const isValid = phone.trim().length >= 8 && numericAmount > 0;
@@ -111,7 +110,6 @@ export default function CreditPointsPage() {
       }
 
       const data = await response.json();
-      // console.log('API response:', data);
 
       setResult({
         phone: data.phone,
@@ -151,20 +149,20 @@ export default function CreditPointsPage() {
   return (
     <main className={`${inter.variable} ${mono.variable} min-h-screen bg-white font-sans`}>
       <div className="mx-auto max-w-md px-6 pt-10 pb-20">
-        <p className="mb-6 text-[11px] font-semibold uppercase tracking-[0.18em] text-amber-700/70">
+        <p className="mb-6 text-[11px] font-semibold uppercase tracking-[0.18em] text-neutral-400">
           Merchant
         </p>
 
-        <h1 className="mb-2 text-2xl font-semibold text-stone-900">Credit points</h1>
-        <p className="mb-8 text-sm text-stone-400">
+        <h1 className="mb-2 text-2xl font-semibold text-black">Credit points</h1>
+        <p className="mb-8 text-sm text-neutral-500">
           Enter the customer&apos;s phone number and purchase amount, then choose
           how many points to award.
         </p>
 
         {!result ? (
-          <div className="rounded-2xl border border-stone-100 bg-white px-5 py-6 shadow-sm">
+          <div className="rounded-2xl border border-neutral-200 bg-white px-5 py-6">
             {/* Phone Number Input */}
-            <label className="mb-1 block text-xs font-medium text-stone-500">
+            <label className="mb-1 block text-xs font-medium text-neutral-500">
               Phone number
             </label>
             <input
@@ -175,15 +173,15 @@ export default function CreditPointsPage() {
                 idempotencyKeyRef.current = null; // form content changed → new attempt
               }}
               placeholder="0977 123 456"
-              className="mb-5 w-full rounded-xl border border-stone-200 px-4 py-3 font-mono text-base md:text-sm text-stone-900 outline-none focus:border-amber-400"
+              className="mb-5 w-full rounded-xl border border-neutral-200 px-4 py-3 font-mono text-base md:text-sm text-black outline-none focus:border-black"
             />
 
             {/* Currency Selector & Label */}
             <div className="mb-1.5 flex items-center justify-between">
-              <label className="text-xs font-medium text-stone-500">
+              <label className="text-xs font-medium text-neutral-500">
                 Total amount ({currency})
               </label>
-              <div className="flex gap-1 rounded-lg bg-stone-100 p-0.5 text-xs font-medium">
+              <div className="flex gap-1 rounded-lg bg-neutral-100 p-0.5 text-xs font-medium">
                 <button
                   type="button"
                   onClick={() => {
@@ -192,8 +190,8 @@ export default function CreditPointsPage() {
                   }}
                   className={`rounded-md px-2.5 py-1 transition-colors ${
                     currency === 'USD'
-                      ? 'bg-white font-semibold text-stone-900 shadow-sm'
-                      : 'text-stone-500 hover:text-stone-900'
+                      ? 'bg-black font-semibold text-white'
+                      : 'text-neutral-500 hover:text-black'
                   }`}
                 >
                   $ USD
@@ -206,8 +204,8 @@ export default function CreditPointsPage() {
                   }}
                   className={`rounded-md px-2.5 py-1 transition-colors ${
                     currency === 'KHR'
-                      ? 'bg-white font-semibold text-stone-900 shadow-sm'
-                      : 'text-stone-500 hover:text-stone-900'
+                      ? 'bg-black font-semibold text-white'
+                      : 'text-neutral-500 hover:text-black'
                   }`}
                 >
                   ៛ KHR
@@ -227,25 +225,25 @@ export default function CreditPointsPage() {
                 placeholder={currency === 'USD' ? '10.00' : '40010'}
                 min="0"
                 step={currency === 'USD' ? '0.01' : '100'}
-                className="w-full rounded-xl border border-stone-200 px-4 py-3 font-mono text-base md:text-sm text-stone-900 outline-none focus:border-amber-400"
+                className="w-full rounded-xl border border-neutral-200 px-4 py-3 font-mono text-base md:text-sm text-black outline-none focus:border-black"
               />
               {convertedDisplay && (
-                <span className="mt-1 block text-right font-mono text-xs font-medium text-amber-700">
+                <span className="mt-1 block text-right font-mono text-xs font-medium text-neutral-500">
                   {convertedDisplay}
                 </span>
               )}
             </div>
 
             {/* Conversion Rate Banner */}
-            <div className="mb-5 flex items-center justify-between rounded-xl border border-stone-100 bg-stone-50/80 px-3.5 py-2 text-xs text-stone-500">
+            <div className="mb-5 flex items-center justify-between rounded-xl border border-neutral-200 bg-neutral-50 px-3.5 py-2 text-xs text-neutral-500">
               <span>Exchange rate</span>
-              <span className="font-mono font-medium text-stone-700">
+              <span className="font-mono font-medium text-black">
                 $1 = {KHR_PER_USD.toLocaleString()} KHR
               </span>
             </div>
 
             {/* Points Rate Options */}
-            <label className="mb-2 block text-xs font-medium text-stone-500">
+            <label className="mb-2 block text-xs font-medium text-neutral-500">
               Points rate
             </label>
             <div className="mb-6 flex gap-2">
@@ -256,10 +254,10 @@ export default function CreditPointsPage() {
                     setRate(option);
                     idempotencyKeyRef.current = null;
                   }}
-                  className={`flex-1 rounded-xl py-2.5 text-sm font-semibold transition-colors ${
+                  className={`flex-1 rounded-xl border py-2.5 text-sm font-semibold transition-colors ${
                     rate === option
-                      ? 'bg-stone-900 text-white'
-                      : 'bg-stone-50 text-stone-500'
+                      ? 'border-black bg-black text-white'
+                      : 'border-neutral-200 bg-white text-neutral-500'
                   }`}
                 >
                   {option}%
@@ -268,16 +266,17 @@ export default function CreditPointsPage() {
             </div>
 
             {/* Points Preview */}
-            <div className="mb-6 flex items-center justify-between rounded-xl bg-amber-50 px-4 py-3">
-              <span className="text-xs text-stone-500">Points to credit</span>
-              <span className="font-mono text-lg font-semibold text-amber-700">
+            <div className="mb-6 flex items-center justify-between rounded-xl border border-neutral-200 bg-neutral-50 px-4 py-3">
+              <span className="text-xs text-neutral-500">Points to credit</span>
+              <span className="font-mono text-lg font-semibold text-black">
                 {pointsToCredit.toLocaleString()} pts
               </span>
             </div>
 
             {error && (
-              <div className="mb-4 rounded-xl bg-red-50 px-4 py-3 text-xs font-medium text-red-700">
-                {error}
+              <div className="mb-4 flex items-start gap-2 rounded-xl border border-black px-4 py-3 text-xs font-medium text-black">
+                <span aria-hidden="true">⚠</span>
+                <span>{error}</span>
               </div>
             )}
 
@@ -293,63 +292,63 @@ export default function CreditPointsPage() {
           </div>
         ) : (
           /* Result View */
-          <div className="rounded-2xl border border-stone-100 bg-white px-5 py-6 shadow-sm">
+          <div className="rounded-2xl border border-neutral-200 bg-white px-5 py-6">
             <div className="mb-5 flex items-center justify-between">
-              <span className="rounded-full bg-green-50 px-2.5 py-1 text-xs font-bold text-green-700">
-                Credited
+              <span className="flex items-center gap-1.5 rounded-full border border-black px-2.5 py-1 text-xs font-bold text-black">
+                <span aria-hidden="true">✓</span> Credited
               </span>
-              <button onClick={handleReset} className="text-xs text-stone-400">
+              <button onClick={handleReset} className="text-xs text-neutral-500 hover:text-black">
                 Credit another
               </button>
             </div>
 
             <div className="flex items-center justify-between py-2">
-              <span className="text-xs text-stone-400">Customer</span>
-              <span className="text-sm font-medium text-stone-900">{result.name}</span>
+              <span className="text-xs text-neutral-500">Customer</span>
+              <span className="text-sm font-medium text-black">{result.name}</span>
             </div>
-            <div className="flex items-center justify-between border-t border-stone-100 py-2">
-              <span className="text-xs text-stone-400">Phone</span>
-              <span className="font-mono text-sm text-stone-900">{result.phone}</span>
+            <div className="flex items-center justify-between border-t border-neutral-200 py-2">
+              <span className="text-xs text-neutral-500">Phone</span>
+              <span className="font-mono text-sm text-black">{result.phone}</span>
             </div>
-            <div className="flex items-center justify-between border-t border-stone-100 py-2">
-              <span className="text-xs text-stone-400">Amount entered</span>
-              <span className="font-mono text-sm text-stone-900">
+            <div className="flex items-center justify-between border-t border-neutral-200 py-2">
+              <span className="text-xs text-neutral-500">Amount entered</span>
+              <span className="font-mono text-sm text-black">
                 {result.amount.toLocaleString()}{' '}
                 {result.currency === 'USD' ? 'USD ($)' : 'KHR (៛)'}
               </span>
             </div>
             {result.currency === 'KHR' && (
-              <div className="flex items-center justify-between border-t border-stone-100 py-2">
-                <span className="text-xs text-stone-400">USD value ($1 = 4,001 ៛)</span>
-                <span className="font-mono text-sm text-stone-900">
+              <div className="flex items-center justify-between border-t border-neutral-200 py-2">
+                <span className="text-xs text-neutral-500">USD value ($1 = 4,001 ៛)</span>
+                <span className="font-mono text-sm text-black">
                   ${result.usdAmount.toFixed(2)} USD
                 </span>
               </div>
             )}
-            <div className="flex items-center justify-between border-t border-stone-100 py-2">
-              <span className="text-xs text-stone-400">Rate applied</span>
-              <span className="text-sm text-stone-900">{result.rate}%</span>
+            <div className="flex items-center justify-between border-t border-neutral-200 py-2">
+              <span className="text-xs text-neutral-500">Rate applied</span>
+              <span className="text-sm text-black">{result.rate}%</span>
             </div>
-            <div className="flex items-center justify-between border-t border-stone-100 py-2">
-              <span className="text-xs text-stone-400">Points credited</span>
-              <span className="font-mono text-sm font-semibold text-green-700">
+            <div className="flex items-center justify-between border-t border-neutral-200 py-2">
+              <span className="text-xs text-neutral-500">Points credited</span>
+              <span className="font-mono text-sm font-semibold text-black">
                 +{result.points.toLocaleString()} pts
               </span>
             </div>
 
-            {/* <div className="mt-4 flex items-center justify-between rounded-xl bg-stone-900 px-4 py-3">
-              <span className="text-xs text-stone-400">New balance</span>
+            {/* <div className="mt-4 flex items-center justify-between rounded-xl bg-black px-4 py-3">
+              <span className="text-xs text-neutral-400">New balance</span>
               <span className="font-mono text-lg font-semibold text-white">
                 {result.newBalance.toLocaleString()} pts
               </span>
             </div> */}
             <button
-          onClick={handleReset}
-          className="mt-4 w-full rounded-xl bg-stone-100 py-3 text-sm font-semibold text-stone-700 transition-colors hover:bg-stone-200"
-        >
-          ← Credit another customer
-        </button>
-                  </div>
+              onClick={handleReset}
+              className="mt-4 w-full rounded-xl border border-neutral-200 bg-white py-3 text-sm font-semibold text-black transition-colors hover:bg-neutral-50"
+            >
+              ← Credit another customer
+            </button>
+          </div>
         )}
       </div>
     </main>
