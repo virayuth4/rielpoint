@@ -1,77 +1,111 @@
 "use client";
 
 import React, { useId, useState } from "react";
-import { ArrowRight, Check, MapPin, Phone } from "lucide-react";
+import {
+  ArrowRight,
+  Check,
+  Coffee,
+  UtensilsCrossed,
+  BedDouble,
+  Scissors,
+  ShoppingBag,
+  Phone,
+} from "lucide-react";
 
 import { useRouter } from "next/navigation";
 
 
+
 const LOCAL_STYLES = `
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
+
+:root {
+  --ink: #121212;
+  --paper: #FFFFFF;
+  --paper-dim: #ECECEA;
+}
+
+.font-display { font-family: 'Fraunces', ui-serif, Georgia, serif; font-optical-sizing: auto; }
+.font-body { font-family: 'Inter', ui-sans-serif, system-ui, sans-serif; }
+.font-tape { font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, monospace; }
+
 @keyframes marquee {
   0% { transform: translateX(0); }
   100% { transform: translateX(-50%); }
 }
-.animate-marquee {
-  animation: marquee 28s linear infinite;
-}
+.animate-marquee { animation: marquee 30s linear infinite; }
 
-.stamp-press {
-  transition: transform 120ms ease, box-shadow 120ms ease;
-}
-.stamp-press:active {
-  transform: translateY(2px);
-}
+.press { transition: transform 120ms ease, box-shadow 120ms ease; }
+.press:active { transform: translateY(2px); }
 `;
 
-const SHOPS = [
+const VENUES = [
   "Sam's Cafe & Restaurant",
+  "Anise Hotel & Suites",
   "Emart24",
+  "Kravanh Spa",
   "Number 21",
-  "Slomo",
-  "1464studio",
-  "Toto by Chichi"
-
+  "Toto by Chichi",
 ];
 
-/* Circular ink-stamp mark, reused as logo / badge / signature.
-   It's the brand's seal of approval, not a literal "collect stamps" card. */
-function StampMark({ size = 220, label = "RIELPOINT", sub = "PHNOM PENH · CAMBODIA", className = "" }) {
-  const uid = useId().replace(/[:]/g, "");
+const VENUE_TYPES = [
+  { icon: Coffee, label: "Coffee shops", note: "Points on every cup" },
+  { icon: UtensilsCrossed, label: "Restaurants & bars", note: "Points on every table" },
+  { icon: BedDouble, label: "Hotels & guesthouses", note: "Points on every stay" },
+  { icon: Scissors, label: "Salons & spas", note: "Points on every visit" },
+  { icon: ShoppingBag, label: "Retail & shops", note: "Points on every sale" },
+];
+
+/* Zigzag "torn paper" bottom edge, generated once. */
+function tornEdgeClipPath(teeth = 22, depth = 7) {
+  const pts = ["0% 0%", "100% 0%", "100% 100%"];
+  const step = 100 / teeth;
+  for (let i = 1; i <= teeth; i++) {
+    const x = 100 - i * step;
+    const y = i % 2 === 1 ? 100 - depth : 100;
+    pts.push(`${x.toFixed(2)}% ${y}%`);
+  }
+  return `polygon(${pts.join(", ")})`;
+}
+const TORN_BOTTOM = tornEdgeClipPath();
+
+function Perforation({ count = 18, className = "" }) {
   return (
-    <svg viewBox="0 0 200 200" width={size} height={size} className={className}>
-      <defs>
-        <filter id={`rough-${uid}`} x="-20%" y="-20%" width="140%" height="140%">
-          <feTurbulence type="fractalNoise" baseFrequency="0.018" numOctaves="2" seed="7" result="noise" />
-          <feDisplacementMap in="SourceGraphic" in2="noise" scale="5" />
-        </filter>
-        <path id={`circleTop-${uid}`} d="M 100,100 m -80,0 a 80,80 0 1,1 160,0" />
-        <path id={`circleBottom-${uid}`} d="M 100,100 m 80,0 a 80,80 0 1,1 -160,0" />
-      </defs>
-      <g filter={`url(#rough-${uid})`} fill="none" stroke="currentColor">
-        <circle cx="100" cy="100" r="94" strokeWidth="3" />
-        <circle cx="100" cy="100" r="72" strokeWidth="1.25" />
-        <text fontSize="11.5" letterSpacing="3.5" className="font-mono" fill="currentColor" stroke="none">
-          <textPath href={`#circleTop-${uid}`} startOffset="50%" textAnchor="middle">
-            {label}
-          </textPath>
-        </text>
-        <text fontSize="9" letterSpacing="2.5" className="font-mono" fill="currentColor" stroke="none">
-          <textPath href={`#circleBottom-${uid}`} startOffset="50%" textAnchor="middle">
-            {sub}
-          </textPath>
-        </text>
-        <circle cx="100" cy="46" r="1.6" fill="currentColor" stroke="none" />
-        <circle cx="100" cy="154" r="1.6" fill="currentColor" stroke="none" />
-        <path d="M 88,102 l 8,8 l 16,-18" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" />
-      </g>
-    </svg>
+    <div className={`flex justify-between ${className}`}>
+      {Array.from({ length: count }).map((_, i) => (
+        <span key={i} className="h-2 w-2 shrink-0 rounded-full ring-1 ring-inset ring-[var(--ink)]/25" />
+      ))}
+    </div>
   );
 }
 
-function PaperGrain() {
+/* A dot-leader row, the way a menu or receipt lines up a label and a value. */
+function LedgerRow({ label, value, strong = false }) {
+  return (
+    <div className="flex items-baseline gap-2 py-1.5">
+      <span
+        className={`whitespace-nowrap text-[10px] uppercase tracking-[0.14em] ${
+          strong ? "font-semibold text-[var(--ink)]" : "text-[var(--ink)]/55"
+        }`}
+      >
+        {label}
+      </span>
+      <span className="mb-[3px] flex-1 border-b border-dotted border-[var(--ink)]/30" />
+      <span
+        className={`whitespace-nowrap font-tape text-[13px] ${
+          strong ? "font-semibold text-[var(--ink)]" : "text-[var(--ink)]"
+        }`}
+      >
+        {value}
+      </span>
+    </div>
+  );
+}
+
+function PaperGrain({ className = "" }) {
   const uid = useId().replace(/[:]/g, "");
   return (
-    <svg className="absolute inset-0 h-full w-full opacity-[0.035]" preserveAspectRatio="none">
+    <svg className={`pointer-events-none absolute inset-0 h-full w-full opacity-[0.04] ${className}`} preserveAspectRatio="none">
       <filter id={`grain-${uid}`}>
         <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" stitchTiles="stitch" />
       </filter>
@@ -80,60 +114,102 @@ function PaperGrain() {
   );
 }
 
-/* The shop's view at checkout — a phone number and a purchase amount,
-   points are calculated and added automatically. */
+/* Small wordmark tile — a hole-punch dot stands in for the old ink stamp. */
+function Mark({ size = 34, dark = false }) {
+  return (
+    <div
+      style={{ width: size, height: size }}
+      className={`relative flex shrink-0 items-center justify-center rounded-[7px] font-tape text-[11px] tracking-tight ${
+        dark ? "bg-[var(--paper)] text-[var(--ink)]" : "bg-[var(--ink)] text-[var(--paper)]"
+      }`}
+    >
+      RP
+      <span
+        className={`absolute -right-1 -top-1 h-2 w-2 rounded-full ring-2 ring-[var(--paper)] ${
+          dark ? "bg-[var(--ink)]" : "bg-[var(--paper)]"
+        }`}
+      />
+    </div>
+  );
+}
+
+/* Hero signature element: a torn, perforated guest-ledger receipt. */
+function LedgerReceipt() {
+  return (
+    <div className="relative w-full max-w-sm rotate-[-1.5deg]">
+      <div
+        className="bg-[var(--paper)] pb-10 text-[var(--ink)] shadow-[0_30px_70px_-20px_rgba(33,29,26,0.45)]"
+        style={{ clipPath: TORN_BOTTOM }}
+      >
+        <Perforation count={16} className="px-5 pt-4" />
+        <div className="border-b border-dashed border-[var(--ink)]/25 px-6 pb-5 pt-3">
+          <p className="font-tape text-[10px] uppercase tracking-[0.25em] text-[var(--ink)]/50">Guest ledger</p>
+          <p className="mt-1 font-display text-xl font-semibold">RielPoint</p>
+          <p className="mt-1 font-tape text-[11px] text-[var(--ink)]/50">Sen Sok · Phnom Penh</p>
+        </div>
+        <div className="px-6 py-4">
+          <LedgerRow label="Venue" value="Baitong Café" />
+          <LedgerRow label="Guest" value="012 xxx 456" />
+          <LedgerRow label="Spent" value="៛24,000" />
+          <LedgerRow label="Rate" value="1 pt / ៛1,000" />
+          <div className="my-2 border-t border-dashed border-[var(--ink)]/25" />
+          <LedgerRow label="Earned" value="+24 pts" strong />
+          <LedgerRow label="Balance" value="612 pts" strong />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* What the person behind the counter actually sees. */
 function CheckoutMockup() {
   return (
-    <div className="w-full max-w-sm rounded-none border-2 border-black bg-white p-6 font-mono">
-      <div className="flex items-start justify-between border-b border-zinc-300 pb-4">
+    <div className="w-full max-w-sm border border-[var(--ink)]/15 bg-[var(--paper)] p-6 font-body shadow-[0_20px_50px_-25px_rgba(33,29,26,0.5)]">
+      <div className="flex items-start justify-between border-b border-[var(--ink)]/15 pb-4">
         <div>
-          <p className="text-xs tracking-widest text-zinc-500">AT THE COUNTER</p>
-          <p className="mt-1 font-heading text-lg font-semibold tracking-tight">Riel Point</p>
-          <p className="mt-1 flex items-center gap-1 text-xs text-zinc-500">
-            <MapPin className="h-3 w-3" /> Phnom Penh
-          </p>
+          <p className="font-tape text-[10px] uppercase tracking-[0.22em] text-[var(--ink)]/50">At the counter</p>
+          <p className="mt-1 font-display text-lg font-semibold tracking-tight">Front desk view</p>
         </div>
-        <StampMark size={56} label="RIELPOINT" sub="STAFF VIEW" className="text-black" />
+        <Mark size={38} dark />
       </div>
 
       <div className="mt-5">
-        <p className="text-xs tracking-widest text-zinc-500">CUSTOMER PHONE</p>
-        <div className="mt-2 flex items-center gap-2 border-2 border-black px-3 py-2.5">
-          <Phone className="h-4 w-4 shrink-0 text-zinc-500" />
-          <span className="text-sm tracking-wide">012 xxx 456</span>
+        <p className="font-tape text-[10px] uppercase tracking-[0.22em] text-[var(--ink)]/50">Guest phone</p>
+        <div className="mt-2 flex items-center gap-2 border border-[var(--ink)]/25 bg-white px-3 py-2.5">
+          <Phone className="h-4 w-4 shrink-0 text-[var(--ink)]/40" />
+          <span className="font-tape text-sm tracking-wide">012 xxx 456</span>
         </div>
       </div>
 
       <div className="mt-4">
-        <p className="text-xs tracking-widest text-zinc-500">PURCHASE AMOUNT</p>
-        <div className="mt-2 flex items-center gap-2 border-2 border-black px-3 py-2.5">
-          <span className="text-sm tracking-wide text-zinc-500">៛</span>
-          <span className="text-sm tracking-wide">18,000</span>
+        <p className="font-tape text-[10px] uppercase tracking-[0.22em] text-[var(--ink)]/50">Amount</p>
+        <div className="mt-2 flex items-center gap-2 border border-[var(--ink)]/25 bg-white px-3 py-2.5">
+          <span className="font-tape text-sm text-[var(--ink)]/40">៛</span>
+          <span className="font-tape text-sm tracking-wide">18,000</span>
         </div>
-        <p className="mt-1.5 text-[11px] tracking-wide text-zinc-500">= 18 pts, added automatically</p>
+        <p className="mt-1.5 font-tape text-[11px] text-[var(--ink)]/50">= 18 pts, added automatically</p>
       </div>
 
-      <button className="stamp-press mt-4 w-full border-2 border-black bg-black py-2.5 text-xs uppercase tracking-widest text-white">
+      <button className="press mt-5 w-full bg-[var(--ink)] py-2.5 font-tape text-xs uppercase tracking-[0.2em] text-[var(--paper)] hover:opacity-90">
         Add points
       </button>
 
-      <div className="mt-5 flex items-center justify-between border-t border-zinc-300 pt-4 text-xs">
-        <span className="tracking-wide text-zinc-500">NO CARD OR APP NEEDED TO EARN</span>
-        <span className="font-semibold text-black">482 pts</span>
+      <div className="mt-5 flex items-center justify-between border-t border-[var(--ink)]/15 pt-4">
+        <span className="font-tape text-[10px] uppercase tracking-wide text-[var(--ink)]/50">No card or app to earn</span>
+        <span className="font-tape text-sm font-semibold">482 pts</span>
       </div>
     </div>
   );
 }
 
 const BUSINESS_TYPES = [
-  "Cafe & restaurant",
+  "Coffee shop & café",
+  "Restaurant & bar",
+  "Hotel & guesthouse",
   "Retail & shop",
   "Salon & spa",
-  "Convenience store",
-  "Bar & bakery",
   "Other",
 ];
-
 
 function MerchantSignUpForm() {
   const router = useRouter();
@@ -153,18 +229,15 @@ function MerchantSignUpForm() {
     setNeedsAuth(false);
 
     try {
-      const res = await fetch(
-        `${process.env.NEXT_PUBLIC_BACKEND}/api/merchant/merchant/create`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            name: form.businessName,
-            contact_phone: form.phone,
-            business_type: form.businessType,
-          }),
-        }
-      );
+      const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/merchant/merchant/create`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: form.businessName,
+          contact_phone: form.phone,
+          business_type: form.businessType,
+        }),
+      });
 
       if (res.status === 201) {
         setStatus("success");
@@ -174,11 +247,11 @@ function MerchantSignUpForm() {
       const data = await res.json().catch(() => ({}));
 
       if (res.status === 409) {
-        setErrorMsg("A shop with this name already exists. Try a different name.");
+        setErrorMsg("A business with this name already exists. Try a different name.");
       } else if (res.status === 400) {
         setErrorMsg("Please fill in your business name and phone number.");
       } else if (res.status === 401) {
-        setErrorMsg("You need to be signed in to list a shop.");
+        setErrorMsg("You need to be signed in to list a business.");
         setNeedsAuth(true);
       } else {
         setErrorMsg(data.error || "Something went wrong. Please try again.");
@@ -192,13 +265,11 @@ function MerchantSignUpForm() {
 
   if (status === "success") {
     return (
-      <div className="w-full max-w-md border-2 border-black bg-white p-8 text-center text-black">
+      <div className="w-full max-w-md border border-[var(--ink)]/15 bg-[var(--paper)] p-8 text-center text-[var(--ink)] shadow-[0_20px_50px_-25px_rgba(33,29,26,0.5)]">
         <Check className="mx-auto h-8 w-8" />
-        <p className="mt-4 font-heading text-xl font-semibold tracking-tight">
-          Got it, {form.businessName}.
-        </p>
-        <p className="mt-2 text-sm leading-6 text-zinc-600">
-          We&apos;ll reach out to {form.phone} shortly to get your shop set up.
+        <p className="mt-4 font-display text-xl font-semibold tracking-tight">Got it, {form.businessName}.</p>
+        <p className="mt-2 text-sm leading-6 text-[var(--ink)]/65">
+          We&apos;ll reach out to {form.phone} shortly to get your loyalty program set up.
         </p>
       </div>
     );
@@ -207,31 +278,29 @@ function MerchantSignUpForm() {
   return (
     <form
       onSubmit={handleSubmit}
-      className="w-full max-w-md border-2 border-black bg-white p-8 text-left text-black"
+      className="w-full max-w-md border border-[var(--ink)]/15 bg-[var(--paper)] p-8 text-left text-[var(--ink)] shadow-[0_20px_50px_-25px_rgba(33,29,26,0.5)]"
     >
-      <p className="font-mono text-xs uppercase tracking-widest text-zinc-500">List your shop</p>
-      <h3 className="mt-2 font-heading text-2xl font-semibold tracking-tight">
-        Tell us about your business.
-      </h3>
+      <p className="font-tape text-[10px] uppercase tracking-[0.22em] text-[var(--ink)]/50">List your business</p>
+      <h3 className="mt-2 font-display text-2xl font-semibold tracking-tight">Tell us about your business.</h3>
 
       <div className="mt-6">
-        <label htmlFor="businessName" className="font-mono text-xs uppercase tracking-widest text-zinc-500">
+        <label htmlFor="businessName" className="font-tape text-[10px] uppercase tracking-[0.22em] text-[var(--ink)]/50">
           Business name
         </label>
         <input
           id="businessName"
           type="text"
           required
-          placeholder="Riel Point "
+          placeholder="Baitong Café"
           value={form.businessName}
           onChange={update("businessName")}
           disabled={status === "loading"}
-          className="mt-2 w-full border-2 border-black bg-white px-3 py-2.5 text-sm outline-none placeholder:text-zinc-400 focus:bg-zinc-50 disabled:opacity-50"
+          className="mt-2 w-full border border-[var(--ink)]/25 bg-white px-3 py-2.5 text-sm outline-none placeholder:text-[var(--ink)]/30 focus:border-[var(--ink)] disabled:opacity-50"
         />
       </div>
 
       <div className="mt-4">
-        <label htmlFor="businessType" className="font-mono text-xs uppercase tracking-widest text-zinc-500">
+        <label htmlFor="businessType" className="font-tape text-[10px] uppercase tracking-[0.22em] text-[var(--ink)]/50">
           Business type
         </label>
         <select
@@ -240,7 +309,7 @@ function MerchantSignUpForm() {
           value={form.businessType}
           onChange={update("businessType")}
           disabled={status === "loading"}
-          className="mt-2 w-full border-2 border-black bg-white px-3 py-2.5 text-sm text-black outline-none focus:bg-zinc-50 disabled:opacity-50"
+          className="mt-2 w-full border border-[var(--ink)]/25 bg-white px-3 py-2.5 text-sm text-[var(--ink)] outline-none focus:border-[var(--ink)] disabled:opacity-50"
         >
           <option value="" disabled>
             Select a type
@@ -254,11 +323,11 @@ function MerchantSignUpForm() {
       </div>
 
       <div className="mt-4">
-        <label htmlFor="phone" className="font-mono text-xs uppercase tracking-widest text-zinc-500">
+        <label htmlFor="phone" className="font-tape text-[10px] uppercase tracking-[0.22em] text-[var(--ink)]/50">
           Phone number
         </label>
-        <div className="mt-2 flex items-center gap-2 border-2 border-black px-3 py-2.5 focus-within:bg-zinc-50">
-          <Phone className="h-4 w-4 shrink-0 text-zinc-500" />
+        <div className="mt-2 flex items-center gap-2 border border-[var(--ink)]/25 bg-white px-3 py-2.5 focus-within:border-[var(--ink)]">
+          <Phone className="h-4 w-4 shrink-0 text-[var(--ink)]/40" />
           <input
             id="phone"
             type="tel"
@@ -267,19 +336,19 @@ function MerchantSignUpForm() {
             value={form.phone}
             onChange={update("phone")}
             disabled={status === "loading"}
-            className="w-full bg-transparent text-sm outline-none placeholder:text-zinc-400 disabled:opacity-50"
+            className="w-full bg-transparent text-sm outline-none placeholder:text-[var(--ink)]/30 disabled:opacity-50"
           />
         </div>
       </div>
 
       {status === "error" && (
-        <div className="mt-4 border-2 border-black bg-zinc-100 px-3 py-2 text-black">
+        <div className="mt-4 border border-[var(--ink)]/20 bg-[var(--paper-dim)] px-3 py-2 text-[var(--ink)]">
           <p className="text-xs">{errorMsg}</p>
           {needsAuth && (
             <button
               type="button"
               onClick={() => router.push("/signup")}
-              className="mt-2 flex items-center gap-2 border-2 border-black bg-black px-4 py-2 font-mono text-xs uppercase tracking-widest text-white hover:bg-zinc-800"
+              className="press mt-2 flex items-center gap-2 bg-[var(--ink)] px-4 py-2 font-tape text-xs uppercase tracking-[0.2em] text-[var(--paper)] hover:opacity-90"
             >
               Sign up
               <ArrowRight className="h-3.5 w-3.5" />
@@ -291,7 +360,7 @@ function MerchantSignUpForm() {
       <button
         type="submit"
         disabled={status === "loading"}
-        className="stamp-press mt-6 flex w-full items-center justify-center gap-2 border-2 border-black bg-black px-6 py-3 font-mono text-xs uppercase tracking-widest text-white hover:bg-zinc-800 disabled:opacity-60"
+        className="press mt-6 flex w-full items-center justify-center gap-2 bg-[var(--ink)] px-6 py-3 font-tape text-xs uppercase tracking-[0.2em] text-[var(--paper)] hover:opacity-90 disabled:opacity-60"
       >
         {status === "loading" ? "Submitting..." : "Submit"}
         {status !== "loading" && <ArrowRight className="h-4 w-4" />}
@@ -302,148 +371,132 @@ function MerchantSignUpForm() {
 
 export default function Home() {
   return (
-    <div className="flex min-h-screen flex-col bg-zinc-50 text-black">
+    <div className="font-body flex min-h-screen flex-col bg-[var(--paper)] text-[var(--ink)]">
       <style>{LOCAL_STYLES}</style>
 
       {/* NAV */}
-      <header className="sticky top-0 z-20 border-b border-zinc-200 bg-zinc-50/90 backdrop-blur">
+      <header className="sticky top-0 z-20 border-b border-[var(--ink)]/10 bg-[var(--paper)]/90 backdrop-blur">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
-          <div className="flex items-center gap-2">
-            <StampMark size={34} className="text-black" />
-            <span className="font-heading text-lg font-semibold tracking-tight">RielPoint</span>
+          <div className="flex items-center gap-2.5">
+            <Mark size={32} />
+            <span className="font-display text-lg font-semibold tracking-tight">RielPoint</span>
           </div>
-          <nav className="hidden items-center gap-8 font-mono text-xs uppercase tracking-wider text-zinc-600 md:flex">
-            <a href="#how" className="hover:text-black">How it works</a>
-            <a href="#why" className="hover:text-black">Why RielPoint</a>
-            <a href="#pricing" className="hover:text-black">Pricing</a>
+          <nav className="hidden items-center gap-8 font-tape text-xs uppercase tracking-wider text-[var(--ink)]/60 md:flex">
+            <a href="#how" className="hover:text-[var(--ink)]">How it works</a>
+            <a href="#venues" className="hover:text-[var(--ink)]">Who it&apos;s for</a>
+            <a href="#pricing" className="hover:text-[var(--ink)]">Pricing</a>
           </nav>
           <a
             href="#get-started"
-            className="stamp-press rounded-none border-2 border-black bg-black px-4 py-2 font-mono text-xs uppercase tracking-wider text-white hover:bg-zinc-800"
+            className="press bg-[var(--ink)] px-4 py-2 font-tape text-xs uppercase tracking-wider text-[var(--paper)] hover:opacity-90"
           >
-            List your shop
+            List your business
           </a>
         </div>
       </header>
 
       {/* HERO */}
-      <section className="relative overflow-hidden border-b border-zinc-200 bg-zinc-50">
+      <section className="relative overflow-hidden border-b border-[var(--ink)]/10">
         <PaperGrain />
-        <div className="mx-auto grid max-w-6xl grid-cols-1 gap-12 px-6 py-20 md:grid-cols-2 md:py-28">
-          <div className="relative">
-            <p className="font-mono text-xs uppercase tracking-widest text-zinc-500">
-              Loyalty for Cambodian shops
+        <div className="mx-auto grid max-w-6xl grid-cols-1 items-center gap-12 px-6 py-20 md:grid-cols-2 md:py-28">
+          <div>
+            <p className="font-tape text-xs uppercase tracking-[0.22em] text-[var(--ink)]/55">
+              Loyalty for Cambodian hospitality & retail
             </p>
-            <h1 className="mt-4 font-heading text-6xl font-semibold leading-[0.95] tracking-tight md:text-7xl">
-              Ask for a number.
+            <h1 className="mt-4 font-display text-6xl font-semibold leading-[0.98] tracking-tight md:text-7xl">
+              Every counter.
               <br />
-              Give them points.
+              One running tab.
             </h1>
-            <p className="mt-6 max-w-md text-lg leading-8 text-zinc-600">
-              RielPoint is loyalty software, not a punch card. Ask for your
-              customer&apos;s phone number at checkout, enter the amount they
-              spent, and points are added automatically — no card to find,
-              no app to install first.
+            <p className="mt-6 max-w-md text-lg leading-8 text-[var(--ink)]/70">
+              RielPoint turns any checkout, any front desk, into a loyalty
+              program. Take a phone number, enter what was spent, and points
+              are added automatically — whether it&apos;s a coffee, a room, or a
+              haircut.
             </p>
             <div className="mt-8 flex flex-col gap-4 sm:flex-row">
               <a
                 href="#get-started"
-                className="stamp-press flex items-center justify-center gap-2 rounded-none border-2 border-black bg-black px-6 py-3 font-mono text-sm uppercase tracking-wider text-white hover:bg-zinc-800"
+                className="press flex items-center justify-center gap-2 bg-[var(--ink)] px-6 py-3 font-tape text-sm uppercase tracking-wider text-[var(--paper)] hover:opacity-90"
               >
-                List your shop <ArrowRight className="h-4 w-4" />
+                List your business <ArrowRight className="h-4 w-4" />
               </a>
               <a
                 href="#how"
-                className="stamp-press flex items-center justify-center gap-2 rounded-none border-2 border-black px-6 py-3 font-mono text-sm uppercase tracking-wider hover:bg-zinc-100"
+                className="press flex items-center justify-center gap-2 border border-[var(--ink)]/25 px-6 py-3 font-tape text-sm uppercase tracking-wider hover:border-[var(--ink)]"
               >
                 See how it works
               </a>
             </div>
 
-            <div className="mt-12 grid max-w-md grid-cols-3 gap-4 border-t border-zinc-300 pt-6 font-mono">
+            <div className="mt-12 grid max-w-md grid-cols-3 gap-4 border-t border-[var(--ink)]/15 pt-6 font-tape">
               <div>
                 <p className="text-2xl font-semibold">10+</p>
-                <p className="text-xs uppercase tracking-wider text-zinc-500">Shops</p>
+                <p className="text-xs uppercase tracking-wider text-[var(--ink)]/50">Businesses</p>
               </div>
               <div>
                 <p className="text-2xl font-semibold">50K+</p>
-                <p className="text-xs uppercase tracking-wider text-zinc-500">Points awarded</p>
+                <p className="text-xs uppercase tracking-wider text-[var(--ink)]/50">Points awarded</p>
               </div>
-              {/* <div>
-                <p className="text-2xl font-semibold">6</p>
-                <p className="text-xs uppercase tracking-wider text-zinc-500">Cities</p>
-              </div> */}
+              <div>
+                <p className="text-2xl font-semibold">5</p>
+                <p className="text-xs uppercase tracking-wider text-[var(--ink)]/50">Venue types</p>
+              </div>
             </div>
           </div>
 
-          <div className="relative flex items-center justify-center">
-            <StampMark
-              size={300}
-              className="pointer-events-none rotate-[-9deg] text-black opacity-90 md:absolute md:-right-6 md:top-2"
-            />
-            <StampMark
-              size={300}
-              className="pointer-events-none absolute rotate-[-9deg] text-zinc-300 opacity-60 md:right-[15px] md:top-[26px]"
-            />
+          <div className="flex items-center justify-center md:justify-end">
+            <LedgerReceipt />
           </div>
         </div>
       </section>
 
       {/* MARQUEE */}
-      <section className="overflow-hidden border-b border-zinc-800 bg-black py-4">
+      <section className="overflow-hidden border-b border-[var(--ink)]/10 bg-[var(--ink)] py-4">
         <div className="flex whitespace-nowrap">
-          <div className="animate-marquee flex shrink-0 items-center gap-10 pr-10 font-mono text-sm uppercase tracking-widest text-zinc-400">
-            {[...SHOPS, ...SHOPS].map((s, i) => (
-              <span key={i} className="flex items-center gap-10">
-                {s}
-                <span className="text-zinc-700">•</span>
-              </span>
-            ))}
-          </div>
-          <div
-            aria-hidden
-            className="animate-marquee flex shrink-0 items-center gap-10 pr-10 font-mono text-sm uppercase tracking-widest text-zinc-400"
-          >
-            {[...SHOPS, ...SHOPS].map((s, i) => (
-              <span key={i} className="flex items-center gap-10">
-                {s}
-                <span className="text-zinc-700">•</span>
-              </span>
-            ))}
-          </div>
+          {[0, 1].map((pass) => (
+            <div
+              key={pass}
+              aria-hidden={pass === 1}
+              className="animate-marquee flex shrink-0 items-center gap-10 pr-10 font-tape text-sm uppercase tracking-widest text-[var(--paper)]/50"
+            >
+              {[...VENUES, ...VENUES].map((s, i) => (
+                <span key={i} className="flex items-center gap-10">
+                  {s}
+                  <span className="text-[var(--paper)]/20">•</span>
+                </span>
+              ))}
+            </div>
+          ))}
         </div>
       </section>
 
       {/* HOW IT WORKS */}
-      <section id="how" className="border-b border-zinc-200 bg-zinc-50 py-24">
+      <section id="how" className="border-b border-[var(--ink)]/10 py-24">
         <div className="mx-auto max-w-6xl px-6">
-          <p className="font-mono text-xs uppercase tracking-widest text-zinc-500">How it works</p>
-          <h2 className="mt-3 max-w-lg font-heading text-4xl font-semibold tracking-tight md:text-5xl">
-            You run the counter. We run the points.
+          <p className="font-tape text-xs uppercase tracking-[0.22em] text-[var(--ink)]/55">How it works</p>
+          <h2 className="mt-3 max-w-lg font-display text-4xl font-semibold tracking-tight md:text-5xl">
+            You run the counter. We run the ledger.
           </h2>
 
-          <div className="mt-16 grid grid-cols-1 gap-12 md:grid-cols-3">
+          <div className="mt-16 max-w-2xl divide-y divide-dashed divide-[var(--ink)]/25 border-y border-dashed border-[var(--ink)]/25">
             {[
               {
-                n: "01",
-                t: "Ask",
-                d: "At checkout, ask for your customer's phone number. No app, signup, or card is needed to start earning.",
+                t: "Ask for a number",
+                d: "At checkout, at the front desk, or table-side — ask for your guest's phone number. No app or card needed to start earning.",
               },
               {
-                n: "02",
-                t: "Enter the amount",
-                d: "Type in what they spent. Points are calculated and added to their balance automatically, based on your rate.",
+                t: "Enter what they spent",
+                d: "Type in the amount. Points are calculated and added to their balance automatically, based on the rate you set.",
               },
               {
-                n: "03",
-                t: "Bring them back",
-                d: "When they're ready, customers create an account to check their balance and redeem points — and keep coming back.",
+                t: "Watch them come back",
+                d: "When they're ready, guests create a free account to check their balance and redeem — and to keep choosing you.",
               },
             ].map((step) => (
-              <div key={step.n} className="border-t-2 border-black pt-6">
-                <span className="font-mono text-sm text-zinc-400">{step.n}</span>
-                <h3 className="mt-3 font-heading text-2xl font-semibold">{step.t}</h3>
-                <p className="mt-3 leading-7 text-zinc-600">{step.d}</p>
+              <div key={step.t} className="flex flex-col gap-2 py-6 sm:flex-row sm:items-baseline sm:gap-8">
+                <h3 className="w-48 shrink-0 font-display text-xl font-semibold">{step.t}</h3>
+                <p className="leading-7 text-[var(--ink)]/70">{step.d}</p>
               </div>
             ))}
           </div>
@@ -451,29 +504,27 @@ export default function Home() {
       </section>
 
       {/* SPLIT PANEL */}
-      <section id="why" className="grid grid-cols-1 border-b border-zinc-200 md:grid-cols-2">
-        <div className="bg-black px-6 py-20 text-white md:px-12">
-          <p className="font-mono text-xs uppercase tracking-widest text-zinc-400">For your shop</p>
-          <h3 className="mt-3 font-heading text-3xl font-semibold tracking-tight">
-            Loyalty without the overhead.
-          </h3>
+      <section className="grid grid-cols-1 border-b border-[var(--ink)]/10 md:grid-cols-2">
+        <div className="bg-[var(--ink)] px-6 py-20 text-[var(--paper)] md:px-12">
+          <p className="font-tape text-xs uppercase tracking-[0.22em] text-[var(--paper)]/55">For your business</p>
+          <h3 className="mt-3 font-display text-3xl font-semibold tracking-tight">Loyalty without the overhead.</h3>
           <ul className="mt-8 space-y-4">
             {[
-              "No cards to print, laminate, or restock — and no punches to fake",
-              "Set your own points rate, so rewards scale with what customers actually spend",
+              "No cards to print, laminate, or restock — nothing to fake or lose",
+              "Set your own points rate, so rewards scale with what guests actually spend",
               "No POS integration — works from any phone or tablet you already have",
               "See who's coming back, how often, and who's about to churn",
             ].map((item) => (
-              <li key={item} className="flex items-start gap-3 text-zinc-300">
-                <Check className="mt-0.5 h-5 w-5 shrink-0 text-white" />
+              <li key={item} className="flex items-start gap-3 text-[var(--paper)]/75">
+                <Check className="mt-0.5 h-5 w-5 shrink-0 text-[var(--paper)]" />
                 {item}
               </li>
             ))}
           </ul>
         </div>
-        <div className="bg-white px-6 py-20 text-black md:px-12">
-          <p className="font-mono text-xs uppercase tracking-widest text-zinc-500">For your customers</p>
-          <h3 className="mt-3 font-heading text-3xl font-semibold tracking-tight">
+        <div className="bg-[var(--paper-dim)] px-6 py-20 text-[var(--ink)] md:px-12">
+          <p className="font-tape text-xs uppercase tracking-[0.22em] text-[var(--ink)]/55">For your guests</p>
+          <h3 className="mt-3 font-display text-3xl font-semibold tracking-tight">
             Zero friction to earn, one login to claim.
           </h3>
           <ul className="mt-8 space-y-4">
@@ -481,10 +532,10 @@ export default function Home() {
               "Nothing to install just to start earning points",
               "Their number is their account — points build up automatically",
               "They create a free account only when they're ready to check their balance or redeem",
-              "One wallet for every shop they visit, once they're in",
+              "One wallet for every business they visit, once they're in",
             ].map((item) => (
-              <li key={item} className="flex items-start gap-3 text-zinc-700">
-                <Check className="mt-0.5 h-5 w-5 shrink-0 text-black" />
+              <li key={item} className="flex items-start gap-3 text-[var(--ink)]/75">
+                <Check className="mt-0.5 h-5 w-5 shrink-0 text-[var(--ink)]" />
                 {item}
               </li>
             ))}
@@ -492,11 +543,37 @@ export default function Home() {
         </div>
       </section>
 
+      {/* VENUE TYPES */}
+      <section id="venues" className="border-b border-[var(--ink)]/10 py-24">
+        <div className="mx-auto max-w-6xl px-6">
+          <p className="font-tape text-xs uppercase tracking-[0.22em] text-[var(--ink)]/55">Who it&apos;s for</p>
+          <h2 className="mt-3 max-w-lg font-display text-4xl font-semibold tracking-tight md:text-5xl">
+            Built for every kind of counter.
+          </h2>
+          <p className="mt-4 max-w-lg text-[var(--ink)]/65">
+            One ledger, however guests pay you — by the cup, the table, the
+            night, or the visit.
+          </p>
+
+          <div className="mt-14 grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-5">
+            {VENUE_TYPES.map(({ icon: Icon, label, note }) => (
+              <div key={label} className="flex flex-col gap-3 border border-[var(--ink)]/15 bg-[var(--paper)] p-5">
+                <Icon className="h-6 w-6 text-[var(--ink)]" strokeWidth={1.75} />
+                <div>
+                  <p className="font-display text-base font-semibold leading-tight">{label}</p>
+                  <p className="mt-1 font-tape text-[10px] uppercase tracking-wide text-[var(--ink)]/45">{note}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* CHECKOUT SHOWCASE */}
-      <section className="border-b border-zinc-200 bg-zinc-50 py-24">
+      <section className="border-b border-[var(--ink)]/10 bg-[var(--paper-dim)] py-24">
         <div className="mx-auto flex max-w-6xl flex-col items-center px-6 text-center">
-          <p className="font-mono text-xs uppercase tracking-widest text-zinc-500">What it looks like behind the counter</p>
-          <h2 className="mt-3 max-w-lg font-heading text-4xl font-semibold tracking-tight md:text-5xl">
+          <p className="font-tape text-xs uppercase tracking-[0.22em] text-[var(--ink)]/55">What it looks like at the counter</p>
+          <h2 className="mt-3 max-w-lg font-display text-4xl font-semibold tracking-tight md:text-5xl">
             One number, one amount, done.
           </h2>
           <div className="mt-12">
@@ -506,102 +583,97 @@ export default function Home() {
       </section>
 
       {/* PRICING */}
-      <section id="pricing" className="border-b border-zinc-200 bg-zinc-50 py-24">
+      <section id="pricing" className="border-b border-[var(--ink)]/10 py-24">
         <div className="mx-auto max-w-6xl px-6">
-          <p className="font-mono text-xs uppercase tracking-widest text-zinc-500">Pricing</p>
-          <h2 className="mt-3 max-w-lg font-heading text-4xl font-semibold tracking-tight md:text-5xl">
+          <p className="font-tape text-xs uppercase tracking-[0.22em] text-[var(--ink)]/55">Pricing</p>
+          <h2 className="mt-3 max-w-lg font-display text-4xl font-semibold tracking-tight md:text-5xl">
             One rate. No hidden fees.
           </h2>
 
           <div className="mt-16 grid grid-cols-1 gap-6 md:grid-cols-3">
             {/* Basic */}
-            <div className="flex flex-col border-2 border-black bg-white p-8">
-              <p className="font-mono text-xs uppercase tracking-widest text-zinc-500">Basic</p>
+            <div className="flex flex-col border border-[var(--ink)]/15 bg-[var(--paper)] p-8">
+              <p className="font-tape text-[10px] uppercase tracking-[0.22em] text-[var(--ink)]/50">Basic</p>
               <div className="mt-4 flex items-baseline gap-1">
-                <span className="font-heading text-5xl font-semibold tracking-tight">$5</span>
-                <span className="font-mono text-sm text-zinc-500">/ month</span>
+                <span className="font-display text-5xl font-semibold tracking-tight">$5</span>
+                <span className="font-tape text-sm text-[var(--ink)]/50">/ month</span>
               </div>
-              <p className="mt-3 text-sm leading-6 text-zinc-600">
-                Everything one shop needs to start rewarding regulars.
+              <p className="mt-3 text-sm leading-6 text-[var(--ink)]/65">
+                Everything one location needs to start rewarding regulars.
               </p>
-              <ul className="mt-8 flex-1 space-y-3">
-                {[
-                  "1 store",
-                  "Unlimited customers",
-                  "Points on every purchase",
-                  "Customer lookup by phone number",
-                ].map((item) => (
-                  <li key={item} className="flex items-start gap-3 text-sm text-zinc-700">
-                    <Check className="mt-0.5 h-4 w-4 shrink-0 text-black" />
+              <ul className="mt-8 flex-1 divide-y divide-dashed divide-[var(--ink)]/20 border-y border-dashed border-[var(--ink)]/20">
+                {["1 location", "Unlimited guests", "Points on every visit", "Lookup by phone number"].map((item) => (
+                  <li key={item} className="flex items-center gap-3 py-2.5 text-sm text-[var(--ink)]/75">
+                    <Check className="h-4 w-4 shrink-0 text-[var(--ink)]" />
                     {item}
                   </li>
                 ))}
               </ul>
               <a
                 href="#get-started"
-                className="stamp-press mt-8 flex items-center justify-center border-2 border-black px-6 py-3 font-mono text-xs uppercase tracking-widest hover:bg-zinc-100"
+                className="press mt-8 flex items-center justify-center border border-[var(--ink)]/25 px-6 py-3 font-tape text-xs uppercase tracking-widest hover:border-[var(--ink)]"
               >
-                List your shop
+                List your business
               </a>
             </div>
 
-            {/* Multiple stores */}
-            <div className="flex flex-col border-2 border-black bg-black p-8 text-white">
-              <p className="font-mono text-xs uppercase tracking-widest text-zinc-400">Multiple stores</p>
+            {/* Multiple locations */}
+            <div className="flex flex-col border border-[var(--ink)] bg-[var(--ink)] p-8 text-[var(--paper)]">
+              <p className="font-tape text-[10px] uppercase tracking-[0.22em] text-[var(--paper)]/55">Multiple locations</p>
               <div className="mt-4 flex items-baseline gap-1">
-                <span className="font-heading text-5xl font-semibold tracking-tight">$50</span>
-                <span className="font-mono text-sm text-zinc-400">/ month</span>
+                <span className="font-display text-5xl font-semibold tracking-tight">$50</span>
+                <span className="font-tape text-sm text-[var(--paper)]/50">/ month</span>
               </div>
-              <p className="mt-3 text-sm leading-6 text-zinc-400">
-                For chains and franchises tracking loyalty across locations.
+              <p className="mt-3 text-sm leading-6 text-[var(--paper)]/65">
+                For chains, hotel groups, and franchises tracking loyalty across sites.
               </p>
-              <ul className="mt-8 flex-1 space-y-3">
+              <ul className="mt-8 flex-1 divide-y divide-dashed divide-[var(--paper)]/20 border-y border-dashed border-[var(--paper)]/20">
                 {[
-                  "Up to 10 stores",
-                  "Shared points balance across all locations",
-                  "Per-store and combined reporting",
-                  "Staff accounts with store-level access",
+                  "Up to 10 locations",
+                  "Shared points balance across sites",
+                  "Per-location and combined reporting",
+                  "Staff accounts with location-level access",
                 ].map((item) => (
-                  <li key={item} className="flex items-start gap-3 text-sm text-zinc-300">
-                    <Check className="mt-0.5 h-4 w-4 shrink-0 text-white" />
+                  <li key={item} className="flex items-center gap-3 py-2.5 text-sm text-[var(--paper)]/80">
+                    <Check className="h-4 w-4 shrink-0 text-[var(--paper)]" />
                     {item}
                   </li>
                 ))}
               </ul>
               <a
                 href="#get-started"
-                className="stamp-press mt-8 flex items-center justify-center border-2 border-white bg-white px-6 py-3 font-mono text-xs uppercase tracking-widest text-black hover:bg-zinc-200"
+                className="press mt-8 flex items-center justify-center bg-[var(--paper)] px-6 py-3 font-tape text-xs uppercase tracking-widest text-[var(--ink)] hover:opacity-90"
               >
-                List your shops
+                List your locations
               </a>
             </div>
 
             {/* Enterprise */}
-            <div className="flex flex-col border-2 border-black bg-white p-8">
-              <p className="font-mono text-xs uppercase tracking-widest text-zinc-500">Enterprise</p>
+            <div className="flex flex-col border border-[var(--ink)]/15 bg-[var(--paper)] p-8">
+              <p className="font-tape text-[10px] uppercase tracking-[0.22em] text-[var(--ink)]/50">Enterprise</p>
               <div className="mt-4 flex items-baseline gap-1">
-                <span className="font-heading text-5xl font-semibold tracking-tight">Contact</span>
+                <span className="font-display text-5xl font-semibold tracking-tight">Contact</span>
               </div>
-              <p className="mt-3 text-sm leading-6 text-zinc-600">
+              <p className="mt-3 text-sm leading-6 text-[var(--ink)]/65">
                 For large networks with custom needs and volume.
               </p>
-              <ul className="mt-8 flex-1 space-y-3">
+              <ul className="mt-8 flex-1 divide-y divide-dashed divide-[var(--ink)]/20 border-y border-dashed border-[var(--ink)]/20">
                 {[
-                  "White label loyalty program",
-                  "Unlimited stores",
+                  "White-label loyalty program",
+                  "Unlimited locations",
                   "Custom points rules and integrations",
                   "Dedicated support",
                   "Custom contract and invoicing",
                 ].map((item) => (
-                  <li key={item} className="flex items-start gap-3 text-sm text-zinc-700">
-                    <Check className="mt-0.5 h-4 w-4 shrink-0 text-black" />
+                  <li key={item} className="flex items-center gap-3 py-2.5 text-sm text-[var(--ink)]/75">
+                    <Check className="h-4 w-4 shrink-0 text-[var(--ink)]" />
                     {item}
                   </li>
                 ))}
               </ul>
               <a
                 href="#"
-                className="stamp-press mt-8 flex items-center justify-center border-2 border-black px-6 py-3 font-mono text-xs uppercase tracking-widest hover:bg-zinc-100"
+                className="press mt-8 flex items-center justify-center border border-[var(--ink)]/25 px-6 py-3 font-tape text-xs uppercase tracking-widest hover:border-[var(--ink)]"
               >
                 Talk to our team
               </a>
@@ -611,67 +683,65 @@ export default function Home() {
       </section>
 
       {/* CTA BAND */}
-      <section id="get-started" className="relative overflow-hidden bg-black py-24 text-white">
+      <section id="get-started" className="relative overflow-hidden bg-[var(--ink)] py-24 text-[var(--paper)]">
+        <PaperGrain />
         <div className="mx-auto flex max-w-6xl flex-col items-center px-6 text-center">
-          <StampMark size={120} className="text-white opacity-80" />
-          <h2 className="mt-8 font-heading text-4xl font-semibold tracking-tight md:text-5xl">
+          <p className="font-tape text-xs uppercase tracking-[0.22em] text-[var(--paper)]/50">Start today</p>
+          <h2 className="mt-4 max-w-xl font-display text-4xl font-semibold tracking-tight md:text-5xl">
             Stop printing cards.
             <br />
             Start rewarding every riel.
           </h2>
-          <p className="mt-4 max-w-md text-zinc-400">
+          <p className="mt-4 max-w-md text-[var(--paper)]/65">
             Free to start. No hardware, no contract, no POS integration.
           </p>
           <div className="mt-10 flex justify-center">
             <MerchantSignUpForm />
           </div>
-          <a
-            href="#"
-            className="mt-6 font-mono text-xs uppercase tracking-widest text-zinc-400 hover:text-white"
-          >
+          <a href="#" className="mt-6 font-tape text-xs uppercase tracking-widest text-[var(--paper)]/60 hover:text-[var(--paper)]">
             Prefer to talk first? Contact our team →
           </a>
         </div>
       </section>
 
       {/* FOOTER */}
-      <footer className="bg-zinc-50 py-16">
+      <footer className="py-16">
         <div className="mx-auto max-w-6xl px-6">
           <div className="grid grid-cols-2 gap-8 md:grid-cols-5">
             <div className="col-span-2">
-              <div className="flex items-center gap-2">
-                <StampMark size={30} className="text-black" />
-                <span className="font-heading text-base font-semibold">RielPoint</span>
+              <div className="flex items-center gap-2.5">
+                <Mark size={28} />
+                <span className="font-display text-base font-semibold">RielPoint</span>
               </div>
-              <p className="mt-4 max-w-xs text-sm text-zinc-500">
-                Points-based loyalty software for shops across Cambodia.
+              <p className="mt-4 max-w-xs text-sm text-[var(--ink)]/55">
+                Loyalty software for cafés, restaurants, hotels, and shops across Cambodia.
               </p>
             </div>
             <div>
-              <p className="font-mono text-xs uppercase tracking-widest text-zinc-500">Product</p>
-              <ul className="mt-4 space-y-2 text-sm text-zinc-600">
-                <li><a href="#how" className="hover:text-black">How it works</a></li>
-                <li><a href="#why" className="hover:text-black">Why RielPoint</a></li>
-                <li><a href="#pricing" className="hover:text-black">Pricing</a></li>
+              <p className="font-tape text-[10px] uppercase tracking-[0.22em] text-[var(--ink)]/50">Product</p>
+              <ul className="mt-4 space-y-2 text-sm text-[var(--ink)]/65">
+                <li><a href="#how" className="hover:text-[var(--ink)]">How it works</a></li>
+                <li><a href="#venues" className="hover:text-[var(--ink)]">Who it&apos;s for</a></li>
+                <li><a href="#pricing" className="hover:text-[var(--ink)]">Pricing</a></li>
               </ul>
             </div>
             <div>
-              <p className="font-mono text-xs uppercase tracking-widest text-zinc-500">Company</p>
-              <ul className="mt-4 space-y-2 text-sm text-zinc-600">
-                <li><a href="#" className="hover:text-black">About</a></li>
-                <li><a href="#" className="hover:text-black">Contact</a></li>
-                <li><a href="#" className="hover:text-black">Careers</a></li>
+              <p className="font-tape text-[10px] uppercase tracking-[0.22em] text-[var(--ink)]/50">Company</p>
+              <ul className="mt-4 space-y-2 text-sm text-[var(--ink)]/65">
+                <li><a href="#" className="hover:text-[var(--ink)]">About</a></li>
+                <li><a href="#" className="hover:text-[var(--ink)]">Contact</a></li>
+                <li><a href="#" className="hover:text-[var(--ink)]">Careers</a></li>
               </ul>
             </div>
             <div>
-              <p className="font-mono text-xs uppercase tracking-widest text-zinc-500">Legal</p>
-              <ul className="mt-4 space-y-2 text-sm text-zinc-600">
-                <li><a href="#" className="hover:text-black">Privacy</a></li>
-                <li><a href="#" className="hover:text-black">Terms</a></li>
+              <p className="font-tape text-[10px] uppercase tracking-[0.22em] text-[var(--ink)]/50">Legal</p>
+              <ul className="mt-4 space-y-2 text-sm text-[var(--ink)]/65">
+                <li><a href="#" className="hover:text-[var(--ink)]">Privacy</a></li>
+                <li><a href="#" className="hover:text-[var(--ink)]">Terms</a></li>
               </ul>
             </div>
           </div>
-          <div className="mt-12 flex flex-col items-center justify-between gap-4 border-t border-zinc-200 pt-8 font-mono text-xs text-zinc-500 md:flex-row">
+          <div className="mt-12 flex flex-col items-center justify-between gap-4 border-t border-[var(--ink)]/10 pt-8 font-tape text-xs text-[var(--ink)]/50 md:flex-row">
             <span>© 2026 RielPoint. Made in Phnom Penh.</span>
             <span>Telegram · Instagram</span>
           </div>
