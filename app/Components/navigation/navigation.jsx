@@ -20,7 +20,7 @@ const subLabel = 'text-[8px] tracking-[0.06em] uppercase font-normal'
 // actual route names — these are best guesses from the labels you gave.
 const TABS_LEFT = [
   { label: 'Home', href: '/', icon: Home },
-  { label: 'Coupons', href: '/coupons', icon: Trophy },
+  { label: 'Rewards', href: '/rewards', icon: Trophy },
 ]
 const TABS_RIGHT = [
   { label: 'Wallet', href: '/wallet', icon: Wallet },

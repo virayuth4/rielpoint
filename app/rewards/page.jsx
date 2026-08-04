@@ -292,7 +292,7 @@ export default function CouponsPage() {
   } else if (viewingOtpId === c.claim_id) {
     statusLabel = 'Loading…';
   } else {
-    statusLabel = 'Unclaimed - Click for Code';
+    statusLabel = 'Unclaimed - Tap for Code';
   }
 
   return (
