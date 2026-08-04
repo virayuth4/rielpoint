@@ -284,7 +284,7 @@ export default function CreditPointsPage() {
             <button
               onClick={handleCredit}
               disabled={!isValid || isSubmitting}
-              className={`w-full rounded-xl bg-green-700 py-3 text-sm font-semibold text-white transition-opacity ${
+              className={`w-full rounded-xl bg-black py-3 text-sm font-semibold text-white transition-opacity ${
                 isValid && !isSubmitting ? 'opacity-100' : 'opacity-40'
               }`}
             >
