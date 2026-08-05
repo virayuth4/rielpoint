@@ -149,7 +149,7 @@ export default function MerchantSignUpForm() {
           {needsAuth && (
             <button
               type="button"
-              onClick={() => router.push("/signup?callback=/signup/merchant")}
+              onClick={() => router.push(`/signup?callback=${encodeURIComponent("/signup/merchant")}`)}
               className="press mt-2 flex items-center gap-2 bg-[var(--ink)] px-4 py-2 font-tape text-xs uppercase tracking-[0.2em] text-[var(--paper)] hover:opacity-90"
             >
               Sign up

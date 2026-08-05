@@ -134,74 +134,7 @@ function Mark({ size = 34, dark = false }) {
   );
 }
 
-/* Hero signature element: a torn, perforated guest-ledger receipt. */
-function LedgerReceipt() {
-  return (
-    <div className="relative w-full max-w-sm rotate-[-1.5deg]">
-      <div
-        className="bg-[var(--paper)] pb-10 text-[var(--ink)] shadow-[0_30px_70px_-20px_rgba(33,29,26,0.45)]"
-        style={{ clipPath: TORN_BOTTOM }}
-      >
-        <Perforation count={16} className="px-5 pt-4" />
-        <div className="border-b border-dashed border-[var(--ink)]/25 px-6 pb-5 pt-3">
-          <p className="font-tape text-[10px] uppercase tracking-[0.25em] text-[var(--ink)]/50">Guest ledger</p>
-          <p className="mt-1 font-display text-xl font-semibold">RielPoint</p>
-          <p className="mt-1 font-tape text-[11px] text-[var(--ink)]/50">Sen Sok · Phnom Penh</p>
-        </div>
-        <div className="px-6 py-4">
-          <LedgerRow label="Venue" value="Baitong Café" />
-          <LedgerRow label="Guest" value="012 xxx 456" />
-          <LedgerRow label="Spent" value="៛24,000" />
-          <LedgerRow label="Rate" value="1 pt / ៛1,000" />
-          <div className="my-2 border-t border-dashed border-[var(--ink)]/25" />
-          <LedgerRow label="Earned" value="+24 pts" strong />
-          <LedgerRow label="Balance" value="612 pts" strong />
-        </div>
-      </div>
-    </div>
-  );
-}
 
-/* What the person behind the counter actually sees. */
-function CheckoutMockup() {
-  return (
-    <div className="w-full max-w-sm border border-[var(--ink)]/15 bg-[var(--paper)] p-6 font-body shadow-[0_20px_50px_-25px_rgba(33,29,26,0.5)]">
-      <div className="flex items-start justify-between border-b border-[var(--ink)]/15 pb-4">
-        <div>
-          <p className="font-tape text-[10px] uppercase tracking-[0.22em] text-[var(--ink)]/50">At the counter</p>
-          <p className="mt-1 font-display text-lg font-semibold tracking-tight">Front desk view</p>
-        </div>
-        <Mark size={38} dark />
-      </div>
-
-      <div className="mt-5">
-        <p className="font-tape text-[10px] uppercase tracking-[0.22em] text-[var(--ink)]/50">Guest phone</p>
-        <div className="mt-2 flex items-center gap-2 border border-[var(--ink)]/25 bg-white px-3 py-2.5">
-          <Phone className="h-4 w-4 shrink-0 text-[var(--ink)]/40" />
-          <span className="font-tape text-sm tracking-wide">012 xxx 456</span>
-        </div>
-      </div>
-
-      <div className="mt-4">
-        <p className="font-tape text-[10px] uppercase tracking-[0.22em] text-[var(--ink)]/50">Amount</p>
-        <div className="mt-2 flex items-center gap-2 border border-[var(--ink)]/25 bg-white px-3 py-2.5">
-          <span className="font-tape text-sm text-[var(--ink)]/40">៛</span>
-          <span className="font-tape text-sm tracking-wide">18,000</span>
-        </div>
-        <p className="mt-1.5 font-tape text-[11px] text-[var(--ink)]/50">= 18 pts, added automatically</p>
-      </div>
-
-      <button className="press mt-5 w-full bg-[var(--ink)] py-2.5 font-tape text-xs uppercase tracking-[0.2em] text-[var(--paper)] hover:opacity-90">
-        Add points
-      </button>
-
-      <div className="mt-5 flex items-center justify-between border-t border-[var(--ink)]/15 pt-4">
-        <span className="font-tape text-[10px] uppercase tracking-wide text-[var(--ink)]/50">No card or app to earn</span>
-        <span className="font-tape text-sm font-semibold">482 pts</span>
-      </div>
-    </div>
-  );
-}
 
 
 
@@ -613,8 +546,8 @@ function AddCouponMockup() {
 }
 
 /* Updated CheckoutTabs with three tabs instead of two */
-function CheckoutTabs() {
-  const [tab, setTab] = useState("coupon"); // "points" | "coupon" | "add-coupon"
+function CheckoutTabs({defaultTab='coupon'}) {
+  const [tab, setTab] = useState(defaultTab); // "points" | "coupon" | "add-coupon"
 
   const TABS = [
     { key: "points", label: "Add points" },
@@ -761,7 +694,8 @@ export default function Home() {
           </div>
 
           <div className="flex items-center justify-center md:justify-end">
-            <AddPointsMockup/>
+        
+            <CheckoutTabs defaultTab="points"/>
             {/* <LedgerReceipt /> */}
           </div>
         </div>
@@ -1049,7 +983,13 @@ export default function Home() {
           <div className="grid grid-cols-2 gap-8 md:grid-cols-5">
             <div className="col-span-2">
               <div className="flex items-center gap-2.5">
-                <Mark size={28} />
+                <Image
+        src="/rielpoint_logo.png"
+        alt="RielPoint"
+        width={36}
+        height={36}
+        className="h-8 w-8 sm:h-[50px] sm:w-[50px]"
+      />
                 <span className="font-display text-base font-semibold">RielPoint</span>
               </div>
               <p className="mt-4 max-w-xs text-sm text-[var(--ink)]/55">

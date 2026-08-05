@@ -4,6 +4,7 @@ import { useMemo, useRef, useState } from 'react';
 import { Inter, Space_Mono } from 'next/font/google';
 import MerchantSignUpForm from '../Components/merchantSignUpForm';
 import Link from 'next/link';
+import { ArrowRight } from 'lucide-react';
 
 const inter = Inter({
   subsets: ['latin'],
@@ -779,7 +780,7 @@ export default function DemoPage() {
 
   return (
     <main className={`${inter.variable} ${mono.variable} min-h-screen bg-white font-sans`}>
-      <div className="mx-auto max-w-md px-6 pt-10 pb-20">
+      <div className="mx-auto max-w-md px-6 pt-10 pb-10">
         <p className="mb-6 text-[11px] font-semibold uppercase tracking-[0.18em] text-neutral-400">
           Merchant · Demo
         </p>
@@ -839,13 +840,13 @@ export default function DemoPage() {
       
       
       </div>
-      <div className="flex justify-center">
-            <Link
-                href="/signup/merchant"
-                className="bg-[var(--ink)] px-8 py-3.5 text-sm font-semibold text-[var(--paper)] transition-opacity hover:opacity-90"
-            >
-                List your business
-            </Link>
+      <div className="flex justify-center pb-20">
+          <Link
+                href="signup/merchant#signup"
+                className="press flex items-center justify-center gap-2 bg-[var(--ink)] px-6 py-3 font-tape text-sm uppercase tracking-wider text-[var(--paper)] hover:opacity-90"
+              >
+                List your business <ArrowRight className="h-4 w-4" />
+              </Link>
             </div>
       
     </main>
