@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 
 
 
@@ -202,6 +203,253 @@ function CheckoutMockup() {
   );
 }
 
+/* ------------------------------------------------------------------ */
+/* Interactive, self-contained demo of the merchant "verify coupon"   */
+/* screen for the "See how it works" section. Local state only — no   */
+/* network requests are ever made and nothing is actually redeemed.   */
+/* ------------------------------------------------------------------ */
+const MOCKUP_DISCOUNTS = [
+  { type: "percent", value: 15, points: 500 },
+  { type: "amount", value: 5, points: 500 },
+];
+
+function formatMockupDiscount(discount) {
+  return discount.type === "percent" ? `${discount.value}% off` : `-$${discount.value} on everything`;
+}
+
+function VerifyCouponMockup() {
+  const [otp, setOtp] = useState("");
+  const [status, setStatus] = useState("idle"); // idle | loading | success | error
+  const [result, setResult] = useState(null);
+
+  const handleVerify = () => {
+    if (!otp.trim() || status === "loading") return;
+    setStatus("loading");
+    // Demo only — simulated delay, no request is ever sent.
+    setTimeout(() => {
+      const discount = MOCKUP_DISCOUNTS[Math.floor(Math.random() * MOCKUP_DISCOUNTS.length)];
+      setResult({ ...discount, customerPhone: "012 xxx 456" });
+      setStatus("success");
+    }, 600);
+  };
+
+  const handleReset = () => {
+    setOtp("");
+    setStatus("idle");
+    setResult(null);
+  };
+
+  return (
+    <div className="w-full max-w-sm overflow-hidden border border-[var(--ink)]/15 bg-[var(--paper)] shadow-[0_25px_60px_-25px_rgba(33,29,26,0.5)]">
+      {/* Fake browser chrome so it reads as "a screen", not a live form */}
+      <div className="flex items-center gap-1.5 border-b border-[var(--ink)]/10 bg-[var(--paper-dim)] px-4 py-2.5">
+        <span className="h-2.5 w-2.5 rounded-full bg-[var(--ink)]/20" />
+        <span className="h-2.5 w-2.5 rounded-full bg-[var(--ink)]/20" />
+        <span className="h-2.5 w-2.5 rounded-full bg-[var(--ink)]/20" />
+        <span className="ml-3 flex-1 truncate rounded-full bg-[var(--paper)] px-3 py-1 font-tape text-[10px] text-[var(--ink)]/40">
+          app.rielpoint.com/merchant/verify
+        </span>
+      </div>
+
+      <div className="px-5 py-6 font-body text-[var(--ink)]">
+        <p className="mb-4 font-tape text-[10px] font-semibold uppercase tracking-[0.18em] text-[var(--ink)]/40">
+          Try it — demo only
+        </p>
+
+        {status !== "success" ? (
+          <>
+            <label className="mb-1 block text-[11px] font-medium text-[var(--ink)]/55">
+              Code from guest&apos;s phone
+            </label>
+            <input
+              type="text"
+              inputMode="numeric"
+              maxLength={6}
+              value={otp}
+              onChange={(e) => setOtp(e.target.value.replace(/[^0-9]/g, ""))}
+              onKeyDown={(e) => e.key === "Enter" && handleVerify()}
+              placeholder="6-digit code"
+              className="mb-5 w-full border border-[var(--ink)]/20 bg-white px-3 py-2.5 text-center font-tape text-lg tracking-[0.3em] text-[var(--ink)] outline-none focus:border-[var(--ink)]"
+            />
+
+            <button
+              type="button"
+              onClick={handleVerify}
+              disabled={status === "loading" || !otp.trim()}
+              className="press w-full bg-[var(--ink)] py-2.5 font-tape text-xs uppercase tracking-[0.18em] text-[var(--paper)] hover:opacity-90 disabled:opacity-60"
+            >
+              {status === "loading" ? "Verifying..." : "Verify coupon"}
+            </button>
+          </>
+        ) : (
+          <>
+            <div className="mb-4 flex items-center justify-between">
+              <span className="flex items-center gap-1.5 border border-[var(--ink)] px-2.5 py-1 font-tape text-[10px] font-bold uppercase tracking-wide">
+                <Check className="h-3 w-3" /> Redeemed
+              </span>
+              <button type="button" onClick={handleReset} className="text-[11px] text-[var(--ink)]/55 hover:text-[var(--ink)]">
+                Try again
+              </button>
+            </div>
+            <LedgerRow label="Discount" value={formatMockupDiscount(result)} strong />
+            <LedgerRow label="Guest" value={result.customerPhone} />
+            <div className="my-2 border-t border-dashed border-[var(--ink)]/25" />
+            <LedgerRow label="Points cost" value={`${result.points.toLocaleString()} pts`} strong />
+          </>
+        )}
+
+        <p className="mt-5 text-center font-tape text-[9px] uppercase tracking-wide text-[var(--ink)]/30">
+          Demo only — no coupon is actually redeemed
+        </p>
+      </div>
+    </div>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/* Interactive, self-contained demo of the merchant "credit points"   */
+/* screen for the "See how it works" section. Local state only — no   */
+/* network requests are ever made and no real points are credited.   */
+/* ------------------------------------------------------------------ */
+const MOCKUP_RATE_OPTIONS = [10, 25, 50];
+const MOCKUP_KHR_PER_USD = 4001;
+
+function AddPointsMockup() {
+  const [phone, setPhone] = useState("012 xxx 456");
+  const [amount, setAmount] = useState("18");
+  const [currency, setCurrency] = useState("USD");
+  const [rate, setRate] = useState(10);
+  const [loading, setLoading] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
+
+  const numericAmount = Number(amount) || 0;
+  const usdAmount = currency === "USD" ? numericAmount : numericAmount / MOCKUP_KHR_PER_USD;
+  const points = Math.max(0, Math.round(usdAmount * rate * 10));
+
+  const handleCredit = () => {
+    if (loading || submitted) return;
+    setLoading(true);
+    // Demo only — simulated delay, no request is ever sent.
+    setTimeout(() => {
+      setLoading(false);
+      setSubmitted(true);
+    }, 600);
+  };
+
+  const handleReset = () => {
+    setSubmitted(false);
+    setLoading(false);
+  };
+
+  return (
+    <div className="w-full max-w-sm overflow-hidden border border-[var(--ink)]/15 bg-[var(--paper)] shadow-[0_25px_60px_-25px_rgba(33,29,26,0.5)]">
+      {/* Fake browser chrome so it reads as "a screen", not a live form */}
+      <div className="flex items-center gap-1.5 border-b border-[var(--ink)]/10 bg-[var(--paper-dim)] px-4 py-2.5">
+        <span className="h-2.5 w-2.5 rounded-full bg-[var(--ink)]/20" />
+        <span className="h-2.5 w-2.5 rounded-full bg-[var(--ink)]/20" />
+        <span className="h-2.5 w-2.5 rounded-full bg-[var(--ink)]/20" />
+        <span className="ml-3 flex-1 truncate rounded-full bg-[var(--paper)] px-3 py-1 font-tape text-[10px] text-[var(--ink)]/40">
+          app.rielpoint.com/merchant/credit
+        </span>
+      </div>
+
+      <div className="px-5 py-6 font-body text-[var(--ink)]">
+        <p className="mb-4 font-tape text-[10px] font-semibold uppercase tracking-[0.18em] text-[var(--ink)]/40">
+          Try it — demo only
+        </p>
+
+        {!submitted ? (
+          <>
+            <label className="mb-1 block text-[11px] font-medium text-[var(--ink)]/55">Phone number</label>
+         <input
+              type="tel"
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
+              className="mb-4 w-full border border-[var(--ink)]/20 bg-white px-3 py-2 font-tape text-base text-[var(--ink)] outline-none focus:border-[var(--ink)]"
+            />
+            <div className="mb-1.5 flex items-center justify-between">
+              <label className="text-[11px] font-medium text-[var(--ink)]/55">Total amount ({currency})</label>
+              <div className="flex gap-1 rounded-md bg-[var(--paper-dim)] p-0.5 text-[10px] font-medium">
+                {["USD", "KHR"].map((c) => (
+                  <button
+                    key={c}
+                    type="button"
+                    onClick={() => setCurrency(c)}
+                    className={`rounded px-2 py-1 transition-colors ${
+                      currency === c ? "bg-[var(--ink)] font-semibold text-[var(--paper)]" : "text-[var(--ink)]/55"
+                    }`}
+                  >
+                    {c === "USD" ? "$ USD" : "៛ KHR"}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <input
+              type="number"
+              value={amount}
+              onChange={(e) => setAmount(e.target.value)}
+              min="0"
+              className="mb-4 w-full border border-[var(--ink)]/20 bg-white px-3 py-2 font-tape text-sm text-[var(--ink)] outline-none focus:border-[var(--ink)]"
+            />
+
+            <label className="mb-1.5 block text-[11px] font-medium text-[var(--ink)]/55">Points rate</label>
+            <div className="mb-4 flex gap-1.5">
+              {MOCKUP_RATE_OPTIONS.map((option) => (
+                <button
+                  key={option}
+                  type="button"
+                  onClick={() => setRate(option)}
+                  className={`flex-1 border py-1.5 text-xs font-semibold transition-colors ${
+                    rate === option
+                      ? "border-[var(--ink)] bg-[var(--ink)] text-[var(--paper)]"
+                      : "border-[var(--ink)]/20 text-[var(--ink)]/55"
+                  }`}
+                >
+                  {option}%
+                </button>
+              ))}
+            </div>
+
+            <div className="mb-4 flex items-center justify-between border border-[var(--ink)]/15 bg-[var(--paper-dim)] px-3 py-2.5">
+              <span className="text-[11px] text-[var(--ink)]/55">Points to credit</span>
+              <span className="font-tape text-sm font-semibold">{points.toLocaleString()} pts</span>
+            </div>
+
+            <button
+              type="button"
+              onClick={handleCredit}
+              disabled={loading}
+              className="press w-full bg-[var(--ink)] py-2.5 font-tape text-xs uppercase tracking-[0.18em] text-[var(--paper)] hover:opacity-90 disabled:opacity-60"
+            >
+              {loading ? "Crediting..." : "Credit points"}
+            </button>
+          </>
+        ) : (
+          <>
+            <div className="mb-4 flex items-center justify-between">
+              <span className="flex items-center gap-1.5 border border-[var(--ink)] px-2.5 py-1 font-tape text-[10px] font-bold uppercase tracking-wide">
+                <Check className="h-3 w-3" /> Credited
+              </span>
+              <button type="button" onClick={handleReset} className="text-[11px] text-[var(--ink)]/55 hover:text-[var(--ink)]">
+                Try again
+              </button>
+            </div>
+            <LedgerRow label="Phone" value={phone || "—"} />
+            <LedgerRow label="Amount" value={`${currency === "USD" ? "$" : "៛"}${amount || 0}`} />
+            <LedgerRow label="Rate" value={`${rate}%`} />
+            <div className="my-2 border-t border-dashed border-[var(--ink)]/25" />
+            <LedgerRow label="Earned" value={`+${points.toLocaleString()} pts`} strong />
+          </>
+        )}
+
+        <p className="mt-5 text-center font-tape text-[9px] uppercase tracking-wide text-[var(--ink)]/30">
+          Demo only — no points are actually added
+        </p>
+      </div>
+    </div>
+  );
+}
+
 const BUSINESS_TYPES = [
   "Coffee shop & café",
   "Restaurant & bar",
@@ -280,7 +528,7 @@ function MerchantSignUpForm() {
       onSubmit={handleSubmit}
       className="w-full max-w-md border border-[var(--ink)]/15 bg-[var(--paper)] p-8 text-left text-[var(--ink)] shadow-[0_20px_50px_-25px_rgba(33,29,26,0.5)]"
     >
-      <p className="font-tape text-[10px] uppercase tracking-[0.22em] text-[var(--ink)]/50">List your business</p>
+      <p className="font-tape text-[10px] uppercase tracking-[0.22em] text-[var(--ink)]/50">Contact Us</p>
       <h3 className="mt-2 font-display text-2xl font-semibold tracking-tight">Tell us about your business.</h3>
 
       <div className="mt-6">
@@ -368,32 +616,88 @@ function MerchantSignUpForm() {
     </form>
   );
 }
+function CheckoutTabs() {
+  const [tab, setTab] = useState("coupon"); // "points" | "coupon"
 
+  return (
+    <div className="mt-12 flex flex-col items-center">
+      <div className="mb-6 flex gap-1 bg-[var(--paper)] p-0.5 font-tape text-[10px] uppercase tracking-[0.18em] shadow-[0_2px_10px_-4px_rgba(33,29,26,0.3)]">
+        <button
+          type="button"
+          onClick={() => setTab("points")}
+          className={`px-4 py-2 transition-colors ${
+            tab === "points" ? "bg-[var(--ink)] font-semibold text-[var(--paper)]" : "text-[var(--ink)]/55"
+          }`}
+        >
+          Add points
+        </button>
+        <button
+          type="button"
+          onClick={() => setTab("coupon")}
+          className={`px-4 py-2 transition-colors ${
+            tab === "coupon" ? "bg-[var(--ink)] font-semibold text-[var(--paper)]" : "text-[var(--ink)]/55"
+          }`}
+        >
+          Verify coupon
+        </button>
+      </div>
+
+      {/* Both mockups occupy the same grid cell, top-anchored, so the
+          container's height is the tallest of the two but the shorter
+          card still sits flush under the tab buttons instead of
+          floating in the middle of the extra space. */}
+      <div className="grid w-full max-w-sm place-items-start justify-items-center">
+        <div
+          className={`col-start-1 row-start-1 w-full ${tab === "points" ? "visible opacity-100" : "invisible opacity-0"}`}
+          aria-hidden={tab !== "points"}
+        >
+          <AddPointsMockup />
+        </div>
+        <div
+          className={`col-start-1 row-start-1 w-full ${tab === "coupon" ? "visible opacity-100" : "invisible opacity-0"}`}
+          aria-hidden={tab !== "coupon"}
+        >
+          <VerifyCouponMockup />
+        </div>
+      </div>
+    </div>
+  );
+}
 export default function Home() {
   return (
     <div className="font-body flex min-h-screen flex-col bg-[var(--paper)] text-[var(--ink)]">
       <style>{LOCAL_STYLES}</style>
 
       {/* NAV */}
-      <header className="sticky top-0 z-20 border-b border-[var(--ink)]/10 bg-[var(--paper)]/90 backdrop-blur">
-        <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
-          <div className="flex items-center gap-2.5">
-            <Mark size={32} />
-            <span className="font-display text-lg font-semibold tracking-tight">RielPoint</span>
-          </div>
-          <nav className="hidden items-center gap-8 font-tape text-xs uppercase tracking-wider text-[var(--ink)]/60 md:flex">
-            <a href="#how" className="hover:text-[var(--ink)]">How it works</a>
-            <a href="#venues" className="hover:text-[var(--ink)]">Who it&apos;s for</a>
-            <a href="#pricing" className="hover:text-[var(--ink)]">Pricing</a>
-          </nav>
-          <a
-            href="#get-started"
-            className="press bg-[var(--ink)] px-4 py-2 font-tape text-xs uppercase tracking-wider text-[var(--paper)] hover:opacity-90"
-          >
-            List your business
-          </a>
-        </div>
-      </header>
+    <header className="sticky top-0 z-20 border-b border-[var(--ink)]/10 bg-white backdrop-blur">
+  <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3 sm:px-6 sm:py-4">
+    <div className="flex shrink-0 items-center gap-2">
+      <Image
+        src="/rielpoint_logo.png"
+        alt="RielPoint"
+        width={36}
+        height={36}
+        className="h-8 w-8 sm:h-[50px] sm:w-[50px]"
+      />
+      <span className="font-display text-base font-semibold tracking-tight sm:text-lg">
+        RielPoint
+      </span>
+    </div>
+
+    <nav className="hidden items-center gap-8 font-tape text-xs uppercase tracking-wider text-[var(--ink)]/60 md:flex">
+      <a href="#how" className="hover:text-[var(--ink)]">How it works</a>
+      <a href="#venues" className="hover:text-[var(--ink)]">Who it&apos;s for</a>
+      <a href="#pricing" className="hover:text-[var(--ink)]">Pricing</a>
+    </nav>
+
+    <a
+      href="#get-started"
+      className="press shrink-0 whitespace-nowrap bg-[var(--ink)] px-3 py-2 text-[10px] font-tape uppercase tracking-wider text-[var(--paper)] hover:opacity-90 sm:px-4 sm:text-xs"
+    >
+      List your business
+    </a>
+  </div>
+</header>
 
       {/* HERO */}
       <section className="relative overflow-hidden border-b border-[var(--ink)]/10">
@@ -479,26 +783,32 @@ export default function Home() {
             You run the counter. We run the ledger.
           </h2>
 
-          <div className="mt-16 max-w-2xl divide-y divide-dashed divide-[var(--ink)]/25 border-y border-dashed border-[var(--ink)]/25">
-            {[
-              {
-                t: "Ask for a number",
-                d: "At checkout, at the front desk, or table-side — ask for your guest's phone number. No app or card needed to start earning.",
-              },
-              {
-                t: "Enter what they spent",
-                d: "Type in the amount. Points are calculated and added to their balance automatically, based on the rate you set.",
-              },
-              {
-                t: "Watch them come back",
-                d: "When they're ready, guests create a free account to check their balance and redeem — and to keep choosing you.",
-              },
-            ].map((step) => (
-              <div key={step.t} className="flex flex-col gap-2 py-6 sm:flex-row sm:items-baseline sm:gap-8">
-                <h3 className="w-48 shrink-0 font-display text-xl font-semibold">{step.t}</h3>
-                <p className="leading-7 text-[var(--ink)]/70">{step.d}</p>
-              </div>
-            ))}
+          <div className="mt-16 grid grid-cols-1 gap-12 md:grid-cols-2 md:items-center md:gap-16">
+            <div className="order-2 divide-y divide-dashed divide-[var(--ink)]/25 border-y border-dashed border-[var(--ink)]/25 md:order-1">
+              {[
+                {
+                  t: "Ask for a number",
+                  d: "At checkout, at the front desk, or table-side — ask for your guest's phone number. No app or card needed to start earning.",
+                },
+                {
+                  t: "Enter what they spent",
+                  d: "Type in the amount. Points are calculated and added to their balance automatically, based on the rate you set.",
+                },
+                {
+                  t: "Watch them come back",
+                  d: "When they're ready, guests create a free account to check their balance and redeem — and to keep choosing you.",
+                },
+              ].map((step) => (
+                <div key={step.t} className="flex flex-col gap-2 py-6 sm:flex-row sm:items-baseline sm:gap-8">
+                  <h3 className="w-48 shrink-0 font-display text-xl font-semibold">{step.t}</h3>
+                  <p className="leading-7 text-[var(--ink)]/70">{step.d}</p>
+                </div>
+              ))}
+            </div>
+
+            <div className="order-1 flex justify-center md:order-2 md:justify-end">
+              <AddPointsMockup />
+            </div>
           </div>
         </div>
       </section>
@@ -577,110 +887,122 @@ export default function Home() {
             One number, one amount, done.
           </h2>
           <div className="mt-12">
-            <CheckoutMockup />
+              <CheckoutTabs />
           </div>
         </div>
       </section>
 
       {/* PRICING */}
-      <section id="pricing" className="border-b border-[var(--ink)]/10 py-24">
-        <div className="mx-auto max-w-6xl px-6">
-          <p className="font-tape text-xs uppercase tracking-[0.22em] text-[var(--ink)]/55">Pricing</p>
-          <h2 className="mt-3 max-w-lg font-display text-4xl font-semibold tracking-tight md:text-5xl">
-            One rate. No hidden fees.
-          </h2>
+    <section id="pricing" className="border-b border-[var(--ink)]/10 py-24">
+  <div className="mx-auto max-w-6xl px-6">
+    <p className="font-tape text-xs uppercase tracking-[0.22em] text-[var(--ink)]/55">Pricing</p>
+    <h2 className="mt-3 max-w-lg font-display text-4xl font-semibold tracking-tight md:text-5xl">
+      One rate. No hidden fees.
+    </h2>
 
-          <div className="mt-16 grid grid-cols-1 gap-6 md:grid-cols-3">
-            {/* Basic */}
-            <div className="flex flex-col border border-[var(--ink)]/15 bg-[var(--paper)] p-8">
-              <p className="font-tape text-[10px] uppercase tracking-[0.22em] text-[var(--ink)]/50">Basic</p>
-              <div className="mt-4 flex items-baseline gap-1">
-                <span className="font-display text-5xl font-semibold tracking-tight">$5</span>
-                <span className="font-tape text-sm text-[var(--ink)]/50">/ month</span>
-              </div>
-              <p className="mt-3 text-sm leading-6 text-[var(--ink)]/65">
-                Everything one location needs to start rewarding regulars.
-              </p>
-              <ul className="mt-8 flex-1 divide-y divide-dashed divide-[var(--ink)]/20 border-y border-dashed border-[var(--ink)]/20">
-                {["1 location", "Unlimited guests", "Points on every visit", "Lookup by phone number"].map((item) => (
-                  <li key={item} className="flex items-center gap-3 py-2.5 text-sm text-[var(--ink)]/75">
-                    <Check className="h-4 w-4 shrink-0 text-[var(--ink)]" />
-                    {item}
-                  </li>
-                ))}
-              </ul>
-              <a
-                href="#get-started"
-                className="press mt-8 flex items-center justify-center border border-[var(--ink)]/25 px-6 py-3 font-tape text-xs uppercase tracking-widest hover:border-[var(--ink)]"
-              >
-                List your business
-              </a>
-            </div>
+    <div className="mt-16 grid grid-cols-1 gap-6 md:grid-cols-3">
+      {/* Basic */}
+      <div className="flex flex-col border border-[var(--ink)]/15 bg-[var(--paper)] p-8">
+        <p className="font-tape text-[10px] uppercase tracking-[0.22em] text-[var(--ink)]/50">Basic</p>
 
-            {/* Multiple locations */}
-            <div className="flex flex-col border border-[var(--ink)] bg-[var(--ink)] p-8 text-[var(--paper)]">
-              <p className="font-tape text-[10px] uppercase tracking-[0.22em] text-[var(--paper)]/55">Multiple locations</p>
-              <div className="mt-4 flex items-baseline gap-1">
-                <span className="font-display text-5xl font-semibold tracking-tight">$50</span>
-                <span className="font-tape text-sm text-[var(--paper)]/50">/ month</span>
-              </div>
-              <p className="mt-3 text-sm leading-6 text-[var(--paper)]/65">
-                For chains, hotel groups, and franchises tracking loyalty across sites.
-              </p>
-              <ul className="mt-8 flex-1 divide-y divide-dashed divide-[var(--paper)]/20 border-y border-dashed border-[var(--paper)]/20">
-                {[
-                  "Up to 10 locations",
-                  "Shared points balance across sites",
-                  "Per-location and combined reporting",
-                  "Staff accounts with location-level access",
-                ].map((item) => (
-                  <li key={item} className="flex items-center gap-3 py-2.5 text-sm text-[var(--paper)]/80">
-                    <Check className="h-4 w-4 shrink-0 text-[var(--paper)]" />
-                    {item}
-                  </li>
-                ))}
-              </ul>
-              <a
-                href="#get-started"
-                className="press mt-8 flex items-center justify-center bg-[var(--paper)] px-6 py-3 font-tape text-xs uppercase tracking-widest text-[var(--ink)] hover:opacity-90"
-              >
-                List your locations
-              </a>
-            </div>
-
-            {/* Enterprise */}
-            <div className="flex flex-col border border-[var(--ink)]/15 bg-[var(--paper)] p-8">
-              <p className="font-tape text-[10px] uppercase tracking-[0.22em] text-[var(--ink)]/50">Enterprise</p>
-              <div className="mt-4 flex items-baseline gap-1">
-                <span className="font-display text-5xl font-semibold tracking-tight">Contact</span>
-              </div>
-              <p className="mt-3 text-sm leading-6 text-[var(--ink)]/65">
-                For large networks with custom needs and volume.
-              </p>
-              <ul className="mt-8 flex-1 divide-y divide-dashed divide-[var(--ink)]/20 border-y border-dashed border-[var(--ink)]/20">
-                {[
-                  "White-label loyalty program",
-                  "Unlimited locations",
-                  "Custom points rules and integrations",
-                  "Dedicated support",
-                  "Custom contract and invoicing",
-                ].map((item) => (
-                  <li key={item} className="flex items-center gap-3 py-2.5 text-sm text-[var(--ink)]/75">
-                    <Check className="h-4 w-4 shrink-0 text-[var(--ink)]" />
-                    {item}
-                  </li>
-                ))}
-              </ul>
-              <a
-                href="#"
-                className="press mt-8 flex items-center justify-center border border-[var(--ink)]/25 px-6 py-3 font-tape text-xs uppercase tracking-widest hover:border-[var(--ink)]"
-              >
-                Talk to our team
-              </a>
-            </div>
-          </div>
+        <div className="mt-4 flex items-baseline gap-2">
+          <span className="font-tape text-lg text-[var(--ink)]/40 line-through">$15</span>
+          <span className="font-display text-5xl font-semibold tracking-tight">$5</span>
+          <span className="font-tape text-sm text-[var(--ink)]/50">/ month</span>
         </div>
-      </section>
+        <p className="mt-1 font-tape text-[10px] uppercase tracking-[0.18em] text-emerald-700">
+          Save 67% — limited time
+        </p>
+
+        <p className="mt-3 text-sm leading-6 text-[var(--ink)]/65">
+          Everything one location needs to start rewarding regulars.
+        </p>
+        <ul className="mt-8 flex-1 divide-y divide-dashed divide-[var(--ink)]/20 border-y border-dashed border-[var(--ink)]/20">
+          {["1 location", "Unlimited guests", "Points on every visit", "Lookup by phone number"].map((item) => (
+            <li key={item} className="flex items-center gap-3 py-2.5 text-sm text-[var(--ink)]/75">
+              <Check className="h-4 w-4 shrink-0 text-[var(--ink)]" />
+              {item}
+            </li>
+          ))}
+        </ul>
+        <a
+          href="#get-started"
+          className="press mt-8 flex items-center justify-center border border-[var(--ink)]/25 px-6 py-3 font-tape text-xs uppercase tracking-widest hover:border-[var(--ink)]"
+        >
+          List your business
+        </a>
+      </div>
+
+      {/* Multiple locations */}
+      <div className="flex flex-col border border-[var(--ink)] bg-[var(--ink)] p-8 text-[var(--paper)]">
+        <p className="font-tape text-[10px] uppercase tracking-[0.22em] text-[var(--paper)]/55">Multiple locations</p>
+
+        <div className="mt-4 flex items-baseline gap-2">
+          <span className="font-tape text-lg text-[var(--paper)]/40 line-through">$100</span>
+          <span className="font-display text-5xl font-semibold tracking-tight">$50</span>
+          <span className="font-tape text-sm text-[var(--paper)]/50">/ month</span>
+        </div>
+        <p className="mt-1 font-tape text-[10px] uppercase tracking-[0.18em] text-emerald-400">
+          Save 50% — limited time
+        </p>
+
+        <p className="mt-3 text-sm leading-6 text-[var(--paper)]/65">
+          For chains, hotel groups, and franchises tracking loyalty across sites.
+        </p>
+        <ul className="mt-8 flex-1 divide-y divide-dashed divide-[var(--paper)]/20 border-y border-dashed border-[var(--paper)]/20">
+          {[
+            "Up to 10 locations",
+            "Shared points balance across sites",
+            "Per-location and combined reporting",
+            "Staff accounts with location-level access",
+          ].map((item) => (
+            <li key={item} className="flex items-center gap-3 py-2.5 text-sm text-[var(--paper)]/80">
+              <Check className="h-4 w-4 shrink-0 text-[var(--paper)]" />
+              {item}
+            </li>
+          ))}
+        </ul>
+        <a
+          href="#get-started"
+          className="press mt-8 flex items-center justify-center bg-[var(--paper)] px-6 py-3 font-tape text-xs uppercase tracking-widest text-[var(--ink)] hover:opacity-90"
+        >
+          List your locations
+        </a>
+      </div>
+
+      {/* Enterprise */}
+      <div className="flex flex-col border border-[var(--ink)]/15 bg-[var(--paper)] p-8">
+        <p className="font-tape text-[10px] uppercase tracking-[0.22em] text-[var(--ink)]/50">Enterprise</p>
+        <div className="mt-4 flex items-baseline gap-1">
+          <span className="font-display text-5xl font-semibold tracking-tight">Contact</span>
+        </div>
+        <p className="mt-3 text-sm leading-6 text-[var(--ink)]/65">
+          For large networks with custom needs and volume.
+        </p>
+        <ul className="mt-8 flex-1 divide-y divide-dashed divide-[var(--ink)]/20 border-y border-dashed border-[var(--ink)]/20">
+          {[
+            "White-label loyalty program",
+            "Unlimited locations",
+            "Custom points rules and integrations",
+            "Dedicated support",
+            "Custom contract and invoicing",
+          ].map((item) => (
+            <li key={item} className="flex items-center gap-3 py-2.5 text-sm text-[var(--ink)]/75">
+              <Check className="h-4 w-4 shrink-0 text-[var(--ink)]" />
+              {item}
+            </li>
+          ))}
+        </ul>
+        <a
+          href="#"
+          className="press mt-8 flex items-center justify-center border border-[var(--ink)]/25 px-6 py-3 font-tape text-xs uppercase tracking-widest hover:border-[var(--ink)]"
+        >
+          Talk to our team
+        </a>
+      </div>
+    </div>
+  </div>
+</section>
 
       {/* CTA BAND */}
       <section id="get-started" className="relative overflow-hidden bg-[var(--ink)] py-24 text-[var(--paper)]">

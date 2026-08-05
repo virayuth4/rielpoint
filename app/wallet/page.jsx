@@ -1,6 +1,6 @@
 'use client';
 
-import { useContext, useEffect, useState } from 'react';
+import { useCallback, useContext, useEffect, useState } from 'react';
 import { Inter, Space_Mono } from 'next/font/google';
 import { getAuth, onAuthStateChanged } from 'firebase/auth';
 import authenticatedFetch from '../auth/authenticatedFetch';
@@ -40,10 +40,25 @@ function formatCurrency(amount, currency) {
   return `${currency ?? 'USD'} ${n.toFixed(2)}`;
 }
 
+// Pure fallback formatting — used only when the coupon has no `title` set.
 const DISCOUNT_TYPES = {
-  percent: { label: '% off', format: (v) => `${parseFloat(v)}% off` },
-  amount: { label: '$ off everything', format: (v) => `-$${parseFloat(v)} on everything` },
+  percent: { label: '% off', format: (c) => `${parseFloat(c?.discount_value)}% off` },
+  amount: { label: '$ off everything', format: (c) => `-$${parseFloat(c?.discount_value)} on everything` },
+  custom: { label: 'Custom perk', format: () => 'Custom perk' },
 };
+
+// Display title: prefer the coupon's own `title`, otherwise fall back to the
+// old discount_value + discount_type formatting.
+function getCouponTitle(c) {
+  if (c?.title) return c.title;
+  return DISCOUNT_TYPES[c?.discount_type]?.format(c) ?? '—';
+}
+function getCouponValueLabel(c) {
+  return DISCOUNT_TYPES[c?.discount_type]?.format(c) ?? null;
+}
+function getCouponDescription(c) {
+  return c?.description || null;
+}
 
 function mapTransaction(row) {
   return {
@@ -59,6 +74,75 @@ function mapTransaction(row) {
   };
 }
 
+function useMyCoupons(enabled) {
+  const [coupons, setCoupons] = useState([]);
+  const [status, setStatus] = useState('loading');
+  const [reloadKey, setReloadKey] = useState(0);
+
+  useEffect(() => {
+    if (!enabled) return;
+    let cancelled = false;
+
+    async function load() {
+      try {
+        const res = await authenticatedFetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/merchant/coupons/my`);
+        if (!res.ok) throw new Error(`Request failed: ${res.status}`);
+        const data = await res.json();
+        if (!cancelled) {
+          setCoupons(data.coupons ?? []);
+          setStatus('success');
+        }
+      } catch (err) {
+        console.error('Error loading coupons:', err);
+        if (!cancelled) setStatus('error');
+      }
+    }
+
+    load();
+    return () => {
+      cancelled = true;
+    };
+  }, [enabled, reloadKey]);
+
+  const reload = useCallback(() => setReloadKey((k) => k + 1), []);
+
+  return { coupons, status, reload };
+}
+
+function useAvailableCoupons(enabled) {
+  const [coupons, setCoupons] = useState([]);
+  const [status, setStatus] = useState('loading');
+  const [reloadKey, setReloadKey] = useState(0);
+
+  useEffect(() => {
+    if (!enabled) return;
+    let cancelled = false;
+
+    async function load() {
+      try {
+        const res = await authenticatedFetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/merchant/coupons/available`);
+        if (!res.ok) throw new Error(`Request failed: ${res.status}`);
+        const data = await res.json();
+        if (!cancelled) {
+          setCoupons(data.coupons ?? []);
+          setStatus('success');
+        }
+      } catch (err) {
+        console.error('Error loading available coupons:', err);
+        if (!cancelled) setStatus('error');
+      }
+    }
+
+    load();
+    return () => {
+      cancelled = true;
+    };
+  }, [enabled, reloadKey]);
+
+  const reload = useCallback(() => setReloadKey((k) => k + 1), []);
+
+  return { coupons, status, reload };
+}
 // --- auth hook ---------------------------------------------------------
 // undefined = still resolving, null = signed out, object = signed in
 
@@ -91,6 +175,7 @@ function useTransactions(enabled) {
         if (!res.ok) throw new Error(`Request failed: ${res.status}`);
 
         const data = await res.json();
+        console.log("recent transaction", data)
         if (!cancelled) {
           const rows = data.transactions ?? [];
           setTransactions(rows.map(mapTransaction));
@@ -112,37 +197,7 @@ function useTransactions(enabled) {
   return { transactions, balance, status };
 }
 
-function useMyCoupons(enabled) {
-  const [coupons, setCoupons] = useState([]);
-  const [status, setStatus] = useState('loading'); // 'loading' | 'success' | 'error'
 
-  useEffect(() => {
-    if (!enabled) return;
-    let cancelled = false;
-
-    async function load() {
-      try {
-        const res = await authenticatedFetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/merchant/coupons/my`);
-        if (!res.ok) throw new Error(`Request failed: ${res.status}`);
-        const data = await res.json();
-        if (!cancelled) {
-          setCoupons(data.coupons ?? []);
-          setStatus('success');
-        }
-      } catch (err) {
-        console.error('Error loading coupons:', err);
-        if (!cancelled) setStatus('error');
-      }
-    }
-
-    load();
-    return () => {
-      cancelled = true;
-    };
-  }, [enabled]);
-
-  return { coupons, status };
-}
 
 // --- guest phone lookup ---------------------------------------------------
 
@@ -151,6 +206,7 @@ function useGuestTransactions() {
   const [transactions, setTransactions] = useState([]);
   const [balance, setBalance] = useState(null);
   const [status, setStatus] = useState('idle'); // 'idle' | 'loading' | 'success' | 'error'
+  
 
   async function lookup(inputPhone) {
     const trimmed = inputPhone.trim();
@@ -184,7 +240,12 @@ export default function WalletPage() {
   const isAuthenticated = !!user;
 
   const { transactions, balance, status } = useTransactions(isAuthenticated);
-  const { coupons: myCoupons, status: couponsStatus } = useMyCoupons(isAuthenticated);
+const { coupons: myCoupons, status: couponsStatus, reload: reloadMyCoupons } = useMyCoupons(isAuthenticated);
+const { coupons: availableCoupons, status: availableStatus, reload: reloadAvailableCoupons } = useAvailableCoupons(isAuthenticated);
+
+const [selectedCoupon, setSelectedCoupon] = useState(null);
+const [claimModalOpen, setClaimModalOpen] = useState(false);
+const [claimingId, setClaimingId] = useState(null);
   const guest = useGuestTransactions();
 
   const [viewingOtpId, setViewingOtpId] = useState(null);
@@ -207,6 +268,37 @@ export default function WalletPage() {
       setViewingOtpId(null);
     }
   }
+
+  function openClaimModal(coupon) {
+  setSelectedCoupon(coupon);
+  setClaimModalOpen(true);
+}
+
+async function confirmClaim() {
+  if (!selectedCoupon) return;
+  const couponId = selectedCoupon.id ?? selectedCoupon.coupon_id;
+
+  setClaimingId(couponId);
+  try {
+    const res = await authenticatedFetch(
+      `${process.env.NEXT_PUBLIC_BACKEND}/api/merchant/coupons/${couponId}/claim`,
+      { method: 'POST', headers: { 'Idempotency-Key': crypto.randomUUID() } }
+    );
+    const body = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(body.error || `Claim failed (${res.status})`);
+
+    setClaimModalOpen(false);
+    setOtpModal({ otp: body.otp, expiresInSeconds: body.expiresInSeconds, coupon: selectedCoupon });
+
+    // Move it out of "available" and into "your coupons"
+    reloadMyCoupons();
+    reloadAvailableCoupons();
+  } catch (err) {
+    alert(err.message || 'Failed to claim coupon');
+  } finally {
+    setClaimingId(null);
+  }
+}
 
   return (
     <main
@@ -323,14 +415,29 @@ export default function WalletPage() {
                         >
                           {initialFor(c.merchant_name)}
                         </span>
-                        <div>
-                          <p className="text-sm font-medium" style={{ color: '#0F0F0E' }}>
-                            {DISCOUNT_TYPES[c.discount_type]?.format(c.discount_value) ?? '—'}
-                          </p>
-                          <p className="text-xs" style={{ color: '#9A9A9A' }}>
-                            {c.merchant_name || 'Unassigned'} &middot; {c.points_cost} pts
-                          </p>
-                        </div>
+                     <div>
+  <div className="flex items-center gap-2 flex-wrap">
+    <p className="text-sm font-medium" style={{ color: '#0F0F0E' }}>
+      {getCouponTitle(c)}
+    </p>
+    {c.title && getCouponValueLabel(c) && (
+      <span
+        className="text-[11px] font-medium px-1.5 py-0.5 rounded-full shrink-0"
+        style={{ color: '#1F5C3F', background: '#F3F3EF' }}
+      >
+        {getCouponValueLabel(c)}
+      </span>
+    )}
+  </div>
+  {getCouponDescription(c) && (
+    <p className="text-xs" style={{ color: '#9A9A9A' }}>
+      {getCouponDescription(c)}
+    </p>
+  )}
+  <p className="text-xs" style={{ color: '#9A9A9A' }}>
+    {c.merchant_name || 'Unassigned'} &middot; {c.points_cost} pts
+  </p>
+</div>
                       </div>
 
                       <p className="text-xs font-medium" style={{ color: statusColor }}>
@@ -347,6 +454,89 @@ export default function WalletPage() {
                 )}
               </div>
             )}
+
+            {/* Coupons you can claim, based on merchants you've earned points from */}
+<div className="flex items-center justify-between mb-4">
+  <h2 className="text-sm font-semibold" style={{ color: '#0F0F0E' }}>
+    Coupons you can claim
+  </h2>
+  {availableStatus === 'success' && (
+    <span className="text-xs" style={{ color: '#9A9A9A' }}>
+      {availableCoupons.length}
+    </span>
+  )}
+</div>
+
+{availableStatus === 'loading' && (
+  <p className="text-sm text-center py-10" style={{ color: '#9A9A9A' }}>
+    Loading coupons…
+  </p>
+)}
+
+{availableStatus === 'error' && (
+  <p className="text-sm text-center py-10" style={{ color: '#B3453D' }}>
+    Couldn&apos;t load available coupons. Pull to refresh or try again later.
+  </p>
+)}
+
+{availableStatus === 'success' && (
+  <div className="mb-10">
+    {availableCoupons.map((c, i) => (
+      <div
+        key={c.id}
+        className="flex items-center justify-between py-4"
+        style={{ borderTop: i === 0 ? 'none' : '1px solid #EFEFED' }}
+      >
+        <div className="flex items-center gap-3">
+          <span
+            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-xs font-semibold"
+            style={{ background: '#F3F3EF', color: '#0F0F0E' }}
+          >
+            {initialFor(c.merchant_name)}
+          </span>
+      <div>
+  <div className="flex items-center gap-2 flex-wrap">
+    <p className="text-sm font-medium" style={{ color: '#0F0F0E' }}>
+      {getCouponTitle(c)}
+    </p>
+    {c.title && getCouponValueLabel(c) && (
+      <span
+        className="text-[11px] font-medium px-1.5 py-0.5 rounded-full shrink-0"
+        style={{ color: '#1F5C3F', background: '#F3F3EF' }}
+      >
+        {getCouponValueLabel(c)}
+      </span>
+    )}
+  </div>
+  {getCouponDescription(c) && (
+    <p className="text-xs" style={{ color: '#9A9A9A' }}>
+      {getCouponDescription(c)}
+    </p>
+  )}
+  <p className="text-xs" style={{ color: '#9A9A9A' }}>
+    {c.merchant_name} &middot; {c.points_cost} pts
+  </p>
+</div>
+        </div>
+
+       <button
+  className="rounded-lg px-3 py-1.5 text-xs font-medium disabled:opacity-50"
+  style={{ background: '#0F0F0E', color: '#FFFFFF' }}
+  disabled={c.is_active === false || claimingId === (c.id ?? c.coupon_id)}
+  onClick={() => openClaimModal(c)}
+>
+  {c.is_active === false ? 'Inactive' : 'Claim'}
+</button>
+      </div>
+    ))}
+
+    {availableCoupons.length === 0 && (
+      <p className="text-sm text-center py-10" style={{ color: '#9A9A9A' }}>
+        No coupons available from merchants you&apos;ve earned points with yet.
+      </p>
+    )}
+  </div>
+)}
 
             {/* History */}
             <div className="flex items-center justify-between mb-4">
@@ -571,6 +761,77 @@ export default function WalletPage() {
           </div>
         </div>
       )}
+      {claimModalOpen && selectedCoupon && (
+  <div
+    className="fixed inset-0 flex items-center justify-center z-50 px-6"
+    style={{ background: 'rgba(15,15,14,0.6)' }}
+    onClick={() => !claimingId && setClaimModalOpen(false)}
+  >
+    <div
+      className="rounded-2xl px-6 py-7 w-full max-w-sm"
+      style={{ background: '#FFFFFF' }}
+      onClick={(e) => e.stopPropagation()}
+    >
+      <p className="text-sm font-semibold mb-1" style={{ color: '#0F0F0E' }}>
+        Confirm claim
+      </p>
+      <p className="text-xs mb-5" style={{ color: '#9A9A9A' }}>
+        This action can&apos;t be undone.
+      </p>
+
+      <div className="rounded-xl px-4 py-3 mb-5" style={{ background: '#F3F3EF' }}>
+        <div className="flex items-center gap-2 flex-wrap">
+          <p className="text-sm font-medium" style={{ color: '#0F0F0E' }}>
+            {getCouponTitle(selectedCoupon)}
+          </p>
+          {selectedCoupon.title && getCouponValueLabel(selectedCoupon) && (
+            <span
+              className="text-[11px] font-medium px-1.5 py-0.5 rounded-full shrink-0"
+              style={{ color: '#1F5C3F', background: '#FFFFFF' }}
+            >
+              {getCouponValueLabel(selectedCoupon)}
+            </span>
+          )}
+        </div>
+        {getCouponDescription(selectedCoupon) && (
+          <p className="text-xs mt-0.5" style={{ color: '#9A9A9A' }}>
+            {getCouponDescription(selectedCoupon)}
+          </p>
+        )}
+        <p className="text-xs mt-0.5" style={{ color: '#9A9A9A' }}>
+          {selectedCoupon.merchant_name || 'Unassigned'}
+          {selectedCoupon.expires_at && ` · Expires ${formatDate(selectedCoupon.expires_at)}`}
+        </p>
+      </div>
+
+      <div className="flex items-center justify-between text-xs mb-6">
+        <span style={{ color: '#9A9A9A' }}>Cost</span>
+        <span style={{ color: '#0F0F0E', fontFamily: 'var(--font-mono)' }}>
+          {selectedCoupon.points_cost} pts
+        </span>
+      </div>
+
+      <div className="flex gap-2">
+        <button
+          className="flex-1 rounded-xl py-3 text-sm font-medium disabled:opacity-50"
+          style={{ background: '#F3F3EF', color: '#0F0F0E' }}
+          onClick={() => setClaimModalOpen(false)}
+          disabled={!!claimingId}
+        >
+          Cancel
+        </button>
+        <button
+          className="flex-1 rounded-xl py-3 text-sm font-medium disabled:opacity-50"
+          style={{ background: '#0F0F0E', color: '#FFFFFF' }}
+          onClick={confirmClaim}
+          disabled={!!claimingId}
+        >
+          {claimingId ? 'Claiming…' : 'Confirm claim'}
+        </button>
+      </div>
+    </div>
+  </div>
+)}
     </main>
   );
 }

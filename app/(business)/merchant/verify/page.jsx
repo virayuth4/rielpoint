@@ -1,11 +1,21 @@
 'use client';
 
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { Inter, Space_Mono } from 'next/font/google';
 import authenticatedFetch from '@/app/auth/authenticatedFetch';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+
+const inter = Inter({
+  subsets: ['latin'],
+  weight: ['400', '500', '600'],
+  variable: '--font-body',
+});
+
+const mono = Space_Mono({
+  subsets: ['latin'],
+  weight: ['400', '700'],
+  variable: '--font-mono',
+});
 
 const DISCOUNT_TYPES = {
   percent: { format: (v) => `${parseFloat(v)}% off` },
@@ -14,6 +24,7 @@ const DISCOUNT_TYPES = {
 
 export default function VerifyCouponPage() {
   const router = useRouter();
+  const inputRef = useRef(null);
 
   const [otp, setOtp] = useState('');
   const [status, setStatus] = useState('idle'); // idle | loading | success | error
@@ -25,6 +36,7 @@ export default function VerifyCouponPage() {
     setStatus('idle');
     setErrorMessage('');
     setResult(null);
+    requestAnimationFrame(() => inputRef.current?.focus());
   }
 
   async function verifyCoupon() {
@@ -55,83 +67,121 @@ export default function VerifyCouponPage() {
     }
   }
 
+  const isValid = otp.trim().length > 0;
+
   return (
-    <div className="min-h-screen px-6 py-16 font-sans bg-white">
-      <div className="max-w-sm mx-auto">
-        <button
-          type="button"
-          onClick={() => router.push('/merchant')}
-          className="text-[13px] text-muted-foreground hover:text-foreground mb-8"
-        >
-          ← Back to dashboard
-        </button>
+    <main className={`${inter.variable} ${mono.variable} min-h-screen bg-white font-sans`}>
+      <div className="mx-auto max-w-md px-6 pt-10 pb-20">
+        <p className="mb-6 text-[11px] font-semibold uppercase tracking-[0.18em] text-neutral-400">
+          Merchant
+        </p>
 
-        <header className="mb-8">
-          <p className="text-[11px] tracking-[0.18em] uppercase font-medium mb-1 text-muted-foreground">
-            Merchant dashboard
-          </p>
-          <h1 className="text-[24px] leading-tight tracking-tight font-semibold font-serif">
-            {status === 'success' ? 'Coupon redeemed' : 'Verify coupon'}
-          </h1>
-          <p className="text-[13px] mt-1 text-muted-foreground">
-            {status === 'success'
-              ? 'This coupon has been marked as used.'
-              : "Enter the code the customer shows you at checkout."}
-          </p>
-        </header>
+        <h1 className="mb-2 text-2xl font-semibold text-black">
+          {status === 'success' ? 'Coupon redeemed' : 'Verify coupon'}
+        </h1>
+        <p className="mb-8 text-sm text-neutral-500">
+          {status === 'success'
+            ? 'This coupon has been marked as used.'
+            : "Enter the code the customer shows you at checkout."}
+        </p>
 
-        {status === 'success' && result ? (
-          <div className="py-2 mb-8">
-            <p className="text-[14px]">
-              {DISCOUNT_TYPES[result.discountType]?.format(result.discountValue) ?? '—'}
-            </p>
-            <p className="text-[12px] mt-1 text-muted-foreground">
-              {result.pointsCost} pts · {result.customerPhone ?? 'Unknown customer'}
-            </p>
-          </div>
-        ) : (
-          <div className="flex flex-col gap-1.5 mb-8">
-            <Label htmlFor="verify-otp">Code</Label>
-            <Input
+        {status !== 'success' ? (
+          <div className="border border-neutral-200 bg-white px-5 py-6">
+            <label
+              htmlFor="verify-otp"
+              className="mb-1.5 block text-xs font-medium text-neutral-500"
+            >
+              Code
+            </label>
+            <input
               id="verify-otp"
+              ref={inputRef}
               inputMode="numeric"
               autoFocus
               placeholder="6-digit code"
               value={otp}
               onChange={(e) => setOtp(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && verifyCoupon()}
-              className="font-mono tracking-widest text-center text-[18px]"
               maxLength={6}
+              className="mb-5 w-full border border-neutral-200 px-4 py-3 text-center font-mono text-[18px] tracking-widest text-black outline-none focus:border-black"
             />
+
             {status === 'error' && (
-              <p className="text-[12px] text-destructive mt-1">{errorMessage}</p>
+              <div className="mb-4 flex items-start gap-2 border border-black px-4 py-3 text-xs font-medium text-black">
+                <span aria-hidden="true">⚠</span>
+                <span>{errorMessage}</span>
+              </div>
             )}
+
+            <div className="flex gap-2">
+              {/* <button
+                type="button"
+                onClick={() => router.push('/merchant')}
+                className="flex-1 border border-neutral-200 bg-white py-3 text-sm font-semibold text-black transition-colors hover:bg-neutral-50"
+              >
+                Cancel
+              </button> */}
+              <button
+                type="button"
+                onClick={verifyCoupon}
+                disabled={status === 'loading' || !isValid}
+                className={`flex-1 bg-black py-3 text-sm font-semibold text-white transition-opacity ${
+                  isValid && status !== 'loading' ? 'opacity-100' : 'opacity-40'
+                }`}
+              >
+                {status === 'loading' ? 'Verifying…' : status === 'error' ? 'Retry' : 'Verify'}
+              </button>
+            </div>
+          </div>
+        ) : (
+          <div className="border border-neutral-200 bg-white px-5 py-6">
+            <div className="mb-5 flex items-center justify-between">
+              <span className="flex items-center gap-1.5 border border-black px-2.5 py-1 text-xs font-bold text-black">
+                <span aria-hidden="true">✓</span> Redeemed
+              </span>
+              <button onClick={reset} className="text-xs text-neutral-500 hover:text-black">
+                Verify another
+              </button>
+            </div>
+
+            <div className="flex items-center justify-between py-2">
+              <span className="text-xs text-neutral-500">Discount</span>
+              <span className="text-sm font-medium text-black">
+                {DISCOUNT_TYPES[result.discountType]?.format(result.discountValue) ?? '—'}
+              </span>
+            </div>
+            <div className="flex items-center justify-between border-t border-neutral-200 py-2">
+              <span className="text-xs text-neutral-500">Customer</span>
+              <span className="font-mono text-sm text-black">
+                {result.customerPhone ?? 'Unknown'}
+              </span>
+            </div>
+            <div className="flex items-center justify-between border-t border-neutral-200 py-2">
+              <span className="text-xs text-neutral-500">Points cost</span>
+              <span className="font-mono text-sm font-semibold text-black">
+                {result.pointsCost.toLocaleString()} pts
+              </span>
+            </div>
+
+            <div className="mt-4 flex gap-2">
+              <button
+                type="button"
+                onClick={reset}
+                className="flex-1 border border-neutral-200 bg-white py-3 text-sm font-semibold text-black transition-colors hover:bg-neutral-50"
+              >
+                Verify another
+              </button>
+              <button
+                type="button"
+                onClick={() => router.push('/merchant')}
+                className="flex-1 bg-black py-3 text-sm font-semibold text-white"
+              >
+                Done
+              </button>
+            </div>
           </div>
         )}
-
-        <div className="flex gap-2">
-          {status === 'success' ? (
-            <>
-              <Button variant="outline" onClick={reset}>
-                Verify another
-              </Button>
-              <Button onClick={() => router.push('/merchant')}>Done</Button>
-            </>
-          ) : (
-            <>
-              <Button variant="outline" onClick={() => router.push('/merchant')}>
-                Cancel
-              </Button>
-              <Button
-                onClick={verifyCoupon}
-                disabled={status === 'loading' || !otp.trim()}
-              >
-                {status === 'loading' ? 'Verifying…' : 'Verify'}
-              </Button>
-            </>
-          )}
-        </div>
       </div>
-    </div>
+    </main>
   );
 }

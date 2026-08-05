@@ -856,96 +856,9 @@ async function handleConfirm() {
     </Table>
   )}
 </section>
-  <div className="flex items-center justify-between mb-3">
-    <p className="text-[11px] tracking-[0.18em] uppercase font-medium text-muted-foreground">
-      Coupon claims · {couponClaims.length}
-    </p>
-  </div>
+  
 
-  {couponClaims.length === 0 ? (
-    <p className="py-6 text-[13px] text-muted-foreground">No claims yet.</p>
-  ) : (
-    <Table>
-      <TableHeader>
-        <TableRow className="hover:bg-transparent">
-          <TableHead className="pl-0 h-auto pb-2 text-[10px] tracking-[0.14em] uppercase font-medium text-muted-foreground">
-            Customer
-          </TableHead>
-          <TableHead className="h-auto pb-2 text-[10px] tracking-[0.14em] uppercase font-medium text-muted-foreground">
-            Coupon
-          </TableHead>
-          <TableHead className="h-auto pb-2 text-[10px] tracking-[0.14em] uppercase font-medium text-muted-foreground">
-            Redeemed By
-          </TableHead>
-          <TableHead className="text-right pr-0 h-auto pb-2 text-[10px] tracking-[0.14em] uppercase font-medium text-muted-foreground">
-            Redeemed
-          </TableHead>
-        </TableRow>
-      </TableHeader>
-      <TableBody>
-        {couponClaims.map((claim) => {
-          const coupon = coupons.find(
-            (c) => String(c.coupon_id) === String(claim.coupon_id)
-          );
-          return (
-            <TableRow key={claim.claim_id}>
-              <TableCell className="pl-0">
-                <p className="text-[13px]">{claim.customer_phone ?? '—'}</p>
-                <p className="text-[12px] mt-0.5 text-muted-foreground font-mono">
-                  Customer ID:{claim.customer_id}
-                </p>
-              </TableCell>
-              <TableCell className="text-[13px]">
-                {coupon ? (
-                  <>
-                    <p>
-                      {DISCOUNT_TYPES[coupon.discount_type]?.format(
-                        coupon.discount_value
-                      ) ?? '—'}
-                    </p>
-                    <p className="text-[12px] mt-0.5 text-muted-foreground font-mono">
-                      {coupon.points_cost} pts
-                    </p>
-                  </>
-                ) : (
-                  <span className="text-muted-foreground font-mono text-[12px]">
-                    #{claim.coupon_id}
-                  </span>
-                )}
-              </TableCell>
-              <TableCell className="text-[13px]">
-                {claim.staff_fullname ? (
-                  claim.staff_fullname
-                ) : claim.staff_id ? (
-                  <span className="text-muted-foreground font-mono text-[12px]">
-                    #{claim.staff_id}
-                  </span>
-                ) : (
-                  <span className="text-muted-foreground">—</span>
-                )}
-              </TableCell>
-              <TableCell className="text-right pr-0">
-                {claim.redeemed_at ? (
-                  <p className="text-[13px]">
-                    {new Date(claim.redeemed_at).toLocaleString(undefined, {
-                      month: 'short',
-                      day: 'numeric',
-                      hour: 'numeric',
-                      minute: '2-digit',
-                    })}
-                  </p>
-                ) : (
-                  <span className="text-[13px] text-muted-foreground">
-                    Not redeemed
-                  </span>
-                )}
-              </TableCell>
-            </TableRow>
-          );
-        })}
-      </TableBody>
-    </Table>
-  )}
+ 
 </section>
 
        {/* Recent point transactions */}

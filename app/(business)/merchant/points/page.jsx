@@ -160,7 +160,7 @@ export default function CreditPointsPage() {
         </p>
 
         {!result ? (
-          <div className="rounded-2xl border border-neutral-200 bg-white px-5 py-6">
+          <div className=" border border-neutral-200 bg-white px-5 py-6">
             {/* Phone Number Input */}
             <label className="mb-1 block text-xs font-medium text-neutral-500">
               Phone number
@@ -173,7 +173,7 @@ export default function CreditPointsPage() {
                 idempotencyKeyRef.current = null; // form content changed → new attempt
               }}
               placeholder="0977 123 456"
-              className="mb-5 w-full rounded-xl border border-neutral-200 px-4 py-3 font-mono text-base md:text-sm text-black outline-none focus:border-black"
+              className="mb-5 w-full border border-neutral-200 px-4 py-3 font-mono text-base md:text-sm text-black outline-none focus:border-black"
             />
 
             {/* Currency Selector & Label */}
@@ -181,14 +181,14 @@ export default function CreditPointsPage() {
               <label className="text-xs font-medium text-neutral-500">
                 Total amount ({currency})
               </label>
-              <div className="flex gap-1 rounded-lg bg-neutral-100 p-0.5 text-xs font-medium">
+              <div className="flex gap-1  bg-neutral-100 p-0.5 text-xs font-medium">
                 <button
                   type="button"
                   onClick={() => {
                     setCurrency('USD');
                     idempotencyKeyRef.current = null;
                   }}
-                  className={`rounded-md px-2.5 py-1 transition-colors ${
+                  className={` px-2.5 py-1 transition-colors ${
                     currency === 'USD'
                       ? 'bg-black font-semibold text-white'
                       : 'text-neutral-500 hover:text-black'
@@ -202,7 +202,7 @@ export default function CreditPointsPage() {
                     setCurrency('KHR');
                     idempotencyKeyRef.current = null;
                   }}
-                  className={`rounded-md px-2.5 py-1 transition-colors ${
+                  className={`px-2.5 py-1 transition-colors ${
                     currency === 'KHR'
                       ? 'bg-black font-semibold text-white'
                       : 'text-neutral-500 hover:text-black'
@@ -225,7 +225,7 @@ export default function CreditPointsPage() {
                 placeholder={currency === 'USD' ? '10.00' : '40010'}
                 min="0"
                 step={currency === 'USD' ? '0.01' : '100'}
-                className="w-full rounded-xl border border-neutral-200 px-4 py-3 font-mono text-base md:text-sm text-black outline-none focus:border-black"
+                className="w-full  border border-neutral-200 px-4 py-3 font-mono text-base md:text-sm text-black outline-none focus:border-black"
               />
               {convertedDisplay && (
                 <span className="mt-1 block text-right font-mono text-xs font-medium text-neutral-500">
@@ -235,7 +235,7 @@ export default function CreditPointsPage() {
             </div>
 
             {/* Conversion Rate Banner */}
-            <div className="mb-5 flex items-center justify-between rounded-xl border border-neutral-200 bg-neutral-50 px-3.5 py-2 text-xs text-neutral-500">
+            <div className="mb-5 flex items-center justify-between  border border-neutral-200 bg-neutral-50 px-3.5 py-2 text-xs text-neutral-500">
               <span>Exchange rate</span>
               <span className="font-mono font-medium text-black">
                 $1 = {KHR_PER_USD.toLocaleString()} KHR
@@ -254,7 +254,7 @@ export default function CreditPointsPage() {
                     setRate(option);
                     idempotencyKeyRef.current = null;
                   }}
-                  className={`flex-1 rounded-xl border py-2.5 text-sm font-semibold transition-colors ${
+                  className={`flex-1  border py-2.5 text-sm font-semibold transition-colors ${
                     rate === option
                       ? 'border-black bg-black text-white'
                       : 'border-neutral-200 bg-white text-neutral-500'
@@ -266,7 +266,7 @@ export default function CreditPointsPage() {
             </div>
 
             {/* Points Preview */}
-            <div className="mb-6 flex items-center justify-between rounded-xl border border-neutral-200 bg-neutral-50 px-4 py-3">
+            <div className="mb-6 flex items-center justify-between  border border-neutral-200 bg-neutral-50 px-4 py-3">
               <span className="text-xs text-neutral-500">Points to credit</span>
               <span className="font-mono text-lg font-semibold text-black">
                 {pointsToCredit.toLocaleString()} pts
@@ -274,7 +274,7 @@ export default function CreditPointsPage() {
             </div>
 
             {error && (
-              <div className="mb-4 flex items-start gap-2 rounded-xl border border-black px-4 py-3 text-xs font-medium text-black">
+              <div className="mb-4 flex items-start gap-2  border border-black px-4 py-3 text-xs font-medium text-black">
                 <span aria-hidden="true">⚠</span>
                 <span>{error}</span>
               </div>
@@ -283,7 +283,7 @@ export default function CreditPointsPage() {
             <button
               onClick={handleCredit}
               disabled={!isValid || isSubmitting}
-              className={`w-full rounded-xl bg-black py-3 text-sm font-semibold text-white transition-opacity ${
+              className={`w-full  bg-black py-3 text-sm font-semibold text-white transition-opacity ${
                 isValid && !isSubmitting ? 'opacity-100' : 'opacity-40'
               }`}
             >
@@ -292,9 +292,9 @@ export default function CreditPointsPage() {
           </div>
         ) : (
           /* Result View */
-          <div className="rounded-2xl border border-neutral-200 bg-white px-5 py-6">
+          <div className=" border border-neutral-200 bg-white px-5 py-6">
             <div className="mb-5 flex items-center justify-between">
-              <span className="flex items-center gap-1.5 rounded-full border border-black px-2.5 py-1 text-xs font-bold text-black">
+              <span className="flex items-center gap-1.5  border border-black px-2.5 py-1 text-xs font-bold text-black">
                 <span aria-hidden="true">✓</span> Credited
               </span>
               <button onClick={handleReset} className="text-xs text-neutral-500 hover:text-black">
@@ -344,7 +344,7 @@ export default function CreditPointsPage() {
             </div> */}
             <button
               onClick={handleReset}
-              className="mt-4 w-full rounded-xl border border-neutral-200 bg-white py-3 text-sm font-semibold text-black transition-colors hover:bg-neutral-50"
+              className="mt-4 w-full  border border-neutral-200 bg-white py-3 text-sm font-semibold text-black transition-colors hover:bg-neutral-50"
             >
               ← Credit another customer
             </button>

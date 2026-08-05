@@ -2,7 +2,7 @@
 import React, { useContext } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Home, Trophy, Store, Wallet, User, ListChecks, ShieldCheck } from 'lucide-react'
+import { Home, PlayCircle, Store, Wallet, User, ListChecks, ShieldCheck } from 'lucide-react'
 import { AuthContext } from '@/app/auth/authContext'
 
 // True if the given href is (or is a parent of) the current pathname
@@ -20,7 +20,7 @@ const subLabel = 'text-[8px] tracking-[0.06em] uppercase font-normal'
 // actual route names — these are best guesses from the labels you gave.
 const TABS_LEFT = [
   { label: 'Home', href: '/', icon: Home },
-  { label: 'Rewards', href: '/rewards', icon: Trophy },
+  { label: 'Demo', href: '/demo', icon: PlayCircle },
 ]
 const TABS_RIGHT = [
   { label: 'Wallet', href: '/wallet', icon: Wallet },
