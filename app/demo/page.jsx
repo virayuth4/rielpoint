@@ -332,13 +332,12 @@ function VerifyCouponDemo() {
   const [errorMessage, setErrorMessage] = useState('');
   const [result, setResult] = useState(null);
 
-  function reset() {
-    setOtp('');
-    setStatus('idle');
-    setErrorMessage('');
-    setResult(null);
-    requestAnimationFrame(() => inputRef.current?.focus());
-  }
+function reset() {
+  setOtp('');
+  setStatus('idle');
+  setErrorMessage('');
+  setResult(null);
+}
 
   async function verifyCoupon() {
     if (!otp.trim()) return;
@@ -389,11 +388,10 @@ function VerifyCouponDemo() {
           >
             Code
           </label>
-          <input
+         <input
             id="verify-otp"
             ref={inputRef}
             inputMode="numeric"
-            autoFocus
             placeholder="6-digit code"
             value={otp}
             onChange={(e) => setOtp(e.target.value)}
