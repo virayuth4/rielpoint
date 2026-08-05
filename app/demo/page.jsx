@@ -2,6 +2,8 @@
 
 import { useMemo, useRef, useState } from 'react';
 import { Inter, Space_Mono } from 'next/font/google';
+import MerchantSignUpForm from '../Components/merchantSignUpForm';
+import Link from 'next/link';
 
 const inter = Inter({
   subsets: ['latin'],
@@ -18,10 +20,7 @@ const mono = Space_Mono({
 const RATE_OPTIONS = [10, 25, 50];
 const KHR_PER_USD = 4001; // Fixed conversion rate: 4,001 KHR = $1 USD
 
-const DISCOUNT_TYPES = {
-  percent: { format: (v) => `${parseFloat(v)}% off` },
-  amount: { format: (v) => `-$${parseFloat(v)} on everything` },
-};
+
 
 // ---- Fake network helper (no real requests) --------------------------
 
@@ -35,6 +34,228 @@ function fakeRequest(resolveValue, { delay = 700, failRate = 0 } = {}) {
       }
     }, delay);
   });
+}
+
+// ---- Add coupon (demo) ----------------------------------------------
+
+const DISCOUNT_TYPES = {
+  percent: { label: '% off', format: (c) => `${parseFloat(c.discount_value)}% off` },
+  amount: { label: '$ off everything', format: (c) => `-$${parseFloat(c.discount_value)} on everything` },
+  custom: { label: 'Custom perk', format: () => 'Custom perk' },
+};
+
+function todayPlusDays(days) {
+  const d = new Date();
+  d.setDate(d.getDate() + days);
+  return d.toISOString().split('T')[0];
+}
+
+function AddCouponDemo() {
+  const [title, setTitle] = useState('');
+  const [description, setDescription] = useState('');
+  const [discountType, setDiscountType] = useState('percent');
+  const [discountValue, setDiscountValue] = useState('');
+  const [expiresAt, setExpiresAt] = useState(todayPlusDays(30));
+  const [result, setResult] = useState(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState(null);
+
+  const needsValue = discountType !== 'custom';
+  const numericValue = Number(discountValue);
+
+  const isValid =
+    title.trim().length > 0 &&
+    expiresAt.length > 0 &&
+    (!needsValue || (discountValue.trim().length > 0 && numericValue > 0));
+
+  const previewLabel = useMemo(() => {
+    if (needsValue && !(numericValue > 0)) {
+      return discountType === 'percent' ? '—% off' : discountType === 'amount' ? '-$— on everything' : 'Custom perk';
+    }
+    return DISCOUNT_TYPES[discountType].format({ discount_value: discountValue });
+  }, [discountType, discountValue, numericValue, needsValue]);
+
+  const handleCreate = async () => {
+    if (!isValid || isSubmitting) return;
+
+    setIsSubmitting(true);
+    setError(null);
+
+    try {
+      // Demo only — no real API call. Simulates the shape of a real response.
+      const data = await fakeRequest(
+        {
+          id: Math.floor(Math.random() * 100000),
+          title: title.trim(),
+          description: description.trim(),
+          discountType,
+          discountValue: needsValue ? numericValue : null,
+          expiresAt,
+          createdAt: new Date().toISOString(),
+        },
+        { delay: 700, failRate: 0.15 }
+      );
+
+      setResult(data);
+    } catch (err) {
+      setError(err.message || 'Something went wrong. Please try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleReset = () => {
+    setTitle('');
+    setDescription('');
+    setDiscountType('percent');
+    setDiscountValue('');
+    setExpiresAt(todayPlusDays(30));
+    setResult(null);
+    setError(null);
+  };
+
+  return (
+    <div>
+      <h1 className="mb-2 text-2xl font-semibold text-black">Add coupon</h1>
+      <p className="mb-8 text-sm text-neutral-500">
+        Create a new coupon customers can redeem with points.{' '}
+        <span className="text-neutral-400">(Demo — no real request is sent.)</span>
+      </p>
+
+      {!result ? (
+        <div className="border border-neutral-200 bg-white px-5 py-6">
+          <label className="mb-1 block text-xs font-medium text-neutral-500">Title</label>
+          <input
+            type="text"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            placeholder="15% off your order"
+            className="mb-5 w-full border border-neutral-200 px-4 py-3 text-base md:text-sm text-black outline-none focus:border-black"
+          />
+
+          <label className="mb-1 block text-xs font-medium text-neutral-500">
+            Description <span className="text-neutral-400">(optional)</span>
+          </label>
+          <textarea
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            placeholder="Valid at checkout, one use per customer"
+            rows={2}
+            className="mb-5 w-full resize-none border border-neutral-200 px-4 py-3 text-base md:text-sm text-black outline-none focus:border-black"
+          />
+
+          <label className="mb-2 block text-xs font-medium text-neutral-500">Discount type</label>
+          <div className="mb-5 flex gap-2">
+            {Object.entries(DISCOUNT_TYPES).map(([key, { label }]) => (
+              <button
+                key={key}
+                type="button"
+                onClick={() => {
+                  setDiscountType(key);
+                  if (key === 'custom') setDiscountValue('');
+                }}
+                className={`flex-1 border py-2.5 text-xs font-semibold transition-colors ${
+                  discountType === key
+                    ? 'border-black bg-black text-white'
+                    : 'border-neutral-200 bg-white text-neutral-500'
+                }`}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+
+          {needsValue && (
+            <>
+              <label className="mb-1 block text-xs font-medium text-neutral-500">
+                {discountType === 'percent' ? 'Percent off' : 'Amount off ($)'}
+              </label>
+              <input
+                type="number"
+                value={discountValue}
+                onChange={(e) => setDiscountValue(e.target.value)}
+                placeholder={discountType === 'percent' ? '15' : '5'}
+                min="0"
+                step={discountType === 'percent' ? '1' : '0.01'}
+                className="mb-5 w-full border border-neutral-200 px-4 py-3 font-mono text-base md:text-sm text-black outline-none focus:border-black"
+              />
+            </>
+          )}
+
+          <label className="mb-1 block text-xs font-medium text-neutral-500">Expiration date</label>
+          <input
+            type="date"
+            value={expiresAt}
+            onChange={(e) => setExpiresAt(e.target.value)}
+            min={todayPlusDays(1)}
+            className="mb-6 w-full border border-neutral-200 px-4 py-3 font-mono text-base md:text-sm text-black outline-none focus:border-black"
+          />
+
+          <div className="mb-6 border border-neutral-200 bg-neutral-50 px-4 py-3">
+            <p className="mb-1 text-xs text-neutral-500">Preview</p>
+            <p className="text-sm font-semibold text-black">{title || 'Untitled coupon'}</p>
+            <p className="mt-0.5 font-mono text-xs text-neutral-500">{previewLabel}</p>
+          </div>
+
+          {error && (
+            <div className="mb-4 flex items-start gap-2 border border-black px-4 py-3 text-xs font-medium text-black">
+              <span aria-hidden="true">⚠</span>
+              <span>{error}</span>
+            </div>
+          )}
+
+          <button
+            onClick={handleCreate}
+            disabled={!isValid || isSubmitting}
+            className={`w-full bg-black py-3 text-sm font-semibold text-white transition-opacity ${
+              isValid && !isSubmitting ? 'opacity-100' : 'opacity-40'
+            }`}
+          >
+            {isSubmitting ? 'Creating...' : error ? 'Retry' : 'Create coupon'}
+          </button>
+        </div>
+      ) : (
+        <div className="border border-neutral-200 bg-white px-5 py-6">
+          <div className="mb-5 flex items-center justify-between">
+            <span className="flex items-center gap-1.5 border border-black px-2.5 py-1 text-xs font-bold text-black">
+              <span aria-hidden="true">✓</span> Created
+            </span>
+            <button onClick={handleReset} className="text-xs text-neutral-500 hover:text-black">
+              Add another
+            </button>
+          </div>
+
+          <div className="flex items-center justify-between py-2">
+            <span className="text-xs text-neutral-500">Title</span>
+            <span className="text-sm font-medium text-black">{result.title}</span>
+          </div>
+          {result.description && (
+            <div className="flex items-center justify-between border-t border-neutral-200 py-2">
+              <span className="text-xs text-neutral-500">Description</span>
+              <span className="max-w-[65%] text-right text-sm text-black">{result.description}</span>
+            </div>
+          )}
+          <div className="flex items-center justify-between border-t border-neutral-200 py-2">
+            <span className="text-xs text-neutral-500">Discount</span>
+            <span className="font-mono text-sm text-black">
+              {DISCOUNT_TYPES[result.discountType].format({ discount_value: result.discountValue })}
+            </span>
+          </div>
+          <div className="flex items-center justify-between border-t border-neutral-200 py-2">
+            <span className="text-xs text-neutral-500">Expires</span>
+            <span className="font-mono text-sm text-black">{result.expiresAt}</span>
+          </div>
+
+          <button
+            onClick={handleReset}
+            className="mt-4 w-full border border-neutral-200 bg-white py-3 text-sm font-semibold text-black transition-colors hover:bg-neutral-50"
+          >
+            ← Create another coupon
+          </button>
+        </div>
+      )}
+    </div>
+  );
 }
 
 // ---- Add points (demo) -------------------------------------------------
@@ -554,7 +775,7 @@ function CustomerCouponDemo() {
 // ---- Demo page shell -----------------------------------------------------
 
 export default function DemoPage() {
-  const [tab, setTab] = useState('points'); // 'points' | 'coupon' | 'customer'
+ const [tab, setTab] = useState('points'); // 'points' | 'coupon' | 'add-coupon' | 'customer'
 
   return (
     <main className={`${inter.variable} ${mono.variable} min-h-screen bg-white font-sans`}>
@@ -587,6 +808,17 @@ export default function DemoPage() {
             Verify coupon
           </button>
           <button
+          type="button"
+          onClick={() => setTab('add-coupon')}
+          className={`flex-1 px-3 py-2 transition-colors ${
+            tab === 'add-coupon'
+              ? 'bg-black font-semibold text-white'
+              : 'text-neutral-500 hover:text-black'
+          }`}
+        >
+          Add coupon
+        </button>
+          <button
             type="button"
             onClick={() => setTab('customer')}
             className={`flex-1 px-3 py-2 transition-colors ${
@@ -602,7 +834,20 @@ export default function DemoPage() {
         {tab === 'points' && <AddPointsDemo />}
         {tab === 'coupon' && <VerifyCouponDemo />}
         {tab === 'customer' && <CustomerCouponDemo />}
+        {tab === 'add-coupon' && <AddCouponDemo />}
+      
+      
+      
       </div>
+      <div className="flex justify-center">
+            <Link
+                href="/signup/merchant"
+                className="bg-[var(--ink)] px-8 py-3.5 text-sm font-semibold text-[var(--paper)] transition-opacity hover:opacity-90"
+            >
+                List your business
+            </Link>
+            </div>
+      
     </main>
   );
 }

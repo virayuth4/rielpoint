@@ -12,8 +12,8 @@ import {
   Phone,
 } from "lucide-react";
 
-import { useRouter } from "next/navigation";
 import Image from "next/image";
+import MerchantSignUpForm from "./Components/merchantSignUpForm";
 
 
 
@@ -202,6 +202,8 @@ function CheckoutMockup() {
     </div>
   );
 }
+
+
 
 /* ------------------------------------------------------------------ */
 /* Interactive, self-contained demo of the merchant "verify coupon"   */
@@ -450,201 +452,196 @@ function AddPointsMockup() {
   );
 }
 
-const BUSINESS_TYPES = [
-  "Coffee shop & café",
-  "Restaurant & bar",
-  "Hotel & guesthouse",
-  "Retail & shop",
-  "Salon & spa",
-  "Other",
-];
 
-function MerchantSignUpForm() {
-  const router = useRouter();
-  const [form, setForm] = useState({ businessName: "", businessType: "", phone: "" });
-  const [status, setStatus] = useState("idle"); // idle | loading | success | error
-  const [errorMsg, setErrorMsg] = useState("");
-  const [needsAuth, setNeedsAuth] = useState(false);
 
-  const update = (field) => (e) => setForm((f) => ({ ...f, [field]: e.target.value }));
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (!form.businessName || !form.businessType || !form.phone) return;
+/* ------------------------------------------------------------------ */
+/* Interactive, self-contained demo of the merchant "add coupon"      */
+/* screen for the "See how it works" section. Local state only — no   */
+/* network requests are ever made and no real coupon is created.      */
+/* ------------------------------------------------------------------ */
+const MOCKUP_DISCOUNT_TYPES = {
+  percent: { label: "% off", format: (v) => `${v}% off` },
+  amount: { label: "$ off", format: (v) => `-$${v} on everything` },
+  custom: { label: "Custom", format: () => "Custom perk" },
+};
 
-    setStatus("loading");
-    setErrorMsg("");
-    setNeedsAuth(false);
+function mockupExpiryDate(days = 30) {
+  const d = new Date();
+  d.setDate(d.getDate() + days);
+  return d.toISOString().split("T")[0];
+}
 
-    try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/merchant/merchant/create`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name: form.businessName,
-          contact_phone: form.phone,
-          business_type: form.businessType,
-        }),
-      });
+function AddCouponMockup() {
+  const [title, setTitle] = useState("15% off your order");
+  const [discountType, setDiscountType] = useState("percent");
+  const [discountValue, setDiscountValue] = useState("15");
+  const [expiresAt, setExpiresAt] = useState(mockupExpiryDate());
+  const [loading, setLoading] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
 
-      if (res.status === 201) {
-        setStatus("success");
-        return;
-      }
+  const needsValue = discountType !== "custom";
+  const previewLabel = needsValue
+    ? MOCKUP_DISCOUNT_TYPES[discountType].format(discountValue || "—")
+    : MOCKUP_DISCOUNT_TYPES.custom.format();
 
-      const data = await res.json().catch(() => ({}));
-
-      if (res.status === 409) {
-        setErrorMsg("A business with this name already exists. Try a different name.");
-      } else if (res.status === 400) {
-        setErrorMsg("Please fill in your business name and phone number.");
-      } else if (res.status === 401) {
-        setErrorMsg("You need to be signed in to list a business.");
-        setNeedsAuth(true);
-      } else {
-        setErrorMsg(data.error || "Something went wrong. Please try again.");
-      }
-      setStatus("error");
-    } catch (err) {
-      setErrorMsg("Couldn't reach the server. Check your connection and try again.");
-      setStatus("error");
-    }
+  const handleCreate = () => {
+    if (loading || submitted) return;
+    setLoading(true);
+    // Demo only — simulated delay, no request is ever sent.
+    setTimeout(() => {
+      setLoading(false);
+      setSubmitted(true);
+    }, 600);
   };
 
-  if (status === "success") {
-    return (
-      <div className="w-full max-w-md border border-[var(--ink)]/15 bg-[var(--paper)] p-8 text-center text-[var(--ink)] shadow-[0_20px_50px_-25px_rgba(33,29,26,0.5)]">
-        <Check className="mx-auto h-8 w-8" />
-        <p className="mt-4 font-display text-xl font-semibold tracking-tight">Got it, {form.businessName}.</p>
-        <p className="mt-2 text-sm leading-6 text-[var(--ink)]/65">
-          We&apos;ll reach out to {form.phone} shortly to get your loyalty program set up.
-        </p>
-      </div>
-    );
-  }
+  const handleReset = () => {
+    setSubmitted(false);
+    setLoading(false);
+  };
 
   return (
-    <form
-      onSubmit={handleSubmit}
-      className="w-full max-w-md border border-[var(--ink)]/15 bg-[var(--paper)] p-8 text-left text-[var(--ink)] shadow-[0_20px_50px_-25px_rgba(33,29,26,0.5)]"
-    >
-      <p className="font-tape text-[10px] uppercase tracking-[0.22em] text-[var(--ink)]/50">Contact Us</p>
-      <h3 className="mt-2 font-display text-2xl font-semibold tracking-tight">Tell us about your business.</h3>
-
-      <div className="mt-6">
-        <label htmlFor="businessName" className="font-tape text-[10px] uppercase tracking-[0.22em] text-[var(--ink)]/50">
-          Business name
-        </label>
-        <input
-          id="businessName"
-          type="text"
-          required
-          placeholder="Baitong Café"
-          value={form.businessName}
-          onChange={update("businessName")}
-          disabled={status === "loading"}
-          className="mt-2 w-full border border-[var(--ink)]/25 bg-white px-3 py-2.5 text-sm outline-none placeholder:text-[var(--ink)]/30 focus:border-[var(--ink)] disabled:opacity-50"
-        />
+    <div className="w-full max-w-sm overflow-hidden border border-[var(--ink)]/15 bg-[var(--paper)] shadow-[0_25px_60px_-25px_rgba(33,29,26,0.5)]">
+      {/* Fake browser chrome so it reads as "a screen", not a live form */}
+      <div className="flex items-center gap-1.5 border-b border-[var(--ink)]/10 bg-[var(--paper-dim)] px-4 py-2.5">
+        <span className="h-2.5 w-2.5 rounded-full bg-[var(--ink)]/20" />
+        <span className="h-2.5 w-2.5 rounded-full bg-[var(--ink)]/20" />
+        <span className="h-2.5 w-2.5 rounded-full bg-[var(--ink)]/20" />
+        <span className="ml-3 flex-1 truncate rounded-full bg-[var(--paper)] px-3 py-1 font-tape text-[10px] text-[var(--ink)]/40">
+          app.rielpoint.com/merchant/coupons/new
+        </span>
       </div>
 
-      <div className="mt-4">
-        <label htmlFor="businessType" className="font-tape text-[10px] uppercase tracking-[0.22em] text-[var(--ink)]/50">
-          Business type
-        </label>
-        <select
-          id="businessType"
-          required
-          value={form.businessType}
-          onChange={update("businessType")}
-          disabled={status === "loading"}
-          className="mt-2 w-full border border-[var(--ink)]/25 bg-white px-3 py-2.5 text-sm text-[var(--ink)] outline-none focus:border-[var(--ink)] disabled:opacity-50"
-        >
-          <option value="" disabled>
-            Select a type
-          </option>
-          {BUSINESS_TYPES.map((t) => (
-            <option key={t} value={t}>
-              {t}
-            </option>
-          ))}
-        </select>
-      </div>
+      <div className="px-5 py-6 font-body text-[var(--ink)]">
+        <p className="mb-4 font-tape text-[10px] font-semibold uppercase tracking-[0.18em] text-[var(--ink)]/40">
+          Try it — demo only
+        </p>
 
-      <div className="mt-4">
-        <label htmlFor="phone" className="font-tape text-[10px] uppercase tracking-[0.22em] text-[var(--ink)]/50">
-          Phone number
-        </label>
-        <div className="mt-2 flex items-center gap-2 border border-[var(--ink)]/25 bg-white px-3 py-2.5 focus-within:border-[var(--ink)]">
-          <Phone className="h-4 w-4 shrink-0 text-[var(--ink)]/40" />
-          <input
-            id="phone"
-            type="tel"
-            required
-            placeholder="012 xxx 456"
-            value={form.phone}
-            onChange={update("phone")}
-            disabled={status === "loading"}
-            className="w-full bg-transparent text-sm outline-none placeholder:text-[var(--ink)]/30 disabled:opacity-50"
-          />
-        </div>
-      </div>
+        {!submitted ? (
+          <>
+            <label className="mb-1 block text-[11px] font-medium text-[var(--ink)]/55">Title</label>
+            <input
+              type="text"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              placeholder="15% off your order"
+              className="mb-4 w-full border border-[var(--ink)]/20 bg-white px-3 py-2 font-tape text-sm text-[var(--ink)] outline-none focus:border-[var(--ink)]"
+            />
 
-      {status === "error" && (
-        <div className="mt-4 border border-[var(--ink)]/20 bg-[var(--paper-dim)] px-3 py-2 text-[var(--ink)]">
-          <p className="text-xs">{errorMsg}</p>
-          {needsAuth && (
+            <label className="mb-1.5 block text-[11px] font-medium text-[var(--ink)]/55">Discount type</label>
+            <div className="mb-4 flex gap-1.5">
+              {Object.entries(MOCKUP_DISCOUNT_TYPES).map(([key, { label }]) => (
+                <button
+                  key={key}
+                  type="button"
+                  onClick={() => {
+                    setDiscountType(key);
+                    if (key === "custom") setDiscountValue("");
+                  }}
+                  className={`flex-1 border py-1.5 text-[11px] font-semibold transition-colors ${
+                    discountType === key
+                      ? "border-[var(--ink)] bg-[var(--ink)] text-[var(--paper)]"
+                      : "border-[var(--ink)]/20 text-[var(--ink)]/55"
+                  }`}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+
+            {needsValue && (
+              <>
+                <label className="mb-1 block text-[11px] font-medium text-[var(--ink)]/55">
+                  {discountType === "percent" ? "Percent off" : "Amount off ($)"}
+                </label>
+                <input
+                  type="number"
+                  value={discountValue}
+                  onChange={(e) => setDiscountValue(e.target.value)}
+                  min="0"
+                  className="mb-4 w-full border border-[var(--ink)]/20 bg-white px-3 py-2 font-tape text-sm text-[var(--ink)] outline-none focus:border-[var(--ink)]"
+                />
+              </>
+            )}
+
+            <label className="mb-1 block text-[11px] font-medium text-[var(--ink)]/55">Expires</label>
+            <input
+              type="date"
+              value={expiresAt}
+              onChange={(e) => setExpiresAt(e.target.value)}
+              className="mb-4 w-full border border-[var(--ink)]/20 bg-white px-3 py-2 font-tape text-sm text-[var(--ink)] outline-none focus:border-[var(--ink)]"
+            />
+
+            <div className="mb-4 border border-[var(--ink)]/15 bg-[var(--paper-dim)] px-3 py-2.5">
+              <p className="font-tape text-[10px] uppercase tracking-wide text-[var(--ink)]/45">Preview</p>
+              <p className="mt-1 text-sm font-semibold">{title || "Untitled coupon"}</p>
+              <p className="mt-0.5 font-tape text-[11px] text-[var(--ink)]/55">{previewLabel}</p>
+            </div>
+
             <button
               type="button"
-              onClick={() => router.push("/signup")}
-              className="press mt-2 flex items-center gap-2 bg-[var(--ink)] px-4 py-2 font-tape text-xs uppercase tracking-[0.2em] text-[var(--paper)] hover:opacity-90"
+              onClick={handleCreate}
+              disabled={loading || !title.trim()}
+              className="press w-full bg-[var(--ink)] py-2.5 font-tape text-xs uppercase tracking-[0.18em] text-[var(--paper)] hover:opacity-90 disabled:opacity-60"
             >
-              Sign up
-              <ArrowRight className="h-3.5 w-3.5" />
+              {loading ? "Creating..." : "Create coupon"}
             </button>
-          )}
-        </div>
-      )}
+          </>
+        ) : (
+          <>
+            <div className="mb-4 flex items-center justify-between">
+              <span className="flex items-center gap-1.5 border border-[var(--ink)] px-2.5 py-1 font-tape text-[10px] font-bold uppercase tracking-wide">
+                <Check className="h-3 w-3" /> Created
+              </span>
+              <button type="button" onClick={handleReset} className="text-[11px] text-[var(--ink)]/55 hover:text-[var(--ink)]">
+                Try again
+              </button>
+            </div>
+            <LedgerRow label="Title" value={title} strong />
+            <LedgerRow label="Discount" value={previewLabel} />
+            <div className="my-2 border-t border-dashed border-[var(--ink)]/25" />
+            <LedgerRow label="Expires" value={expiresAt} strong />
+          </>
+        )}
 
-      <button
-        type="submit"
-        disabled={status === "loading"}
-        className="press mt-6 flex w-full items-center justify-center gap-2 bg-[var(--ink)] px-6 py-3 font-tape text-xs uppercase tracking-[0.2em] text-[var(--paper)] hover:opacity-90 disabled:opacity-60"
-      >
-        {status === "loading" ? "Submitting..." : "Submit"}
-        {status !== "loading" && <ArrowRight className="h-4 w-4" />}
-      </button>
-    </form>
+        <p className="mt-5 text-center font-tape text-[9px] uppercase tracking-wide text-[var(--ink)]/30">
+          Demo only — no coupon is actually created
+        </p>
+      </div>
+    </div>
   );
 }
+
+/* Updated CheckoutTabs with three tabs instead of two */
 function CheckoutTabs() {
-  const [tab, setTab] = useState("coupon"); // "points" | "coupon"
+  const [tab, setTab] = useState("coupon"); // "points" | "coupon" | "add-coupon"
+
+  const TABS = [
+    { key: "points", label: "Add points" },
+    { key: "coupon", label: "Verify coupon" },
+    { key: "add-coupon", label: "Add coupon" },
+  ];
 
   return (
     <div className="mt-12 flex flex-col items-center">
       <div className="mb-6 flex gap-1 bg-[var(--paper)] p-0.5 font-tape text-[10px] uppercase tracking-[0.18em] shadow-[0_2px_10px_-4px_rgba(33,29,26,0.3)]">
-        <button
-          type="button"
-          onClick={() => setTab("points")}
-          className={`px-4 py-2 transition-colors ${
-            tab === "points" ? "bg-[var(--ink)] font-semibold text-[var(--paper)]" : "text-[var(--ink)]/55"
-          }`}
-        >
-          Add points
-        </button>
-        <button
-          type="button"
-          onClick={() => setTab("coupon")}
-          className={`px-4 py-2 transition-colors ${
-            tab === "coupon" ? "bg-[var(--ink)] font-semibold text-[var(--paper)]" : "text-[var(--ink)]/55"
-          }`}
-        >
-          Verify coupon
-        </button>
+        {TABS.map(({ key, label }) => (
+          <button
+            key={key}
+            type="button"
+            onClick={() => setTab(key)}
+            className={`px-4 py-2 transition-colors ${
+              tab === key ? "bg-[var(--ink)] font-semibold text-[var(--paper)]" : "text-[var(--ink)]/55"
+            }`}
+          >
+            {label}
+          </button>
+        ))}
       </div>
 
-      {/* Both mockups occupy the same grid cell, top-anchored, so the
-          container's height is the tallest of the two but the shorter
-          card still sits flush under the tab buttons instead of
+      {/* All mockups occupy the same grid cell, top-anchored, so the
+          container's height is the tallest of the three but the shorter
+          cards still sit flush under the tab buttons instead of
           floating in the middle of the extra space. */}
       <div className="grid w-full max-w-sm place-items-start justify-items-center">
         <div
@@ -659,10 +656,24 @@ function CheckoutTabs() {
         >
           <VerifyCouponMockup />
         </div>
+        <div
+          className={`col-start-1 row-start-1 w-full ${tab === "add-coupon" ? "visible opacity-100" : "invisible opacity-0"}`}
+          aria-hidden={tab !== "add-coupon"}
+        >
+          <AddCouponMockup />
+        </div>
       </div>
     </div>
   );
 }
+
+const TESTIMONIALS = [
+  { quote: "Guests just give their number now — no more reprinting stamp cards.", venue: "Café owner, Phnom Penh" },
+  { quote: "Front desk adds points in seconds, no extra hardware.", venue: "Hotel manager, Phnom Penh" },
+  { quote: "Regulars come back for the discount, we come back to the reports.", venue: "Spa owner, Phnom Penh" },
+  { quote: "Set up in an afternoon, no POS integration needed.", venue: "Restaurant owner, Phnom Penh" },
+  { quote: "One phone number, one wallet — customers love how simple it is.", venue: "Retail owner, Phnom Penh" },
+];
 export default function Home() {
   return (
     <div className="font-body flex min-h-screen flex-col bg-[var(--paper)] text-[var(--ink)]">
@@ -700,7 +711,7 @@ export default function Home() {
 </header>
 
       {/* HERO */}
-      <section className="relative overflow-hidden border-b border-[var(--ink)]/10">
+      <section className="relative overflow-hidden border-b pb-12">
         <PaperGrain />
         <div className="mx-auto grid max-w-6xl grid-cols-1 items-center gap-12 px-6 py-20 md:grid-cols-2 md:py-28">
           <div>
@@ -735,7 +746,7 @@ export default function Home() {
 
             <div className="mt-12 grid max-w-md grid-cols-3 gap-4 border-t border-[var(--ink)]/15 pt-6 font-tape">
               <div>
-                <p className="text-2xl font-semibold">10+</p>
+                <p className="text-2xl font-semibold">50+</p>
                 <p className="text-xs uppercase tracking-wider text-[var(--ink)]/50">Businesses</p>
               </div>
               <div>
@@ -750,30 +761,38 @@ export default function Home() {
           </div>
 
           <div className="flex items-center justify-center md:justify-end">
-            <LedgerReceipt />
+            <AddPointsMockup/>
+            {/* <LedgerReceipt /> */}
           </div>
         </div>
       </section>
-
       {/* MARQUEE */}
-      <section className="overflow-hidden border-b border-[var(--ink)]/10 bg-[var(--ink)] py-4">
+      {/* <section className="overflow-hidden border-b border-[var(--ink)]/10 bg-[var(--ink)] py-6">
         <div className="flex whitespace-nowrap">
           {[0, 1].map((pass) => (
             <div
               key={pass}
               aria-hidden={pass === 1}
-              className="animate-marquee flex shrink-0 items-center gap-10 pr-10 font-tape text-sm uppercase tracking-widest text-[var(--paper)]/50"
+              className="animate-marquee flex shrink-0 items-stretch gap-6 pr-6"
             >
-              {[...VENUES, ...VENUES].map((s, i) => (
-                <span key={i} className="flex items-center gap-10">
-                  {s}
-                  <span className="text-[var(--paper)]/20">•</span>
-                </span>
+              {[...TESTIMONIALS, ...TESTIMONIALS].map((t, i) => (
+                <div
+                  key={i}
+                  className="flex w-[340px] shrink-0 flex-col justify-between whitespace-normal border border-[var(--paper)]/15 bg-[var(--paper)]/[0.04] px-5 py-4"
+                >
+                  <p className="font-display text-[15px] leading-6 text-[var(--paper)]/90">
+                    &ldquo;{t.quote}&rdquo;
+                  </p>
+                  <p className="mt-3 font-tape text-[10px] uppercase tracking-[0.18em] text-[var(--paper)]/45">
+                    {t.venue}
+                  </p>
+                </div>
               ))}
             </div>
           ))}
         </div>
-      </section>
+      </section> */}
+    
 
       {/* HOW IT WORKS */}
       <section id="how" className="border-b border-[var(--ink)]/10 py-24">
@@ -1010,8 +1029,6 @@ export default function Home() {
         <div className="mx-auto flex max-w-6xl flex-col items-center px-6 text-center">
           <p className="font-tape text-xs uppercase tracking-[0.22em] text-[var(--paper)]/50">Start today</p>
           <h2 className="mt-4 max-w-xl font-display text-4xl font-semibold tracking-tight md:text-5xl">
-            Stop printing cards.
-            <br />
             Start rewarding every riel.
           </h2>
           <p className="mt-4 max-w-md text-[var(--paper)]/65">
