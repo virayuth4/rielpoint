@@ -16,8 +16,13 @@ const geistMono = Geist_Mono({
 export const metadata = {
   title: "Riel Point",
   description: "Loyalty rewards platform",
+  icons: {
+    icon: "/icon-192.png",
+  },
+  openGraph: {
+    images: ["/icon-192.png"],
+  },
 };
-
 export default function RootLayout({ children }) {
   return (
     <html
