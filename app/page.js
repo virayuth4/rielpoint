@@ -14,6 +14,7 @@ import {
 
 import Image from "next/image";
 import MerchantSignUpForm from "./Components/merchantSignUpForm";
+import Link from "next/link";
 
 
 
@@ -135,14 +136,6 @@ function Mark({ size = 34, dark = false }) {
 }
 
 
-
-
-
-/* ------------------------------------------------------------------ */
-/* Interactive, self-contained demo of the merchant "verify coupon"   */
-/* screen for the "See how it works" section. Local state only — no   */
-/* network requests are ever made and nothing is actually redeemed.   */
-/* ------------------------------------------------------------------ */
 const MOCKUP_DISCOUNTS = [
   { type: "percent", value: 15, points: 500 },
   { type: "amount", value: 5, points: 500 },
@@ -241,11 +234,7 @@ function VerifyCouponMockup() {
   );
 }
 
-/* ------------------------------------------------------------------ */
-/* Interactive, self-contained demo of the merchant "credit points"   */
-/* screen for the "See how it works" section. Local state only — no   */
-/* network requests are ever made and no real points are credited.   */
-/* ------------------------------------------------------------------ */
+
 const MOCKUP_RATE_OPTIONS = [10, 25, 50];
 const MOCKUP_KHR_PER_USD = 4001;
 
@@ -284,7 +273,7 @@ function AddPointsMockup() {
         <span className="h-2.5 w-2.5 rounded-full bg-[var(--ink)]/20" />
         <span className="h-2.5 w-2.5 rounded-full bg-[var(--ink)]/20" />
         <span className="ml-3 flex-1 truncate rounded-full bg-[var(--paper)] px-3 py-1 font-tape text-[10px] text-[var(--ink)]/40">
-          app.rielpoint.com/merchant/credit
+          app.rielpoint.com/merchant/points
         </span>
       </div>
 
@@ -388,11 +377,6 @@ function AddPointsMockup() {
 
 
 
-/* ------------------------------------------------------------------ */
-/* Interactive, self-contained demo of the merchant "add coupon"      */
-/* screen for the "See how it works" section. Local state only — no   */
-/* network requests are ever made and no real coupon is created.      */
-/* ------------------------------------------------------------------ */
 const MOCKUP_DISCOUNT_TYPES = {
   percent: { label: "% off", format: (v) => `${v}% off` },
   amount: { label: "$ off", format: (v) => `-$${v} on everything` },
@@ -556,26 +540,23 @@ function CheckoutTabs({defaultTab='coupon'}) {
   ];
 
   return (
-    <div className="mt-12 flex flex-col items-center">
-      <div className="mb-6 flex gap-1 bg-[var(--paper)] p-0.5 font-tape text-[10px] uppercase tracking-[0.18em] shadow-[0_2px_10px_-4px_rgba(33,29,26,0.3)]">
-        {TABS.map(({ key, label }) => (
-          <button
-            key={key}
-            type="button"
-            onClick={() => setTab(key)}
-            className={`px-4 py-2 transition-colors ${
-              tab === key ? "bg-[var(--ink)] font-semibold text-[var(--paper)]" : "text-[var(--ink)]/55"
-            }`}
-          >
-            {label}
-          </button>
-        ))}
-      </div>
+    <div className="mt-12 flex flex-col items-center ">
+     <div className="mb-6 flex gap-1 overflow-x-auto bg-[var(--paper)] p-0.5 font-tape text-[9px] uppercase tracking-[0.1em] shadow-[0_2px_10px_-4px_rgba(33,29,26,0.3)] sm:text-[10px] sm:tracking-[0.18em]">
+  {TABS.map(({ key, label }) => (
+    <button
+      key={key}
+      type="button"
+      onClick={() => setTab(key)}
+      className={`shrink-0 whitespace-nowrap px-2.5 py-2 transition-colors sm:px-4 ${
+        tab === key ? "bg-[var(--ink)] font-semibold text-[var(--paper)]" : "text-[var(--ink)]/55"
+      }`}
+    >
+      {label}
+    </button>
+  ))}
+</div>
 
-      {/* All mockups occupy the same grid cell, top-anchored, so the
-          container's height is the tallest of the three but the shorter
-          cards still sit flush under the tab buttons instead of
-          floating in the middle of the extra space. */}
+
       <div className="grid w-full max-w-sm place-items-start justify-items-center">
         <div
           className={`col-start-1 row-start-1 w-full ${tab === "points" ? "visible opacity-100" : "invisible opacity-0"}`}
@@ -609,7 +590,7 @@ const TESTIMONIALS = [
 ];
 export default function Home() {
   return (
-    <div className="font-body flex min-h-screen flex-col bg-[var(--paper)] text-[var(--ink)]">
+    <div className="font-body flex min-h-screen w-full flex-col overflow-x-hidden bg-[var(--paper)] text-[var(--ink)]">
       <style>{LOCAL_STYLES}</style>
 
       {/* NAV */}
@@ -729,7 +710,7 @@ export default function Home() {
     
 
       {/* HOW IT WORKS */}
-      <section id="how" className="border-b border-[var(--ink)]/10 py-24">
+<section id="how" className="border-b border-[var(--ink)]/10 py-24">
         <div className="mx-auto max-w-6xl px-6">
           <p className="font-tape text-xs uppercase tracking-[0.22em] text-[var(--ink)]/55">How it works</p>
           <h2 className="mt-3 max-w-lg font-display text-4xl font-semibold tracking-tight md:text-5xl">
@@ -737,7 +718,8 @@ export default function Home() {
           </h2>
 
           <div className="mt-16 grid grid-cols-1 gap-12 md:grid-cols-2 md:items-center md:gap-16">
-            <div className="order-2 divide-y divide-dashed divide-[var(--ink)]/25 border-y border-dashed border-[var(--ink)]/25 md:order-1">
+            {/* Steps container: Default (mobile) order is 1, desktop order remains md:order-1 */}
+            <div className="order-1 divide-y divide-dashed divide-[var(--ink)]/25 border-y border-dashed border-[var(--ink)]/25 md:order-1">
               {[
                 {
                   t: "Ask for a number",
@@ -759,8 +741,9 @@ export default function Home() {
               ))}
             </div>
 
-            <div className="order-1 flex justify-center md:order-2 md:justify-end">
-              <AddPointsMockup />
+            {/* CheckoutTabs container: Default (mobile) order is 2, desktop order remains md:order-2 */}
+            <div className="order-2 flex justify-center md:order-2 md:justify-end">
+              <CheckoutTabs defaultTab="points"/>
             </div>
           </div>
         </div>
@@ -1007,7 +990,7 @@ export default function Home() {
             <div>
               <p className="font-tape text-[10px] uppercase tracking-[0.22em] text-[var(--ink)]/50">Company</p>
               <ul className="mt-4 space-y-2 text-sm text-[var(--ink)]/65">
-                <li><a href="#" className="hover:text-[var(--ink)]">About</a></li>
+                <li><Link href="/about" className="hover:text-[var(--ink)]">About</Link></li>
                 <li><a href="#" className="hover:text-[var(--ink)]">Contact</a></li>
                 <li><a href="#" className="hover:text-[var(--ink)]">Careers</a></li>
               </ul>
@@ -1015,8 +998,7 @@ export default function Home() {
             <div>
               <p className="font-tape text-[10px] uppercase tracking-[0.22em] text-[var(--ink)]/50">Legal</p>
               <ul className="mt-4 space-y-2 text-sm text-[var(--ink)]/65">
-                <li><a href="#" className="hover:text-[var(--ink)]">Privacy</a></li>
-                <li><a href="#" className="hover:text-[var(--ink)]">Terms</a></li>
+                <li><Link href="/terms" className="hover:text-[var(--ink)]">Terms</Link></li>
               </ul>
             </div>
           </div>

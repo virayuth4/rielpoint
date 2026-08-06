@@ -725,50 +725,51 @@ async function confirmClaim() {
         )}
       </div>
 
-      {/* OTP modal */}
-      {otpModal && (
-        <div
-          className="fixed inset-0 flex items-center justify-center z-50 px-6"
-          style={{ background: 'rgba(15,15,14,0.6)' }}
-          onClick={() => setOtpModal(null)}
-        >
-          <div
-            className="rounded-2xl px-6 py-7 w-full max-w-sm"
-            style={{ background: '#FFFFFF' }}
-            onClick={(e) => e.stopPropagation()}
-          >
-            <p className="text-sm font-semibold mb-1" style={{ color: '#0F0F0E' }}>
-              Coupon code
-            </p>
-            <p className="text-xs mb-6" style={{ color: '#9A9A9A' }}>
-              Show this code to staff to redeem.
-            </p>
-            <div className="text-center py-4">
-              <p className="text-[32px] font-semibold tracking-[0.2em]" style={{ fontFamily: 'var(--font-mono)', color: '#0F0F0E' }}>
-                {otpModal.otp}
-              </p>
-              <p className="text-xs mt-2" style={{ color: '#9A9A9A' }}>
-                Expires in {Math.round(otpModal.expiresInSeconds / 60)} minutes
-              </p>
-            </div>
-            <button
-              className="w-full rounded-xl py-3 mt-4 text-sm font-medium"
-              style={{ background: '#0F0F0E', color: '#FFFFFF' }}
-              onClick={() => setOtpModal(null)}
-            >
-              Done
-            </button>
-          </div>
-        </div>
-      )}
-      {claimModalOpen && selectedCoupon && (
+    
+{/* OTP modal */}
+{otpModal && (
   <div
-    className="fixed inset-0 flex items-center justify-center z-50 px-6"
+    className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6"
+    style={{ background: 'rgba(15,15,14,0.6)' }}
+    onClick={() => setOtpModal(null)}
+  >
+    <div
+      className="w-full max-w-sm rounded-2xl p-6 sm:p-7 shadow-lg mb-24"
+      style={{ background: '#FFFFFF' }}
+      onClick={(e) => e.stopPropagation()}
+    >
+      <p className="text-sm font-semibold mb-1" style={{ color: '#0F0F0E' }}>
+        Coupon code
+      </p>
+      <p className="text-xs mb-6" style={{ color: '#9A9A9A' }}>
+        Show this code to staff to redeem.
+      </p>
+      <div className="text-center py-4">
+        <p className="text-[32px] font-semibold tracking-[0.2em]" style={{ fontFamily: 'var(--font-mono)', color: '#0F0F0E' }}>
+          {otpModal.otp}
+        </p>
+        <p className="text-xs mt-2" style={{ color: '#9A9A9A' }}>
+          Expires in {Math.round(otpModal.expiresInSeconds / 60)} minutes
+        </p>
+      </div>
+      <button
+        className="w-full rounded-xl py-3 mt-4 text-sm font-medium"
+        style={{ background: '#0F0F0E', color: '#FFFFFF' }}
+        onClick={() => setOtpModal(null)}
+      >
+        Done
+      </button>
+    </div>
+  </div>
+)}
+    {claimModalOpen && selectedCoupon && (
+  <div
+    className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6"
     style={{ background: 'rgba(15,15,14,0.6)' }}
     onClick={() => !claimingId && setClaimModalOpen(false)}
   >
     <div
-      className="rounded-2xl px-6 py-7 w-full max-w-sm"
+      className="w-full max-w-sm rounded-2xl p-6 sm:p-7 shadow-lg mb-24"
       style={{ background: '#FFFFFF' }}
       onClick={(e) => e.stopPropagation()}
     >
