@@ -606,9 +606,9 @@ export default function Home() {
               Loyalty for Cambodian hospitality & retail
             </p>
             <h1 className="mt-4 font-display text-6xl font-semibold leading-[0.98] tracking-tight md:text-7xl">
-              Every counter.
+              Reward your customers.
               <br />
-              One running tab.
+              Keep them loyal.
             </h1>
             <p className="mt-6 max-w-md text-lg leading-8 text-[var(--ink)]/70">
               RielPoint turns any checkout, any front desk, into a loyalty
@@ -903,7 +903,7 @@ export default function Home() {
           ))}
         </ul>
         <Link
-          href="https://www.instagram.com/rielpoint.kh/?__d=1%2F%3Fhidemenu%3Dtrue%3Cbr%3E%EB%AF%B8%EC%84%B8%EC%8A%A4"
+          href="https://www.instagram.com/rielpoint.kh"
           className="press mt-8 flex items-center justify-center border border-[var(--ink)]/25 px-6 py-3 font-tape text-xs uppercase tracking-widest hover:border-[var(--ink)]"
         >
           Talk to our team
@@ -964,8 +964,8 @@ export default function Home() {
               <p className="font-tape text-[10px] uppercase tracking-[0.22em] text-[var(--ink)]/50">Company</p>
               <ul className="mt-4 space-y-2 text-sm text-[var(--ink)]/65">
                 <li><Link href="/about" className="hover:text-[var(--ink)]">About</Link></li>
-                <li><a href="#" className="hover:text-[var(--ink)]">Contact</a></li>
-                <li><a href="#" className="hover:text-[var(--ink)]">Careers</a></li>
+                <li><Link href="https://www.instagram.com/rielpoint.kh" className="hover:text-[var(--ink)]">Contact</Link></li>
+           
               </ul>
             </div>
             <div>
@@ -977,7 +977,7 @@ export default function Home() {
           </div>
           <div className="mt-12 flex flex-col items-center justify-between gap-4 border-t border-[var(--ink)]/10 pt-8 font-tape text-xs text-[var(--ink)]/50 md:flex-row">
             <span>© 2026 RielPoint. Made in Phnom Penh.</span>
-            <span>Telegram · Instagram</span>
+            {/* <span>Telegram · Instagram</span> */}
           </div>
         </div>
       </footer>

@@ -157,19 +157,9 @@ export default function ProfilePage() {
 
     <Button
               onClick={handleSignOut}
-              className="w-full text-center text-sm font-medium py-4 rounded-full transition-colors duration-150 mt-8"
-              style={{
-                color: '#B3453D',
-                border: '1px solid #EFEFED',
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.background = '#FBEFEE'
-                e.currentTarget.style.borderColor = '#F0D8D6'
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.background = 'transparent'
-                e.currentTarget.style.borderColor = '#EFEFED'
-              }}
+              className="w-full text-center text-sm font-medium py-4 transition-colors duration-150 mt-8"
+            
+             
             >
               Sign out
             </Button>

@@ -2,7 +2,7 @@
 import React, { useContext } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Home, PlayCircle, Store, Wallet, User, ListChecks, ShieldCheck } from 'lucide-react'
+import { Home, PlayCircle, Store, Wallet, User, Plus, ScanLine } from 'lucide-react'
 import { AuthContext } from '@/app/auth/authContext'
 
 // True if the given href is (or is a parent of) the current pathname
@@ -29,8 +29,8 @@ const TABS_RIGHT = [
 
 // Second row — merchant-only actions, shown to owner/staff.
 const MERCHANT_ROW = [
-  { label: 'Points', href: '/merchant/points', icon: ListChecks },
-  { label: 'Verify', href: '/merchant/verify', icon: ShieldCheck },
+  { label: 'Points', href: '/merchant/points', icon: Plus },
+  { label: 'Verify', href: '/merchant/verify', icon: ScanLine },
 ]
 
 function TabItem({ tab, active }) {
