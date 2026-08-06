@@ -603,9 +603,9 @@ export default function Home() {
         <div className="mx-auto grid max-w-6xl grid-cols-1 items-center gap-12 px-6 py-20 md:grid-cols-2 md:py-28">
           <div>
             <p className="font-tape text-xs uppercase tracking-[0.22em] text-[var(--ink)]/55">
-              Loyalty for Cambodian hospitality & retail
+              Loyalty Software for Cambodian hospitality & retail
             </p>
-            <h1 className="mt-4 font-display text-6xl font-semibold leading-[0.98] tracking-tight md:text-7xl">
+            <h1 className="mt-4 font-display text-5xl font-semibold leading-[0.98] tracking-tight md:text-7xl">
               Reward your customers.
               <br />
               Keep them loyal.
@@ -633,7 +633,7 @@ export default function Home() {
 
             <div className="mt-12 grid max-w-md grid-cols-3 gap-4 border-t border-[var(--ink)]/15 pt-6 font-tape">
               <div>
-                <p className="text-2xl font-semibold">50+</p>
+                <p className="text-2xl font-semibold">30+</p>
                 <p className="text-xs uppercase tracking-wider text-[var(--ink)]/50">Businesses</p>
               </div>
               <div>
