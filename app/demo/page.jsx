@@ -5,6 +5,7 @@ import { Inter, Space_Mono } from 'next/font/google';
 import MerchantSignUpForm from '../Components/merchantSignUpForm';
 import Link from 'next/link';
 import { ArrowRight } from 'lucide-react';
+import NavHeader from '../Components/header';
 
 const inter = Inter({
   subsets: ['latin'],
@@ -779,7 +780,11 @@ export default function DemoPage() {
  const [tab, setTab] = useState('points'); // 'points' | 'coupon' | 'add-coupon' | 'customer'
 
   return (
+    
     <main className={`${inter.variable} ${mono.variable} min-h-screen bg-white font-sans`}>
+            {/* NAV */}
+        <NavHeader/>
+      
       <div className="mx-auto max-w-md px-6 pt-10 pb-10">
         <p className="mb-6 text-[11px] font-semibold uppercase tracking-[0.18em] text-neutral-400">
           Merchant · Demo

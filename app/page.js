@@ -15,6 +15,7 @@ import {
 import Image from "next/image";
 import MerchantSignUpForm from "./Components/merchantSignUpForm";
 import Link from "next/link";
+import NavHeader from "./Components/header";
 
 
 
@@ -594,35 +595,7 @@ export default function Home() {
       <style>{LOCAL_STYLES}</style>
 
       {/* NAV */}
-    <header className="sticky top-0 z-20 border-b border-[var(--ink)]/10 bg-white backdrop-blur">
-  <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3 sm:px-6 sm:py-4">
-    <div className="flex shrink-0 items-center gap-2">
-      <Image
-        src="/rielpoint_logo.png"
-        alt="RielPoint"
-        width={36}
-        height={36}
-        className="h-8 w-8 sm:h-[50px] sm:w-[50px]"
-      />
-      <span className="font-display text-base font-semibold tracking-tight sm:text-lg">
-        RielPoint
-      </span>
-    </div>
-
-    <nav className="hidden items-center gap-8 font-tape text-xs uppercase tracking-wider text-[var(--ink)]/60 md:flex">
-      <a href="#how" className="hover:text-[var(--ink)]">How it works</a>
-      <a href="#venues" className="hover:text-[var(--ink)]">Who it&apos;s for</a>
-      <a href="#pricing" className="hover:text-[var(--ink)]">Pricing</a>
-    </nav>
-
-    <a
-      href="#get-started"
-      className="press shrink-0 whitespace-nowrap bg-[var(--ink)] px-3 py-2 text-[10px] font-tape uppercase tracking-wider text-[var(--paper)] hover:opacity-90 sm:px-4 sm:text-xs"
-    >
-      List your business
-    </a>
-  </div>
-</header>
+  <NavHeader/>
 
       {/* HERO */}
       <section className="relative overflow-hidden border-b pb-12">
@@ -929,12 +902,12 @@ export default function Home() {
             </li>
           ))}
         </ul>
-        <a
-          href="#"
+        <Link
+          href="https://www.instagram.com/rielpoint.kh/?__d=1%2F%3Fhidemenu%3Dtrue%3Cbr%3E%EB%AF%B8%EC%84%B8%EC%8A%A4"
           className="press mt-8 flex items-center justify-center border border-[var(--ink)]/25 px-6 py-3 font-tape text-xs uppercase tracking-widest hover:border-[var(--ink)]"
         >
           Talk to our team
-        </a>
+        </Link>
       </div>
     </div>
   </div>
