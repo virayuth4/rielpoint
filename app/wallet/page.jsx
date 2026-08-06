@@ -6,17 +6,7 @@ import { getAuth, onAuthStateChanged } from 'firebase/auth';
 import authenticatedFetch from '../auth/authenticatedFetch';
 import { AuthContext, getUserId } from '../auth/authContext';
 
-const inter = Inter({
-  subsets: ['latin'],
-  weight: ['400', '500', '600'],
-  variable: '--font-body',
-});
 
-const mono = Space_Mono({
-  subsets: ['latin'],
-  weight: ['400', '700'],
-  variable: '--font-mono',
-});
 
 // --- mapping helpers -------------------------------------------------
 
@@ -302,7 +292,7 @@ async function confirmClaim() {
 
   return (
     <main
-      className={`${inter.variable} ${mono.variable} min-h-screen`}
+      className={` min-h-screen`}
       style={{ background: '#FFFFFF', fontFamily: 'var(--font-body)' }}
     >
       <div className="mx-auto max-w-md px-6 pt-10 pb-20">

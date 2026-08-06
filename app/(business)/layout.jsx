@@ -104,7 +104,7 @@ export default function BusinessLayout({ children }) {
 
       if (!userData?.user || !allowedRoles.includes(role)) {
         setStatus('denied');
-        router.replace(`/login?callback=${encodeURIComponent('/merchant')}`);
+        router.replace(`/login/merchant?callback=${encodeURIComponent('/merchant')}`);
         return;
       }
 

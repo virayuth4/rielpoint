@@ -7,7 +7,7 @@ import { useLoginLogic } from '../auth/useLoginLogic';
 
 
 
-export default function LoginForm() {
+export default function LoginForm({ isMerchant = false }) {
   const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -59,12 +59,23 @@ export default function LoginForm() {
 
       <div className="w-full max-w-[360px] mx-auto my-auto">
         {/* Header */}
-        <div className="border-b border-[var(--ink)]/15 pb-4">
+        <div
+          className={
+            isMerchant
+              ? 'border-b-2 border-(--accent,#b5651d)pb-4'
+              : 'border-b border-[var(--ink)]/15 pb-4'
+          }
+        >
+          {isMerchant && (
+            <span className="inline-block mb-2 font-tape text-[9px] uppercase tracking-[0.22em] bg-green-800 text-white px-2 py-1">
+              Merchant Portal
+            </span>
+          )}
           <p className="font-tape text-[10px] uppercase tracking-[0.22em] text-[var(--ink)]/50">
-            Welcome back
+            {isMerchant ? 'Business sign in' : 'Welcome back'}
           </p>
           <h1 className="mt-1  text-3xl font-semibold tracking-tight">
-            Login
+            {isMerchant ? 'Merchant Login' : 'Login'}
           </h1>
         </div>
 
@@ -80,7 +91,7 @@ export default function LoginForm() {
           {/* Phone Number Field */}
           <div>
             <label htmlFor="phone" className="font-tape text-[10px] uppercase tracking-[0.22em] text-[var(--ink)]/50">
-              Phone number
+              {isMerchant ? 'Phone number' : 'Phone number'}
             </label>
             <input
               id="phone"
@@ -89,7 +100,11 @@ export default function LoginForm() {
               value={phone}
               onChange={handlePhoneChange}
               required
-              className="mt-2 w-full border border-[var(--ink)]/25 bg-white px-3 py-2.5 text-sm text-[var(--ink)] outline-none placeholder:text-[var(--ink)]/30 focus:border-[var(--ink)] disabled:opacity-50 transition-colors duration-200"
+              className={
+                isMerchant
+                  ? 'mt-2 w-full border border-[var(--accent,#b5651d)]/40 bg-white px-3 py-2.5 text-sm text-[var(--ink)] outline-none placeholder:text-[var(--ink)]/30 focus:border-[var(--accent,#b5651d)] disabled:opacity-50 transition-colors duration-200'
+                  : 'mt-2 w-full border border-[var(--ink)]/25 bg-white px-3 py-2.5 text-sm text-[var(--ink)] outline-none placeholder:text-[var(--ink)]/30 focus:border-[var(--ink)] disabled:opacity-50 transition-colors duration-200'
+              }
               disabled={isLoading}
               autoComplete="tel"
             />
@@ -117,7 +132,11 @@ export default function LoginForm() {
               onChange={(e) => setPassword(e.target.value)}
               required
               placeholder="••••••••"
-              className="mt-2 w-full border border-[var(--ink)]/25 bg-white px-3 py-2.5 text-sm text-[var(--ink)] outline-none placeholder:text-[var(--ink)]/30 focus:border-[var(--ink)] disabled:opacity-50 transition-colors duration-200"
+              className={
+                isMerchant
+                  ? 'mt-2 w-full border border-[var(--accent,#b5651d)]/40 bg-white px-3 py-2.5 text-sm text-[var(--ink)] outline-none placeholder:text-[var(--ink)]/30 focus:border-[var(--accent,#b5651d)] disabled:opacity-50 transition-colors duration-200'
+                  : 'mt-2 w-full border border-[var(--ink)]/25 bg-white px-3 py-2.5 text-sm text-[var(--ink)] outline-none placeholder:text-[var(--ink)]/30 focus:border-[var(--ink)] disabled:opacity-50 transition-colors duration-200'
+              }
               disabled={isLoading}
               autoComplete="current-password"
             />
@@ -127,7 +146,11 @@ export default function LoginForm() {
           <button
             type="submit"
             disabled={isLoading || !isPhoneNumberValid() || !password}
-            className="press flex w-full items-center justify-center gap-2 bg-[var(--ink)] px-6 py-3 font-tape text-xs uppercase tracking-[0.2em] text-[var(--paper)] hover:opacity-90 disabled:opacity-30 transition-colors duration-200"
+            className={
+              isMerchant
+                ? 'press flex w-full items-center justify-center gap-2 bg-[var(--accent,#b5651d)] px-6 py-3 font-tape text-xs uppercase tracking-[0.2em] text-white hover:opacity-90 disabled:opacity-30 transition-colors duration-200'
+                : 'press flex w-full items-center justify-center gap-2 bg-[var(--ink)] px-6 py-3 font-tape text-xs uppercase tracking-[0.2em] text-[var(--paper)] hover:opacity-90 disabled:opacity-30 transition-colors duration-200'
+            }
           >
             {isLoading ? (
               <>
@@ -135,7 +158,7 @@ export default function LoginForm() {
                 <span>Processing...</span>
               </>
             ) : (
-              <span>Login</span>
+              <span>{isMerchant ? 'Sign in to dashboard' : 'Login'}</span>
             )}
           </button>
         </form>
@@ -147,7 +170,7 @@ export default function LoginForm() {
             disabled={isLoading}
             className="text-left font-tape text-[10px] uppercase tracking-[0.18em] text-(--ink)/55 hover:text-ink transition-colors duration-200 focus:outline-none"
           >
-            Create an account
+            {isMerchant ? 'Register your business' : 'Create an account'}
           </button>
           <button
             onClick={() => router.push('/forgot-password')}
