@@ -860,7 +860,7 @@ export default function Home() {
         </p>
         <ul className="mt-8 flex-1 divide-y divide-dashed divide-[var(--paper)]/20 border-y border-dashed border-[var(--paper)]/20">
           {[
-            "Up to 10 locations",
+            "Up to 5 locations",
             "Shared points balance across sites",
             "Per-location and combined reporting",
             "Staff accounts with location-level access",
