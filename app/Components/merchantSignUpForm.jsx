@@ -3,6 +3,7 @@
 import { ArrowRight, Check, Phone } from "lucide-react";
 import { useRouter } from "next/navigation";
 import React, { useState } from "react";
+import authenticatedFetch from "../auth/authenticatedFetch";
 
 
 export default function MerchantSignUpForm() {
@@ -31,7 +32,7 @@ export default function MerchantSignUpForm() {
     setNeedsAuth(false);
 
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/merchant/merchant/create`, {
+      const res = await authenticatedFetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/merchant/merchant/create`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -40,7 +41,7 @@ export default function MerchantSignUpForm() {
           business_type: form.businessType,
         }),
       });
-
+      console.log("res", res)
       if (res.status === 201) {
         setStatus("success");
         return;
@@ -126,7 +127,7 @@ export default function MerchantSignUpForm() {
 
       <div className="mt-4">
         <label htmlFor="phone" className="font-tape text-[10px] uppercase tracking-[0.22em] text-[var(--ink)]/50">
-          Phone number
+          Telegram Phone number
         </label>
         <div className="mt-2 flex items-center gap-2 border border-[var(--ink)]/25 bg-white px-3 py-2.5 focus-within:border-[var(--ink)]">
           <Phone className="h-4 w-4 shrink-0 text-[var(--ink)]/40" />
