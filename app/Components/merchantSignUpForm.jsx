@@ -94,7 +94,7 @@ export default function MerchantSignUpForm() {
           id="businessName"
           type="text"
           required
-          placeholder="Baitong Café"
+          placeholder="RielPoint Café"
           value={form.businessName}
           onChange={update("businessName")}
           disabled={status === "loading"}
