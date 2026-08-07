@@ -43,7 +43,10 @@ function fakeRequest(resolveValue, { delay = 700, failRate = 0 } = {}) {
 const DISCOUNT_TYPES = {
   percent: { label: '% off', format: (c) => `${parseFloat(c.discount_value)}% off` },
   amount: { label: '$ off everything', format: (c) => `-$${parseFloat(c.discount_value)} on everything` },
-  custom: { label: 'Custom perk', format: () => 'Custom perk' },
+  custom: {
+    label: 'Custom perk',
+    format: (c) => (c.custom_perk && c.custom_perk.trim() ? c.custom_perk.trim() : 'Custom perk'),
+  },
 };
 
 function todayPlusDays(days) {
@@ -57,25 +60,31 @@ function AddCouponDemo() {
   const [description, setDescription] = useState('');
   const [discountType, setDiscountType] = useState('percent');
   const [discountValue, setDiscountValue] = useState('');
+  const [customPerk, setCustomPerk] = useState('');
   const [expiresAt, setExpiresAt] = useState(todayPlusDays(30));
   const [result, setResult] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState(null);
 
   const needsValue = discountType !== 'custom';
+  const isCustom = discountType === 'custom';
   const numericValue = Number(discountValue);
 
   const isValid =
     title.trim().length > 0 &&
     expiresAt.length > 0 &&
-    (!needsValue || (discountValue.trim().length > 0 && numericValue > 0));
+    (!needsValue || (discountValue.trim().length > 0 && numericValue > 0)) &&
+    (!isCustom || customPerk.trim().length > 0);
 
   const previewLabel = useMemo(() => {
     if (needsValue && !(numericValue > 0)) {
-      return discountType === 'percent' ? '—% off' : discountType === 'amount' ? '-$— on everything' : 'Custom perk';
+      return discountType === 'percent' ? '—% off' : '-$— on everything';
     }
-    return DISCOUNT_TYPES[discountType].format({ discount_value: discountValue });
-  }, [discountType, discountValue, numericValue, needsValue]);
+    if (isCustom && !customPerk.trim()) {
+      return 'Custom perk';
+    }
+    return DISCOUNT_TYPES[discountType].format({ discount_value: discountValue, custom_perk: customPerk });
+  }, [discountType, discountValue, numericValue, needsValue, isCustom, customPerk]);
 
   const handleCreate = async () => {
     if (!isValid || isSubmitting) return;
@@ -92,6 +101,7 @@ function AddCouponDemo() {
           description: description.trim(),
           discountType,
           discountValue: needsValue ? numericValue : null,
+          customPerk: isCustom ? customPerk.trim() : null,
           expiresAt,
           createdAt: new Date().toISOString(),
         },
@@ -111,6 +121,7 @@ function AddCouponDemo() {
     setDescription('');
     setDiscountType('percent');
     setDiscountValue('');
+    setCustomPerk('');
     setExpiresAt(todayPlusDays(30));
     setResult(null);
     setError(null);
@@ -155,6 +166,7 @@ function AddCouponDemo() {
                 onClick={() => {
                   setDiscountType(key);
                   if (key === 'custom') setDiscountValue('');
+                  else setCustomPerk('');
                 }}
                 className={`flex-1 border py-2.5 text-xs font-semibold transition-colors ${
                   discountType === key
@@ -167,7 +179,7 @@ function AddCouponDemo() {
             ))}
           </div>
 
-          {needsValue && (
+          {needsValue ? (
             <>
               <label className="mb-1 block text-xs font-medium text-neutral-500">
                 {discountType === 'percent' ? 'Percent off' : 'Amount off ($)'}
@@ -180,6 +192,17 @@ function AddCouponDemo() {
                 min="0"
                 step={discountType === 'percent' ? '1' : '0.01'}
                 className="mb-5 w-full border border-neutral-200 px-4 py-3 font-mono text-base md:text-sm text-black outline-none focus:border-black"
+              />
+            </>
+          ) : (
+            <>
+              <label className="mb-1 block text-xs font-medium text-neutral-500">Perk</label>
+              <input
+                type="text"
+                value={customPerk}
+                onChange={(e) => setCustomPerk(e.target.value)}
+                placeholder="1 Free Lucky Draw"
+                className="mb-5 w-full border border-neutral-200 px-4 py-3 text-base md:text-sm text-black outline-none focus:border-black"
               />
             </>
           )}
@@ -240,7 +263,10 @@ function AddCouponDemo() {
           <div className="flex items-center justify-between border-t border-neutral-200 py-2">
             <span className="text-xs text-neutral-500">Discount</span>
             <span className="font-mono text-sm text-black">
-              {DISCOUNT_TYPES[result.discountType].format({ discount_value: result.discountValue })}
+              {DISCOUNT_TYPES[result.discountType].format({
+                discount_value: result.discountValue,
+                custom_perk: result.customPerk,
+              })}
             </span>
           </div>
           <div className="flex items-center justify-between border-t border-neutral-200 py-2">

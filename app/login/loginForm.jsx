@@ -148,7 +148,7 @@ export default function LoginForm({ isMerchant = false }) {
             disabled={isLoading || !isPhoneNumberValid() || !password}
             className={
               isMerchant
-                ? 'press flex w-full items-center justify-center gap-2 bg-[var(--accent,#b5651d)] px-6 py-3 font-tape text-xs uppercase tracking-[0.2em] text-white hover:opacity-90 disabled:opacity-30 transition-colors duration-200'
+                ? 'press flex w-full items-center justify-center gap-2 bg-black px-6 py-3 font-tape text-xs uppercase tracking-[0.2em] text-white hover:opacity-90 disabled:opacity-30 transition-colors duration-200'
                 : 'press flex w-full items-center justify-center gap-2 bg-[var(--ink)] px-6 py-3 font-tape text-xs uppercase tracking-[0.2em] text-[var(--paper)] hover:opacity-90 disabled:opacity-30 transition-colors duration-200'
             }
           >
@@ -170,7 +170,7 @@ export default function LoginForm({ isMerchant = false }) {
             disabled={isLoading}
             className="text-left font-tape text-[10px] uppercase tracking-[0.18em] text-(--ink)/55 hover:text-ink transition-colors duration-200 focus:outline-none"
           >
-            {isMerchant ? 'Register your business' : 'Create an account'}
+            {isMerchant ? 'Create an account' : 'Create an account'}
           </button>
           <button
             onClick={() => router.push('/forgot-password')}
