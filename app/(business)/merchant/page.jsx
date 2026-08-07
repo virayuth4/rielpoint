@@ -55,6 +55,7 @@ export default function MerchantDashboard() {
   const [newCouponDescription, setNewCouponDescription] = useState('');
   const [newCouponExpiryMode, setNewCouponExpiryMode] = useState('none'); // 'none' | 'date'
   const [newCouponExpiryDate, setNewCouponExpiryDate] = useState('');
+  const [newCouponCustomPerk, setNewCouponCustomPerk] = useState('');
   const [confirmAction, setConfirmAction] = useState(null);
 
 
@@ -216,6 +217,7 @@ async function removeStaff(rowId) {
 async function addCoupon() {
   if (!newCouponPoints.trim()) return;
   if (newCouponDiscountType === 'custom' && !newCouponTitle.trim()) return;
+  if (newCouponDiscountType === 'custom' && !newCouponCustomPerk.trim()) return;
   if (newCouponDiscountType !== 'custom' && !newCouponDiscountValue.trim()) return;
   if (newCouponExpiryMode === 'date' && !newCouponExpiryDate) return;
 
@@ -225,14 +227,15 @@ async function addCoupon() {
       {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-       body: JSON.stringify({
-        points_cost: Number(newCouponPoints.trim()),
-        discount_type: newCouponDiscountType,
-        discount_value: newCouponDiscountType === 'custom' ? null : Number(newCouponDiscountValue.trim()),
-        expires_at: newCouponExpiryMode === 'date' ? newCouponExpiryDate : null,
-        title: newCouponTitle.trim() || null,
-        description: newCouponDescription.trim() || null,
-      }),
+        body: JSON.stringify({
+          points_cost: Number(newCouponPoints.trim()),
+          discount_type: newCouponDiscountType,
+          discount_value: newCouponDiscountType === 'custom' ? null : Number(newCouponDiscountValue.trim()),
+          custom_perks: newCouponDiscountType === 'custom' ? newCouponCustomPerk.trim() : null,
+          expires_at: newCouponExpiryMode === 'date' ? newCouponExpiryDate : null,
+          title: newCouponTitle.trim() || null,
+          description: newCouponDescription.trim() || null,
+        }),
       }
     );
     if (!res.ok) throw new Error(`Request failed (${res.status})`);
@@ -241,6 +244,7 @@ async function addCoupon() {
     setNewCouponPoints('');
     setNewCouponDiscountType('percent');
     setNewCouponDiscountValue('');
+    setNewCouponCustomPerk('');
     setNewCouponTitle('');
     setNewCouponExpiryMode('none');
     setNewCouponExpiryDate('');
@@ -653,30 +657,48 @@ async function handleConfirm() {
   />
 </div>
 
-        <div className="flex flex-col gap-1.5">
-          <Label>Discount</Label>
-          <div className="flex gap-2">
-            {newCouponDiscountType !== 'custom' && (
-              <Input
-                type="number"
-                placeholder={newCouponDiscountType === 'amount' ? '1' : '10'}
-                value={newCouponDiscountValue}
-                onChange={(e) => setNewCouponDiscountValue(e.target.value)}
-                className="flex-1"
-              />
-            )}
-            <Select value={newCouponDiscountType} onValueChange={setNewCouponDiscountType}>
-              <SelectTrigger className={newCouponDiscountType === 'custom' ? 'flex-1' : 'w-[160px]'}>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {Object.entries(DISCOUNT_TYPES).map(([key, { label }]) => (
-                  <SelectItem key={key} value={key}>{label}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-        </div>
+       <div className="flex flex-col gap-1.5">
+  <Label>Discount type</Label>
+  <div className="grid grid-cols-3 gap-2">
+    {Object.entries(DISCOUNT_TYPES).map(([key, { label }]) => (
+      <button
+        key={key}
+        type="button"
+        onClick={() => setNewCouponDiscountType(key)}
+        className={`text-[13px] py-2 px-2 rounded-md border transition-colors ${
+          newCouponDiscountType === key
+            ? 'bg-primary text-primary-foreground border-primary'
+            : 'bg-background text-foreground border-input hover:bg-accent'
+        }`}
+      >
+        {label}
+      </button>
+    ))}
+  </div>
+</div>
+
+{newCouponDiscountType !== 'custom' ? (
+  <div className="flex flex-col gap-1.5">
+    <Label htmlFor="coupon-discount-value">Value</Label>
+    <Input
+      id="coupon-discount-value"
+      type="number"
+      placeholder={newCouponDiscountType === 'amount' ? '1' : '10'}
+      value={newCouponDiscountValue}
+      onChange={(e) => setNewCouponDiscountValue(e.target.value)}
+    />
+  </div>
+) : (
+  <div className="flex flex-col gap-1.5">
+    <Label htmlFor="coupon-custom-perk">Custom perk</Label>
+    <Input
+      id="coupon-custom-perk"
+      placeholder="e.g. Free dessert of your choice"
+      value={newCouponCustomPerk}
+      onChange={(e) => setNewCouponCustomPerk(e.target.value)}
+    />
+  </div>
+)}
               <div className="flex flex-col gap-4 py-2">
                 <div className="flex flex-col gap-1.5">
                   <Label htmlFor="coupon-points">Points to redeem</Label>
