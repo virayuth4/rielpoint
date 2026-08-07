@@ -163,11 +163,16 @@ export default function MerchantSignUpForm() {
       <button
         type="submit"
         disabled={status === "loading"}
-        className="press mt-6 flex w-full items-center justify-center gap-2 bg-[var(--ink)] px-6 py-3 font-tape text-xs uppercase tracking-[0.2em] text-[var(--paper)] hover:opacity-90 disabled:opacity-60"
+        className="rounded-md press mt-6 mb-8 flex w-full items-center justify-center gap-2 bg-[var(--ink)] px-6 py-3 font-tape text-xs uppercase tracking-[0.2em] text-[var(--paper)] hover:opacity-90 disabled:opacity-60"
       >
         {status === "loading" ? "Submitting..." : "Submit"}
         {status !== "loading" && <ArrowRight className="h-4 w-4" />}
       </button>
+      
+       <a href="https://t.me/rielpoint" className="mt-8 font-tape text-xs uppercase tracking-widest hover:underline text-black">
+            Prefer to talk first? Contact our team →
+          </a>
     </form>
+    
   );
 }

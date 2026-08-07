@@ -25,8 +25,8 @@ export default function NavHeader  () {
     </nav>
 
     <Link
-      href="https://www.instagram.com/rielpoint.kh/?__d=1%2F%3Fhidemenu%3Dtrue%3Cbr%3E%EB%AF%B8%EC%84%B8%EC%8A%A4"
-      className="press shrink-0 whitespace-nowrap bg-[var(--ink)] px-3 py-2 text-[10px] font-tape uppercase tracking-wider text-[var(--paper)] hover:opacity-90 sm:px-4 sm:text-xs"
+      href="https://t.me/rielpoint"
+      className="rounded-md press shrink-0 whitespace-nowrap bg-[var(--ink)] px-3 py-2 text-[10px] font-tape uppercase tracking-wider text-[var(--paper)] hover:opacity-90 sm:px-4 sm:text-xs"
     >
       Contact Us
     </Link>

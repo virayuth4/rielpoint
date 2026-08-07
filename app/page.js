@@ -619,13 +619,13 @@ export default function Home() {
             <div className="mt-8 flex flex-col gap-4 sm:flex-row">
               <a
                 href="#get-started"
-                className="press flex items-center justify-center gap-2 bg-[var(--ink)] px-6 py-3 font-tape text-sm uppercase tracking-wider text-[var(--paper)] hover:opacity-90"
+                className="rounded-md press flex items-center justify-center gap-2 bg-[var(--ink)] px-6 py-3 font-tape text-sm uppercase tracking-wider text-[var(--paper)] hover:opacity-90"
               >
                 List your business <ArrowRight className="h-4 w-4" />
               </a>
               <a
                 href="#how"
-                className="press flex items-center justify-center gap-2 border border-[var(--ink)]/25 px-6 py-3 font-tape text-sm uppercase tracking-wider hover:border-[var(--ink)]"
+                className="rounded-md press flex items-center justify-center gap-2 border border-[var(--ink)]/25 px-6 py-3 font-tape text-sm uppercase tracking-wider hover:border-[var(--ink)]"
               >
                 See how it works
               </a>
@@ -836,7 +836,7 @@ export default function Home() {
         </ul>
         <a
           href="#get-started"
-          className="press mt-8 flex items-center justify-center border border-[var(--ink)]/25 px-6 py-3 font-tape text-xs uppercase tracking-widest hover:border-[var(--ink)]"
+          className="rounded-md press mt-8 flex items-center justify-center border border-[var(--ink)]/25 px-6 py-3 font-tape text-xs uppercase tracking-widest hover:border-[var(--ink)]"
         >
           List your business
         </a>
@@ -873,7 +873,7 @@ export default function Home() {
         </ul>
         <a
           href="#get-started"
-          className="press mt-8 flex items-center justify-center bg-[var(--paper)] px-6 py-3 font-tape text-xs uppercase tracking-widest text-[var(--ink)] hover:opacity-90"
+          className="rounded-md press mt-8 flex items-center justify-center bg-[var(--paper)] px-6 py-3 font-tape text-xs uppercase tracking-widest text-[var(--ink)] hover:opacity-90"
         >
           List your locations
         </a>
@@ -903,8 +903,8 @@ export default function Home() {
           ))}
         </ul>
         <Link
-          href="https://www.instagram.com/rielpoint.kh"
-          className="press mt-8 flex items-center justify-center border border-[var(--ink)]/25 px-6 py-3 font-tape text-xs uppercase tracking-widest hover:border-[var(--ink)]"
+          href="https://t.me/rielpoint"
+          className="rounded-md press mt-8 flex items-center justify-center border border-[var(--ink)]/25 px-6 py-3 font-tape text-xs uppercase tracking-widest hover:border-[var(--ink)]"
         >
           Talk to our team
         </Link>
@@ -927,9 +927,7 @@ export default function Home() {
           <div className="mt-10 flex justify-center">
             <MerchantSignUpForm />
           </div>
-          <a href="#" className="mt-6 font-tape text-xs uppercase tracking-widest text-[var(--paper)]/60 hover:text-[var(--paper)]">
-            Prefer to talk first? Contact our team →
-          </a>
+         
         </div>
       </section>
 
