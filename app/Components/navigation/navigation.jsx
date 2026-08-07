@@ -12,7 +12,7 @@ const isActivePath = (pathname, href) =>
 // Shared "island" surface — one floating capsule of frosted glass, matching
 // the material established for the rest of the chrome.
 const island =
-  'rounded-[32px] border border-black/[0.06] bg-white/85 backdrop-blur-xl shadow-[0_1px_2px_rgba(0,0,0,0.04),0_8px_24px_-4px_rgba(0,0,0,0.08)]'
+  'rounded-[32px] border border-black/[0.06] bg-transparent backdrop-blur-xl shadow-[0_1px_2px_rgba(0,0,0,0.04),0_8px_24px_-4px_rgba(0,0,0,0.08)]'
 const label = 'text-[9px] tracking-[0.08em] uppercase font-normal'
 const subLabel = 'text-[8px] tracking-[0.06em] uppercase font-normal'
 
@@ -87,7 +87,7 @@ export default function Navigation() {
   const merchantHref = role === 'staff' ? '/merchant/points' : '/merchant'
 
   return (
-    <div className="fixed bottom-8 sm:bottom-6 inset-x-0 z-50 flex justify-center px-4 pointer-events-none">
+    <div className="fixed bottom-8 sm:bottom-6 inset-x-0 z-50 flex justify-center px-4 pointer-events-none bg-transparent">
       <nav className={`${island} pointer-events-auto flex flex-col items-center px-3 py-2`}>
         {/* Row 1 — primary tabs, Merchant raised in the center */}
         <div className="relative flex items-center gap-1 h-16">
