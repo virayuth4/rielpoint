@@ -381,7 +381,10 @@ function AddPointsMockup() {
 const MOCKUP_DISCOUNT_TYPES = {
   percent: { label: "% off", format: (v) => `${v}% off` },
   amount: { label: "$ off", format: (v) => `-$${v} on everything` },
-  custom: { label: "Custom", format: () => "Custom perk" },
+  custom: {
+    label: "Custom",
+    format: (perk) => (perk && perk.trim() ? perk.trim() : "Custom perk"),
+  },
 };
 
 function mockupExpiryDate(days = 30) {
@@ -394,6 +397,7 @@ function AddCouponMockup() {
   const [title, setTitle] = useState("15% off your order");
   const [discountType, setDiscountType] = useState("percent");
   const [discountValue, setDiscountValue] = useState("15");
+  const [customPerk, setCustomPerk] = useState("");
   const [expiresAt, setExpiresAt] = useState(mockupExpiryDate());
   const [loading, setLoading] = useState(false);
   const [submitted, setSubmitted] = useState(false);
@@ -401,7 +405,7 @@ function AddCouponMockup() {
   const needsValue = discountType !== "custom";
   const previewLabel = needsValue
     ? MOCKUP_DISCOUNT_TYPES[discountType].format(discountValue || "—")
-    : MOCKUP_DISCOUNT_TYPES.custom.format();
+    : MOCKUP_DISCOUNT_TYPES.custom.format(customPerk);
 
   const handleCreate = () => {
     if (loading || submitted) return;
@@ -467,7 +471,7 @@ function AddCouponMockup() {
               ))}
             </div>
 
-            {needsValue && (
+            {needsValue ? (
               <>
                 <label className="mb-1 block text-[11px] font-medium text-[var(--ink)]/55">
                   {discountType === "percent" ? "Percent off" : "Amount off ($)"}
@@ -477,6 +481,17 @@ function AddCouponMockup() {
                   value={discountValue}
                   onChange={(e) => setDiscountValue(e.target.value)}
                   min="0"
+                  className="mb-4 w-full border border-[var(--ink)]/20 bg-white px-3 py-2 font-tape text-sm text-[var(--ink)] outline-none focus:border-[var(--ink)]"
+                />
+              </>
+            ) : (
+              <>
+                <label className="mb-1 block text-[11px] font-medium text-[var(--ink)]/55">Perk</label>
+                <input
+                  type="text"
+                  value={customPerk}
+                  onChange={(e) => setCustomPerk(e.target.value)}
+                  placeholder="1 Free Lucky Draw"
                   className="mb-4 w-full border border-[var(--ink)]/20 bg-white px-3 py-2 font-tape text-sm text-[var(--ink)] outline-none focus:border-[var(--ink)]"
                 />
               </>
