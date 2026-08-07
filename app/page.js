@@ -791,12 +791,12 @@ export default function Home() {
       {/* CHECKOUT SHOWCASE */}
       <section className="border-b border-[var(--ink)]/10 bg-[var(--paper-dim)] py-24">
         <div className="mx-auto flex max-w-6xl flex-col items-center px-6 text-center">
-          <p className="font-tape text-xs uppercase tracking-[0.22em] text-[var(--ink)]/55">What it looks like at the counter</p>
+          <p className="font-tape text-xs uppercase tracking-[0.22em] text-[var(--ink)]/55">Keep your customer loyal</p>
           <h2 className="mt-3 max-w-lg font-display text-4xl font-semibold tracking-tight md:text-5xl">
-            One number, one amount, done.
+            Customize your rewards.
           </h2>
           <div className="mt-12">
-              <CheckoutTabs />
+              <CheckoutTabs defaultTab="add-coupon" />
           </div>
         </div>
       </section>
