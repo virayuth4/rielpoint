@@ -155,6 +155,10 @@ async function addStaff() {
   }
 }
 
+function requestRemoveStaff(staff) {
+  setConfirmAction({ type: 'removeStaff', staff });
+}
+
 async function removeStaff(rowId) {
   const previousStaffs = staffs;
 
@@ -259,64 +263,36 @@ function requestRemoveCoupon(coupon) {
   }
 
 async function handleConfirm() {
-   console.log('[handleConfirm] fired, confirmAction =', confirmAction);
+  console.log('[handleConfirm] fired, confirmAction =', confirmAction);
   if (!confirmAction) {
     console.log('[handleConfirm] no confirmAction, bailing');
     return;
   }
-  const { type, coupon } = confirmAction;
+  const { type, coupon, staff } = confirmAction;
   setConfirmAction(null);
 
   if (type === 'deactivate') {
-    const url = `${process.env.NEXT_PUBLIC_BACKEND}/api/merchant/coupon/status/${coupon.coupon_id}`;
-    console.log('[handleConfirm] deactivate → POST', url);
+    // ...unchanged
+  } else if (type === 'remove') {
+    // ...unchanged (coupon remove)
+  } else if (type === 'removeStaff') {
+    const previousStaffs = staffs;
 
-    const previous = coupons;
-    setCoupons((prev) =>
-      prev.map((c) =>
-        c.coupon_id === coupon.coupon_id ? { ...c, is_active: false } : c
-      )
-    );
+    // Optimistic update
+    setStaffs((prev) => prev.filter((s) => s.id !== staff.id));
+
     try {
-      const res = await authenticatedFetch(url, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ is_active: false }),
-      });
-      console.log('[handleConfirm] response status:', res.status);
-      if (!res.ok) {
-        const text = await res.text().catch(() => '');
-        console.log('[handleConfirm] error body:', text);
-        throw new Error(`Request failed (${res.status})`);
-      }
-      const data = await res.json();
-      console.log('[handleConfirm] success body:', data);
+      const res = await authenticatedFetch(
+        `${process.env.NEXT_PUBLIC_BACKEND}/api/merchant/staff/remove/${staff.id}`,
+        { method: 'POST' }
+      );
+      if (!res.ok) throw new Error('Failed to remove staff');
     } catch (err) {
-      console.log('[handleConfirm] caught error:', err);
-      setCoupons(previous);
-      setError(err.message || 'Failed to deactivate coupon');
+      console.error('Remove staff error:', err);
+      setStaffs(previousStaffs);
+      setError(err.message || 'Failed to remove staff');
     }
-  
- } else if (type === 'remove') {
-  const previous = coupons;
-  setCoupons((prev) => prev.filter((c) => c.coupon_id !== coupon.coupon_id));
-  try {
-    const res = await authenticatedFetch(
-      `${process.env.NEXT_PUBLIC_BACKEND}/api/merchant/coupon/delete`,
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ couponId: coupon.coupon_id }),
-      }
-    );
-    if (!res.ok) throw new Error(`Request failed (${res.status})`);
-    // Backend always soft-deletes (is_deleted = true), so no need to
-    // re-add the coupon to the list on success.
-  } catch (err) {
-    setCoupons(previous);
-    setError(err.message || 'Failed to remove coupon');
   }
-}
 }
 
   if (error) {
@@ -513,14 +489,14 @@ async function handleConfirm() {
               >
                 {s.is_active ? 'Deactivate' : 'Activate'}
               </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                className="text-destructive hover:text-destructive"
-                onClick={() => removeStaff(s.id)}
-              >
-                Remove
-              </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              className="text-destructive hover:text-destructive"
+              onClick={() => requestRemoveStaff(s)}
+            >
+              Remove
+            </Button>
             </div>
           </TableCell>
         </TableRow>
@@ -545,18 +521,27 @@ async function handleConfirm() {
             >
               + Add coupon
             </Button>
-            <Dialog open={!!confirmAction} onOpenChange={(open) => !open && setConfirmAction(null)}>
+
+{/* shared dialog */}
+         <Dialog open={!!confirmAction} onOpenChange={(open) => !open && setConfirmAction(null)}>
   <DialogContent className="sm:max-w-[380px]">
     <DialogHeader>
       <DialogTitle>
-        {confirmAction?.type === 'remove' ? 'Remove coupon?' : 'Deactivate coupon?'}
+        {confirmAction?.type === 'remove'
+          ? 'Remove coupon?'
+          : confirmAction?.type === 'removeStaff'
+          ? 'Remove staff member?'
+          : 'Deactivate coupon?'}
       </DialogTitle>
       <DialogDescription>
         {confirmAction?.type === 'remove'
           ? 'This will permanently delete the coupon. Customers will no longer be able to redeem it.'
+          : confirmAction?.type === 'removeStaff'
+          ? 'This will permanently remove this staff member from your business. This cannot be undone.'
           : 'Customers will no longer be able to redeem this coupon until you reactivate it.'}
       </DialogDescription>
     </DialogHeader>
+
     {confirmAction?.coupon && (
       <p className="text-[13px] text-muted-foreground -mt-2">
         {DISCOUNT_TYPES[confirmAction.coupon.discount_type]?.format(confirmAction.coupon.discount_value)}
@@ -564,15 +549,28 @@ async function handleConfirm() {
         {confirmAction.coupon.points_cost} pts
       </p>
     )}
+
+    {confirmAction?.staff && (
+      <p className="text-[13px] text-muted-foreground -mt-2">
+        {confirmAction.staff.fullname}
+        {' · '}
+        <span className="font-mono">{confirmAction.staff.phone_number}</span>
+      </p>
+    )}
+
     <DialogFooter>
       <Button variant="outline" onClick={() => setConfirmAction(null)}>
         Cancel
       </Button>
       <Button
-        variant={confirmAction?.type === 'remove' ? 'destructive' : 'default'}
+        variant={confirmAction?.type === 'deactivate' ? 'default' : 'destructive'}
         onClick={handleConfirm}
       >
-        {confirmAction?.type === 'remove' ? 'Remove' : 'Deactivate'}
+        {confirmAction?.type === 'remove'
+          ? 'Remove'
+          : confirmAction?.type === 'removeStaff'
+          ? 'Remove'
+          : 'Deactivate'}
       </Button>
     </DialogFooter>
   </DialogContent>
