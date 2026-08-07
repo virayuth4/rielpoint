@@ -263,20 +263,65 @@ function requestRemoveCoupon(coupon) {
   }
 
 async function handleConfirm() {
-  console.log('[handleConfirm] fired, confirmAction =', confirmAction);
+  //  console.log('[handleConfirm] fired, confirmAction =', confirmAction);
   if (!confirmAction) {
-    console.log('[handleConfirm] no confirmAction, bailing');
+    // console.log('[handleConfirm] no confirmAction, bailing');
     return;
   }
-  const { type, coupon, staff } = confirmAction;
+  const { type, coupon } = confirmAction;
   setConfirmAction(null);
 
   if (type === 'deactivate') {
-    // ...unchanged
-  } else if (type === 'remove') {
-    // ...unchanged (coupon remove)
-  } else if (type === 'removeStaff') {
-    const previousStaffs = staffs;
+    const url = `${process.env.NEXT_PUBLIC_BACKEND}/api/merchant/coupon/status/${coupon.coupon_id}`;
+    console.log('[handleConfirm] deactivate → POST', url);
+
+    const previous = coupons;
+    setCoupons((prev) =>
+      prev.map((c) =>
+        c.coupon_id === coupon.coupon_id ? { ...c, is_active: false } : c
+      )
+    );
+    try {
+      const res = await authenticatedFetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ is_active: false }),
+      });
+      console.log('[handleConfirm] response status:', res.status);
+      if (!res.ok) {
+        const text = await res.text().catch(() => '');
+        console.log('[handleConfirm] error body:', text);
+        throw new Error(`Request failed (${res.status})`);
+      }
+      const data = await res.json();
+      console.log('[handleConfirm] success body:', data);
+    } catch (err) {
+      console.log('[handleConfirm] caught error:', err);
+      setCoupons(previous);
+      setError(err.message || 'Failed to deactivate coupon');
+    }
+  
+ } else if (type === 'remove') {
+  const previous = coupons;
+  setCoupons((prev) => prev.filter((c) => c.coupon_id !== coupon.coupon_id));
+  try {
+    const res = await authenticatedFetch(
+      `${process.env.NEXT_PUBLIC_BACKEND}/api/merchant/coupon/delete`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ couponId: coupon.coupon_id }),
+      }
+    );
+    if (!res.ok) throw new Error(`Request failed (${res.status})`);
+    // Backend always soft-deletes (is_deleted = true), so no need to
+    // re-add the coupon to the list on success.
+  } catch (err) {
+    setCoupons(previous);
+    setError(err.message || 'Failed to remove coupon');
+  }
+} else if (type === 'removeStaff') {
+  const previousStaffs = staffs;
 
     // Optimistic update
     setStaffs((prev) => prev.filter((s) => s.id !== staff.id));
@@ -292,7 +337,7 @@ async function handleConfirm() {
       setStaffs(previousStaffs);
       setError(err.message || 'Failed to remove staff');
     }
-  }
+}
 }
 
   if (error) {
@@ -490,13 +535,13 @@ async function handleConfirm() {
                 {s.is_active ? 'Deactivate' : 'Activate'}
               </Button>
             <Button
-              variant="outline"
-              size="sm"
-              className="text-destructive hover:text-destructive"
-              onClick={() => requestRemoveStaff(s)}
-            >
-              Remove
-            </Button>
+  variant="outline"
+  size="sm"
+  className="text-destructive hover:text-destructive"
+  onClick={() => requestRemoveStaff(s)}
+>
+  Remove
+</Button>
             </div>
           </TableCell>
         </TableRow>
@@ -522,8 +567,8 @@ async function handleConfirm() {
               + Add coupon
             </Button>
 
-{/* shared dialog */}
-         <Dialog open={!!confirmAction} onOpenChange={(open) => !open && setConfirmAction(null)}>
+
+           <Dialog open={!!confirmAction} onOpenChange={(open) => !open && setConfirmAction(null)}>
   <DialogContent className="sm:max-w-[380px]">
     <DialogHeader>
       <DialogTitle>
