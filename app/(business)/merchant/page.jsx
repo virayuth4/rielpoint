@@ -474,9 +474,9 @@ async function handleConfirm() {
                 placeholder="Phone number"
                 value={newStaffPhone}
                 onChange={(e) => setNewStaffPhone(e.target.value)}
-                className="flex-1 text-[13px] font-mono"
+                className="flex-1 text-[13px] font-mono p-3"
               />
-              <Button size="sm" onClick={addStaff}>
+              <Button  className='p-3' onClick={addStaff}>
                 Invite
               </Button>
             </div>
