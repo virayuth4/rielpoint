@@ -730,7 +730,7 @@ const formatDate = (isoDate) => {
                       <Input
                         id="coupon-points"
                         type="number"
-                        placeholder="e.g. 100"
+                        placeholder="e.g. 3000"
                         value={newCouponPoints}
                         onChange={(e) => setNewCouponPoints(e.target.value)}
                         className="mb-5 w-full rounded-none border-neutral-200 px-4 py-3 font-mono text-base md:text-sm text-black focus-visible:ring-0 focus-visible:border-black"
