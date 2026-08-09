@@ -831,11 +831,11 @@ export default function Home() {
 
         <div className="mt-4 flex items-baseline gap-2">
           <span className="font-tape text-lg text-[var(--ink)]/40 line-through">$15</span>
-          <span className="font-display text-5xl font-semibold tracking-tight">$5</span>
+          <span className="font-display text-5xl font-semibold tracking-tight">$10</span>
           <span className="font-tape text-sm text-[var(--ink)]/50">/ month</span>
         </div>
         <p className="mt-1 font-tape text-[10px] uppercase tracking-[0.18em] text-emerald-700">
-          Save 67% — limited time
+          Save 33% — limited time
         </p>
 
         <p className="mt-3 text-sm leading-6 text-[var(--ink)]/65">
