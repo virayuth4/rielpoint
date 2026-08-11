@@ -610,10 +610,10 @@ export default function Home() {
       <style>{LOCAL_STYLES}</style>
 
       {/* NAV */}
-  <NavHeader/>
+ 
 
       {/* HERO */}
-      <section className="relative overflow-hidden border-b pb-12">
+      <section className="relative overflow-hidden pb-12">
         <PaperGrain />
         <div className="mx-auto grid max-w-6xl grid-cols-1 items-center gap-12 px-6 py-20 md:grid-cols-2 md:py-28">
           <div>

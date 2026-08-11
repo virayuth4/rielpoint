@@ -3,6 +3,7 @@ import { Inter, Space_Mono } from "next/font/google";
 import "./globals.css";
 import Navigation from "./Components/navigation/navigation";
 import { AuthProvider } from "./auth/authContext";
+import TopNavigation from "./Components/navigation/topNavigation";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -45,6 +46,7 @@ export default function RootLayout({ children }) {
     >
       <body className="min-h-full flex flex-col">
         <AuthProvider>
+          <TopNavigation/>
           <main className="flex-1 pb-28 sm:pb-24">{children}</main>
           <Navigation />
         </AuthProvider>

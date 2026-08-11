@@ -1,7 +1,6 @@
 "use client";
 
 import authenticatedFetch from "@/app/auth/authenticatedFetch";
-import Image from "next/image";
 import { useEffect, useMemo, useState } from "react";
 
 function formatCashback(offer) {
@@ -73,47 +72,8 @@ export default function AffiliateMerchantsPage() {
   );
 
   return (
-    <main className="">
-      <section className="relative w-full bg-slate-900 overflow-hidden">
-        {/* Banner container with fixed height on mobile & dynamic aspect ratio on desktop */}
-        <div className="relative h-[320px] sm:h-[400px] lg:h-auto lg:aspect-[2400/1256] lg:max-h-[800px] w-full">
-          {/* Background Image */}
-          <Image
-            src="https://rielpoint-bucket.s3.ap-southeast-1.amazonaws.com/rielpoint/banner_image.avif"
-            alt="Affiliate Merchants Promotion"
-            fill
-            priority
-            className="object-cover object-center lg:object-top "
-          />
-
-          {/* ShopBack style overlay: Full darkening gradient on mobile, side-fade on desktop */}
-          <div className="absolute inset-0  " />
-
-          {/* Centered Content Container */}
-          <div className="absolute inset-0 z-10 flex items-center justify-center lg:justify-start">
-            <div className="container mx-auto px-4 sm:px-10 lg:px-20">
-              <div className="flex flex-col items-center lg:items-start text-center lg:text-left max-w-xl mx-auto lg:mx-0 space-y-2.5 sm:space-y-4">
-                
-                {/* Main Heading */}
-                <h1 className="text-2xl sm:text-4xl lg:text-6xl font-extrabold tracking-tight text-white drop-shadow-md leading-tight">
-                  Earn Up to{" "}
-                  <span className=" block sm:inline">
-                    50% Cashback
-                  </span>
-                </h1>
-
-                {/* Subtext */}
-                <p className="text-xs sm:text-base lg:text-lg font-light text-slate-200 lg:text-slate-300 leading-relaxed max-w-sm sm:max-w-md lg:max-w-lg">
-                  Shop your favorite local and international brands and get money back automatically.
-                </p>
-
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <div className="mx-auto max-w-6xl min-h-screen py-12 px-4">
+    <main className="min-h-screen bg-slate-50 py-12 px-4">
+      <div className="mx-auto max-w-6xl">
         <div className="mb-8">
           <h1 className="text-2xl font-semibold text-slate-900">
             Affiliate merchants
