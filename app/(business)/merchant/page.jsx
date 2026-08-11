@@ -58,6 +58,23 @@ export default function MerchantDashboard() {
   const [isSubmittingCoupon, setIsSubmittingCoupon] = useState(false);
   const [couponFormError, setCouponFormError] = useState(null);
   const dateInputRef = useRef(null);
+  const [locations, setLocations] = useState([]);
+const [locationId, setLocationId] = useState(null);
+
+function withLocation(path) {
+  const url = new URL(`${process.env.NEXT_PUBLIC_BACKEND}${path}`);
+  if (locationId) url.searchParams.set('merchant_id', locationId);
+  return url.toString();
+}
+
+function bodyWithLocation(obj) {
+  return JSON.stringify(locationId ? { ...obj, merchant_id: locationId } : obj);
+}
+
+useEffect(() => {
+  const saved = typeof window !== 'undefined' ? localStorage.getItem('activeLocationId') : null;
+  loadDashboard(saved || null);
+}, []);
 
 const formatDate = (isoDate) => {
   if (!isoDate) return null;
@@ -119,27 +136,40 @@ const formatDate = (isoDate) => {
     loadDashboard();
   }, []);
 
-  async function loadDashboard() {
-    setLoading(true);
-    setError(null);
-    try {
-      const res = await authenticatedFetch(
-        `${process.env.NEXT_PUBLIC_BACKEND}/api/merchant/dashboard`
-      );
-      if (!res.ok) throw new Error(`Request failed (${res.status})`);
-      const data = await res.json();
+async function loadDashboard(overrideLocationId) {
+  setLoading(true);
+  setError(null);
+  try {
+    const idToUse = overrideLocationId !== undefined ? overrideLocationId : locationId;
+    const url = new URL(`${process.env.NEXT_PUBLIC_BACKEND}/api/merchant/dashboard`);
+    if (idToUse) url.searchParams.set('merchant_id', idToUse);
 
-      setMerchant(data.merchant ?? null);
-      setStaffs(data.staffs ?? []);
-      setCoupons(data.coupons ?? []);
-      setCouponClaims(data.couponClaims ?? []);
-      setRecentPointTransactions(data.recentPointTransactions ?? []);
-    } catch (err) {
-      setError(err.message || 'Failed to load dashboard');
-    } finally {
-      setLoading(false);
+    const res = await authenticatedFetch(url.toString());
+    if (!res.ok) throw new Error(`Request failed (${res.status})`);
+    const data = await res.json();
+
+    setMerchant(data.merchant ?? null);
+    setLocations(data.locations ?? []);
+    if (data.merchant?.id) {
+      setLocationId(String(data.merchant.id));
+      localStorage.setItem('activeLocationId', String(data.merchant.id));
     }
+    setStaffs(data.staffs ?? []);
+    setCoupons(data.coupons ?? []);
+    setCouponClaims(data.couponClaims ?? []);
+    setRecentPointTransactions(data.recentPointTransactions ?? []);
+  } catch (err) {
+    setError(err.message || 'Failed to load dashboard');
+  } finally {
+    setLoading(false);
   }
+}
+
+function switchLocation(newId) {
+  if (newId === locationId) return;
+  loadDashboard(newId);
+  console.log("newId", newId)
+}
 
   async function toggleStaffActive(staffId) {
     const previous = staffs;
@@ -176,9 +206,10 @@ const formatDate = (isoDate) => {
         {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ staff_phone: newStaffPhone.trim() }),
+          body: bodyWithLocation({ staff_phone: newStaffPhone.trim() }),
         }
       );
+      console.log("Data Sent when Adding staff", bodyWithLocation({staff_phone: newStaffPhone.trim()}))
       if (!res.ok) throw new Error(`Request failed (${res.status})`);
       const data = await res.json();
       setStaffs((prev) => [...prev, data.staff]);
@@ -361,6 +392,24 @@ const formatDate = (isoDate) => {
               </Badge>
             )}
           </div>
+          {locations.length > 1 && (
+  <div className="mt-3 flex gap-2">
+    {locations.map((loc) => (
+      <button
+        key={loc.id}
+        type="button"
+        onClick={() => switchLocation(String(loc.id))}
+        className={`border px-3 py-1.5 text-xs font-semibold transition-colors ${
+          String(loc.id) === locationId
+            ? 'border-black bg-black text-white'
+            : 'border-neutral-200 bg-white text-neutral-500'
+        }`}
+      >
+        {loc.name || loc.slug || `#${loc.id}`}
+      </button>
+    ))}
+  </div>
+)}
         </header>
 
         {/* Add points */}
