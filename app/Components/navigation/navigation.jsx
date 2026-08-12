@@ -136,7 +136,28 @@ export default function Navigation() {
             ))}
           </div>
         )}
+     {!loading && !currentUser && (
+  <Link
+    href="/login"
+    className="mt-1.5 pt-1.5 w-full border-t border-black/[0.06] flex justify-center"
+  >
+    <span
+      className="
+        flex items-center justify-center gap-2
+        w-full mx-1 py-3
+        rounded-full bg-black
+        transition-transform duration-150 active:scale-95
+      "
+    >
+      <User className="h-3.5 w-3.5 text-white" strokeWidth={1.75} />
+      <span className={`${label} text-white`}>
+        Log In / Sign Up To Shop
+      </span>
+    </span>
+  </Link>
+)}
       </nav>
+      
     </div>
   )
 }
