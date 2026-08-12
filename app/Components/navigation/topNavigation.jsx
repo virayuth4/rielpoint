@@ -25,12 +25,12 @@ export default function TopNavigation () {
       <a href="#pricing" className="hover:text-[var(--ink)]">Pricing</a>
     </nav> */}
 
-    <Link
-      href="/signup"
-      className="rounded-md press shrink-0 whitespace-nowrap bg-[var(--ink)] px-3 py-2 text-[10px] font-tape uppercase tracking-wider text-[var(--paper)] hover:opacity-90 sm:px-4 sm:text-xs"
-    >
-      Sign Up
-    </Link>
+<Link
+  href="/signup"
+  className="rounded-md press shrink-0 whitespace-nowrap bg-[var(--ink)] px-3 py-2 text-[9px] font-normal uppercase tracking-[0.08em] text-[var(--paper)] hover:opacity-90 sm:px-4 sm:text-[11px] md:text-xs"
+>
+  Sign Up
+</Link>
   </div>
 </header>
     )

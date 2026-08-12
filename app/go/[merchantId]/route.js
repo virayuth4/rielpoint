@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import fs from "fs";
 
 export async function GET(req, { params }) {
   const { merchantId } = await params; // ← fix 1: await params before reading it
@@ -6,6 +7,11 @@ export async function GET(req, { params }) {
   const offerId = req.nextUrl.searchParams.get("offer");
   const fallback = req.nextUrl.searchParams.get("fallback");
   const idToken = req.cookies.get("firebase_token")?.value;
+  //   fs.appendFileSync(
+  //     "debug.log",
+  //     `${new Date().toISOString()} idToken: ${idToken ? "present" : "MISSING"}\n`
+  //   );
+  // console.log("idToken from cookie:", idToken ? `${idToken.slice(0, 20)}...` : "MISSING");
 
   const ip = req.headers.get("x-forwarded-for")?.split(",")[0] ?? null;
   const userAgent = req.headers.get("user-agent") ?? null;
@@ -27,7 +33,7 @@ export async function GET(req, { params }) {
         }),
       }
     );
-    console.log("Respond", res)
+ 
 
     if (!res.ok) throw new Error("click logging failed");
 

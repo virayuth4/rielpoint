@@ -2,6 +2,7 @@
 import { createContext, useState, useEffect, useContext } from 'react';
 import { useRouter } from 'next/navigation';
 import authenticatedFetch from './authenticatedFetch';
+import { getAuth, onIdTokenChanged } from 'firebase/auth';
 
 
 
@@ -99,18 +100,11 @@ export const checkUserSession = async (forceRefresh = false) => {
 
 export const clearUserData = () => {
   try {
-    // Clear in-memory + sessionStorage session cache
     clearUserSessionCache();
-
-    // Clear anonymous ID
     localStorage.removeItem('anonId');
-
-    // Clear any tracked event/preference history
     localStorage.removeItem('event_tracker_history');
-
-    // Clear any other app-specific cached data
     sessionStorage.removeItem('user_session_cache');
-
+    fetch('/api/session', { method: 'DELETE' }).catch(() => {}); // ← add
     console.log('User data cleared');
   } catch (error) {
     console.error('Error clearing user data:', error);
@@ -159,27 +153,49 @@ export const AuthProvider = ({ children }) => {
   const router = useRouter();
 
 
-useEffect(() => {
-  const fetchInitialSession = async () => {
-    console.log("AuthProvider Mounted")
-    const userData = await checkUserSession(); // { user, session } or null
-    setCurrentUser(userData?.user ?? null);
-    setCurrentSession(userData?.session ?? null);
+  useEffect(() => {
+    const fetchInitialSession = async () => {
+      console.log("AuthProvider Mounted")
+      const userData = await checkUserSession();
+      setCurrentUser(userData?.user ?? null);
+      setCurrentSession(userData?.session ?? null);
 
-    if (!userData) {
-      let storedAnonId = localStorage.getItem('anonId');
-      if (!storedAnonId) {
-        storedAnonId = generateAnonId();
-        localStorage.setItem('anonId', storedAnonId);
+      if (!userData) {
+        let storedAnonId = localStorage.getItem('anonId');
+        if (!storedAnonId) {
+          storedAnonId = generateAnonId();
+          localStorage.setItem('anonId', storedAnonId);
+        }
+        setAnonId(storedAnonId);
       }
-      setAnonId(storedAnonId);
-    }
 
-    setLoading(false);
-  };
+      setLoading(false);
+    };
 
-  fetchInitialSession();
-}, []);
+    fetchInitialSession();
+  }, []);
+
+useEffect(() => {
+    const auth = getAuth();
+    const unsubscribe = onIdTokenChanged(auth, async (firebaseUser) => {
+      try {
+        if (firebaseUser) {
+          const idToken = await firebaseUser.getIdToken();
+          await fetch('/api/session', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ idToken }),
+          });
+        } else {
+          await fetch('/api/session', { method: 'DELETE' });
+        }
+      } catch (err) {
+        console.error('Failed to sync session cookie:', err);
+      }
+    });
+    return () => unsubscribe();
+  }, []);
+
 
   const createAndSetCurrentUserManually = async (result) => {
     try {
