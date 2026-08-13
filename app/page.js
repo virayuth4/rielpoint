@@ -148,7 +148,7 @@ const { categorizedOffers, merchantsWithoutOffers } = useMemo(() => {
                 </h1>
 
                 {/* Subtext */}
-                <p className="text-xs sm:text-base lg:text-lg font-light text-slate-200 lg:text-slate-300 leading-relaxed max-w-sm sm:max-w-md lg:max-w-lg">
+                <p className="text-xs sm:text-base lg:text-lg font-bold text-white leading-relaxed max-w-sm sm:max-w-md lg:max-w-lg">
                   Shop your favorite local and international brands and get money back automatically.
                 </p>
               </div>
