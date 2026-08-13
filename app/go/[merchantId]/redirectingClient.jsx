@@ -4,7 +4,6 @@ import { useEffect, useState } from "react";
 
 export default function RedirectClient({ to, name, logo }) {
   const [hasReturned, setHasReturned] = useState(false);
-  console.log("name", name)
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -36,7 +35,7 @@ export default function RedirectClient({ to, name, logo }) {
 
   if (hasReturned) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 px-4 text-center">
+      <div className="min-h-screen flex flex-col items-center justify-start pt-24 md:pt-32 bg-gray-50 px-4 text-center">
         {logo && (
           <img
             src={logo}
@@ -66,7 +65,7 @@ export default function RedirectClient({ to, name, logo }) {
   }
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 px-4 text-center">
+    <div className="min-h-screen flex flex-col items-center justify-start pt-24 md:pt-32 bg-gray-50 px-4 text-center">
       {logo && (
         <img
           src={logo}
