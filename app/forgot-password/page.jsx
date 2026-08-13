@@ -153,199 +153,290 @@ export default function ForgotPasswordForm() {
     }
   };
 
-  return (
-    <div className="min-h-screen bg-white flex flex-col justify-between p-6 md:p-12 font-mono text-xs uppercase tracking-wider text-black">
-      <div className="hidden md:block"></div>
+ return (
+  <div className="min-h-screen px-4 py-0 text-black md:px-6 md:py-12">
+    <div className="mx-auto flex min-h-[calc(100vh-4rem)] w-full max-w-md flex-col justify-center">
 
-      <div className="w-full max-w-[320px] mx-auto my-auto space-y-8">
-        <div className="text-left border-b border-black pb-2">
-          <h1 className="text-sm font-normal tracking-widest">Reset Password</h1>
-        </div>
+      {/* Header */}
+      <div className="mb-6 text-center">
+        <h1 className="text-2xl font-bold tracking-tight md:text-3xl">
+          Reset your password
+        </h1>
 
+        <p className="mt-2 text-sm text-slate-500">
+          Enter your phone number and choose a new password.
+        </p>
+      </div>
+
+      {/* Card */}
+      <div className="rounded-sm border border-slate-100 bg-white p-6 md:p-8">
+
+        {/* Error */}
         {error && (
-          <div className="p-3 border border-black bg-neutral-50 text-stone-600 normal-case tracking-normal">
-            <p>{error}</p>
+          <div className="mb-5 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+            {error}
           </div>
         )}
 
-        <form onSubmit={handleRequestOtp} className="space-y-4">
-          <Input
-            id="phoneNumber"
-            type="tel"
-            placeholder="Phone Number"
-            value={phoneNumber}
-            onChange={handlePhoneChange}
-            required
-            className="w-full h-10 px-0 bg-transparent border-0 border-b border-stone-300 rounded-none text-black placeholder:text-stone-400 focus-visible:border-black focus-visible:ring-0 focus-visible:outline-none transition-colors duration-200"
-            disabled={isLoading}
-            autoComplete="tel"
-          />
+        <form onSubmit={handleRequestOtp} className="space-y-5">
 
-          <div className="space-y-1 relative">
-            <Input
-              type={showNewPassword ? "text" : "password"}
+          {/* Phone */}
+          <div>
+            <label
+              htmlFor="phoneNumber"
+              className="mb-2 block text-sm font-semibold text-black"
+            >
+              Phone number
+            </label>
+
+            <input
+              id="phoneNumber"
+              type="tel"
+              placeholder="012 xxx 456"
+              value={phoneNumber}
+              onChange={handlePhoneChange}
+              required
+              disabled={isLoading}
+              autoComplete="tel"
+              className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-slate-400 focus:bg-white focus:ring-4 focus:ring-slate-100 disabled:cursor-not-allowed disabled:opacity-50"
+            />
+          </div>
+
+          {/* New Password */}
+          <div>
+            <div className="mb-2 flex items-center justify-between">
+              <label
+                htmlFor="newPassword"
+                className="text-sm font-semibold text-black"
+              >
+                New password
+              </label>
+
+              <button
+                type="button"
+                onClick={() => setShowNewPassword(!showNewPassword)}
+                disabled={isLoading}
+                className="text-xs font-semibold text-black transition hover:text-slate-900"
+              >
+                {showNewPassword ? 'Hide' : 'Show'}
+              </button>
+            </div>
+
+            <input
+              id="newPassword"
+              type={showNewPassword ? 'text' : 'password'}
               value={newPassword}
               onChange={(e) => setNewPassword(e.target.value)}
               required
-              placeholder="New Password"
-              className="w-full h-10 px-0 pr-12 bg-transparent border-0 border-b border-stone-300 rounded-none text-black placeholder:text-stone-400 focus-visible:border-black focus-visible:ring-0 focus-visible:outline-none transition-colors duration-200"
+              placeholder="Enter your new password"
               disabled={isLoading}
               autoComplete="new-password"
+              className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-black outline-none transition focus:border-slate-400 focus:bg-white focus:ring-4 focus:ring-slate-100 disabled:cursor-not-allowed disabled:opacity-50"
             />
-            <button
-              type="button"
-              onClick={() => setShowNewPassword(!showNewPassword)}
-              className="absolute right-0 top-1/2 -translate-y-1/2 text-stone-400 hover:text-black transition-colors duration-200 text-[10px] tracking-widest focus:outline-none"
-            >
-              {showNewPassword ? "HIDE" : "SHOW"}
-            </button>
           </div>
 
-          <div className="space-y-1 relative">
-            <Input
-              type={showConfirmPassword ? "text" : "password"}
+          {/* Confirm Password */}
+          <div>
+            <div className="mb-2 flex items-center justify-between">
+              <label
+                htmlFor="confirmPassword"
+                className="text-sm font-semibold text-black"
+              >
+                Confirm password
+              </label>
+
+              <button
+                type="button"
+                onClick={() =>
+                  setShowConfirmPassword(!showConfirmPassword)
+                }
+                disabled={isLoading}
+                className="text-xs font-semibold text-black transition hover:text-slate-900"
+              >
+                {showConfirmPassword ? 'Hide' : 'Show'}
+              </button>
+            </div>
+
+            <input
+              id="confirmPassword"
+              type={showConfirmPassword ? 'text' : 'password'}
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
               required
-              placeholder="Confirm New Password"
-              className="w-full h-10 px-0 pr-12 bg-transparent border-0 border-b border-stone-300 rounded-none text-black placeholder:text-stone-400 focus-visible:border-black focus-visible:ring-0 focus-visible:outline-none transition-colors duration-200"
+              placeholder="Confirm your new password"
               disabled={isLoading}
               autoComplete="new-password"
+              className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-black outline-none transition focus:border-slate-400 focus:bg-white focus:ring-4 focus:ring-slate-100 disabled:cursor-not-allowed disabled:opacity-50"
             />
-            <button
-              type="button"
-              onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-              className="absolute right-0 top-1/2 -translate-y-1/2 text-stone-400 hover:text-black transition-colors duration-200 text-[10px] tracking-widest focus:outline-none"
-            >
-              {showConfirmPassword ? "HIDE" : "SHOW"}
-            </button>
           </div>
 
-          <div className="pt-4">
-            <Button
-              type="submit"
-              className="w-full h-11 bg-black hover:bg-neutral-800 text-white font-normal tracking-widest rounded-none border-0 shadow-none transition-colors duration-200 disabled:opacity-30 disabled:bg-black"
-              disabled={isLoading || !isPhoneNumberValid() || !newPassword || !confirmPassword}
-            >
-              {isLoading ? (
-                <div className="flex items-center justify-center space-x-2">
-                  <Loader2 className="h-3 w-3 animate-spin" />
-                  <span>PROCESSING...</span>
-                </div>
-              ) : <span>Send Code</span>}
-            </Button>
-          </div>
+          {/* Submit */}
+          <button
+            type="submit"
+            disabled={
+              isLoading ||
+              !isPhoneNumberValid() ||
+              !newPassword ||
+              !confirmPassword
+            }
+            className="flex w-full items-center justify-center gap-2 rounded-xl bg-slate-900 px-5 py-3.5 text-sm font-bold text-white shadow-sm transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-40"
+          >
+            {isLoading ? (
+              <>
+                <Loader2 className="h-4 w-4 animate-spin" />
+                <span>Sending code...</span>
+              </>
+            ) : (
+              <span>Send verification code</span>
+            )}
+          </button>
         </form>
 
-        <div className="flex flex-col space-y-2 text-[10px] text-stone-500 tracking-widest pt-2">
+        {/* Login */}
+        <div className="mt-6 border-t border-slate-100 pt-6">
+          <p className="mb-3 text-center text-sm text-slate-500">
+            Remember your password?
+          </p>
+
           <button
+            type="button"
             onClick={() => router.push('/login')}
             disabled={isLoading}
-            className="text-left hover:text-black transition-colors duration-200 focus:outline-none"
+            className="flex w-full items-center justify-center rounded-xl border-2 border-slate-900 px-5 py-3 text-sm font-bold text-slate-900 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
           >
-            Back to Sign In
+            Back to sign in
           </button>
         </div>
       </div>
 
-      <div className="text-center md:text-left text-[9px] text-stone-400 tracking-widest mt-auto pt-12">
-        © {new Date().getFullYear()} ALL RIGHTS RESERVED
+      {/* Footer */}
+      <div className="mt-6 text-center text-xs text-slate-400">
+        © {new Date().getFullYear()} RielPoint. All rights reserved.
       </div>
+    </div>
 
-      {/* OTP Modal */}
-      {showOtpModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          {/* Backdrop */}
-          <div
-            className="absolute inset-0 bg-black/40"
-            onClick={() => !isVerifying && setShowOtpModal(false)}
-          />
+    {/* OTP Modal */}
+    {showOtpModal && (
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+        <div className="relative w-full max-w-md rounded-sm border border-slate-100 bg-white p-6 text-black md:p-8">
 
-          {/* Modal panel */}
-          <div className="relative w-full max-w-[320px] bg-white p-6 space-y-6 font-mono text-xs uppercase tracking-wider text-black border border-black">
-            <button
-              type="button"
-              onClick={() => setShowOtpModal(false)}
-              disabled={isVerifying}
-              className="absolute top-4 right-4 text-stone-400 hover:text-black transition-colors"
-              aria-label="Close"
-            >
-              <X className="h-4 w-4" />
-            </button>
+          {/* Close */}
+          <button
+            type="button"
+            onClick={() => setShowOtpModal(false)}
+            disabled={isVerifying}
+            className="absolute right-5 top-5 text-slate-400 transition hover:text-black disabled:opacity-50"
+            aria-label="Close"
+          >
+            <X className="h-5 w-5" />
+          </button>
 
-            <div className="border-b border-black pb-3 space-y-2 pr-6">
-              <h2 className="text-sm font-normal tracking-widest">Verification</h2>
-              <p className="text-[10px] text-stone-500 normal-case tracking-normal leading-relaxed">
-                A validation code has been transmitted to +855 {formattedPhone()}
-              </p>
+          {/* Header */}
+          <div className="mb-6 pr-8">
+            <h2 className="text-2xl font-bold tracking-tight">
+              Verify your phone
+            </h2>
+
+            <p className="mt-2 text-sm text-slate-500">
+              Enter the verification code sent to +855{' '}
+              {formattedPhone()}
+            </p>
+          </div>
+
+          {/* Timer */}
+          <div className="mb-5 rounded-xl bg-slate-50 px-4 py-3 text-sm text-slate-500">
+            Code expires in{' '}
+            <span className="font-semibold text-slate-900">
+              {formatTime(timeLeft)}
+            </span>
+          </div>
+
+          {/* OTP Error */}
+          {otpError && (
+            <div className="mb-5 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+              {otpError}
             </div>
+          )}
 
-            <div className="text-left text-[10px] text-stone-500 tracking-widest">
-              EXPIRES IN: <span className="text-black font-normal">{formatTime(timeLeft)}</span>
-            </div>
+          {/* OTP Form */}
+          <form
+            onSubmit={handleVerifyAndReset}
+            className="space-y-5"
+          >
+            <div>
+              <label
+                htmlFor="otp-0"
+                className="mb-2 block text-sm font-semibold text-black"
+              >
+                Verification code
+              </label>
 
-            {otpError && (
-              <div className="p-3 border border-black bg-neutral-50 text-stone-600 normal-case tracking-normal">
-                <p>{otpError}</p>
-              </div>
-            )}
-
-            <form onSubmit={handleVerifyAndReset} className="space-y-6">
               <div className="flex justify-between gap-2">
                 {otp.map((digit, index) => (
                   <input
                     key={index}
+                    id={`otp-${index}`}
                     ref={(el) => (inputRefs.current[index] = el)}
                     type="text"
                     inputMode="numeric"
                     maxLength={1}
                     value={digit}
-                    onChange={(e) => handleOtpChange(index, e.target.value)}
-                    onKeyDown={(e) => handleOtpKeyDown(index, e)}
+                    onChange={(e) =>
+                      handleOtpChange(index, e.target.value)
+                    }
+                    onKeyDown={(e) =>
+                      handleOtpKeyDown(index, e)
+                    }
                     disabled={isVerifying || timeLeft <= 0}
-                    className="w-9 h-10 text-center text-sm font-normal bg-transparent border-0 border-b border-stone-300 rounded-none text-black focus:outline-none focus:border-black transition-colors duration-200"
+                    className="h-12 w-full rounded-xl border border-slate-200 bg-white text-center text-lg font-semibold text-slate-900 outline-none transition focus:border-slate-400 focus:ring-4 focus:ring-slate-100 disabled:cursor-not-allowed disabled:opacity-50"
                   />
                 ))}
               </div>
-
-              <Button
-                type="submit"
-                className="w-full h-11 bg-black hover:bg-neutral-800 text-white font-normal tracking-widest rounded-none border-0 shadow-none transition-colors duration-200 disabled:opacity-30 disabled:bg-black"
-                disabled={isVerifying || timeLeft <= 0}
-              >
-                {isVerifying ? (
-                  <div className="flex items-center justify-center space-x-2">
-                    <Loader2 className="h-3 w-3 animate-spin" />
-                    <span>VERIFYING...</span>
-                  </div>
-                ) : 'CONFIRM CODE'}
-              </Button>
-            </form>
-
-            <div className="pt-2 border-t border-stone-100">
-              {timeLeft <= 0 ? (
-                attempts > 3 ? (
-                  <p className="text-stone-400 normal-case tracking-normal text-[10px]">
-                    Maximum allocation of code retransmissions exceeded.
-                  </p>
-                ) : (
-                  <button
-                    onClick={handleResendOtp}
-                    disabled={isVerifying}
-                    className="text-left text-black hover:underline underline-offset-4 focus:outline-none text-[10px] tracking-widest"
-                  >
-                    Resend Code
-                  </button>
-                )
-              ) : (
-                <p className="normal-case tracking-normal text-stone-400 leading-relaxed text-[10px]">
-                  If the message was not received, a new request will become available once the active sequence expires.
-                </p>
-              )}
             </div>
+
+            <button
+              type="submit"
+              disabled={isVerifying || timeLeft <= 0}
+              className="flex w-full items-center justify-center gap-2 rounded-xl bg-slate-900 px-5 py-3.5 text-sm font-bold text-white shadow-sm transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-40"
+            >
+              {isVerifying ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  <span>Resetting password...</span>
+                </>
+              ) : (
+                <span>Reset password</span>
+              )}
+            </button>
+          </form>
+
+          {/* Resend */}
+          <div className="mt-6 border-t border-slate-100 pt-5">
+            {timeLeft <= 0 ? (
+              attempts > 3 ? (
+                <p className="text-center text-sm text-slate-400">
+                  Maximum number of resend attempts reached.
+                </p>
+              ) : (
+                <button
+                  type="button"
+                  onClick={handleResendOtp}
+                  disabled={isVerifying}
+                  className="w-full text-center text-sm font-semibold text-slate-900 transition hover:text-slate-600 disabled:opacity-50"
+                >
+                  Resend verification code
+                </button>
+              )
+            ) : (
+              <p className="text-center text-sm text-slate-400">
+                Didn&apos;t receive the code? You can request a new
+                one after it expires.
+              </p>
+            )}
           </div>
         </div>
-      )}
-    </div>
-  );
+      </div>
+    )}
+  </div>
+);
 }

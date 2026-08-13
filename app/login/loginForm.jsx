@@ -1,6 +1,6 @@
 'use client'
 import React, { useState } from 'react';
-import { Loader2 } from 'lucide-react';
+import { Loader2, ArrowRight } from 'lucide-react'
 import { useRouter, useSearchParams } from 'next/navigation';
 
 import { useLoginLogic } from '../auth/useLoginLogic';
@@ -50,142 +50,170 @@ export default function LoginForm({ isMerchant = false }) {
     }
   };
 
-  return (
-    <div className="font-body min-h-screen bg-[var(--paper)] text-[var(--ink)] flex flex-col justify-between p-6 md:p-12">
-      <style></style>
+ return (
+    <div className="min-h-screen  px-4 py-0 text-black md:px-6 md:py-12">
+      <div className="mx-auto flex min-h-[calc(100vh-4rem)] w-full max-w-md flex-col justify-center">
 
-      {/* Top spacing */}
-      <div className="hidden md:block"></div>
-
-      <div className="w-full max-w-[360px] mx-auto my-auto">
         {/* Header */}
-        <div
-          className={
-            isMerchant
-              ? 'border-b-2 border-(--accent,#b5651d)pb-4'
-              : 'border-b border-[var(--ink)]/15 pb-4'
-          }
-        >
+        <div className="mb-6 text-center">
+         
+
           {isMerchant && (
-            <span className="inline-block mb-2 font-tape text-[9px] uppercase tracking-[0.22em] bg-green-800 text-white px-2 py-1">
+            <span className="mb-3 inline-flex rounded-full bg-green-100 px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-green-700">
               Merchant Portal
             </span>
           )}
-          <p className="font-tape text-[10px] uppercase tracking-[0.22em] text-[var(--ink)]/50">
-            {isMerchant ? 'Business sign in' : 'Welcome back'}
-          </p>
-          <h1 className="mt-1  text-3xl font-semibold tracking-tight">
-            {isMerchant ? 'Merchant Login' : 'Login'}
+
+          <h1 className="text-2xl font-bold tracking-tight md:text-3xl">
+            {isMerchant ? 'Welcome back' : 'Welcome back'}
           </h1>
+
+          <p className="mt-2 text-sm text-slate-500">
+            {isMerchant
+              ? 'Sign in to manage your business and rewards.'
+              : 'Sign in to receive cashback on your shopping.'}
+          </p>
         </div>
 
-        {/* Error Message */}
-        {error && (
-          <div className="mt-6 border border-[var(--ink)]/20 bg-[var(--paper-dim)] px-3 py-2 text-[var(--ink)]">
-            <p className="text-sm">{error}</p>
-          </div>
-        )}
+        {/* Card */}
+        <div className="rounded-sm border border-slate-100 bg-white p-6  md:p-8">
 
-        {/* Form */}
-        <form onSubmit={handleSignIn} className="mt-8 space-y-5">
-          {/* Phone Number Field */}
-          <div>
-            <label htmlFor="phone" className="font-tape text-[10px] uppercase tracking-[0.22em] text-[var(--ink)]/50">
-              {isMerchant ? 'Phone number' : 'Phone number'}
-            </label>
-            <input
-              id="phone"
-              type="tel"
-              placeholder="012 xxx 456"
-              value={phone}
-              onChange={handlePhoneChange}
-              required
-              className={
-                isMerchant
-                  ? 'mt-2 w-full border border-[var(--accent,#b5651d)]/40 bg-white px-3 py-2.5 text-sm text-[var(--ink)] outline-none placeholder:text-[var(--ink)]/30 focus:border-[var(--accent,#b5651d)] disabled:opacity-50 transition-colors duration-200'
-                  : 'mt-2 w-full border border-[var(--ink)]/25 bg-white px-3 py-2.5 text-sm text-[var(--ink)] outline-none placeholder:text-[var(--ink)]/30 focus:border-[var(--ink)] disabled:opacity-50 transition-colors duration-200'
-              }
-              disabled={isLoading}
-              autoComplete="tel"
-            />
-          </div>
+          {/* Error */}
+          {error && (
+            <div className="mb-5 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+              {error}
+            </div>
+          )}
 
-          {/* Password Field */}
-          <div>
-            <div className="flex items-baseline justify-between">
-              <label htmlFor="password" className="font-tape text-[10px] uppercase tracking-[0.22em] text-[var(--ink)]/50">
-                Password
+          <form onSubmit={handleSignIn} className="space-y-5">
+
+            {/* Phone */}
+            <div>
+              <label
+                htmlFor="phone"
+                className="mb-2 block text-sm font-semibold text-black"
+              >
+                Phone number
               </label>
+
+              <input
+                id="phone"
+                type="tel"
+                placeholder="012 xxx 456"
+                value={phone}
+                onChange={handlePhoneChange}
+                required
+                disabled={isLoading}
+                autoComplete="tel"
+                className={`w-full rounded-xl border bg-white px-4 py-3 text-sm text-slate-900 outline-none transition ${
+                  isMerchant
+                    ? 'border-green-200 focus:border-green-500 focus:bg-white focus:ring-4 focus:ring-green-100'
+                    : 'border-slate-200 focus:border-slate-400 focus:bg-white focus:ring-4 focus:ring-slate-100'
+                } disabled:cursor-not-allowed disabled:opacity-50`}
+              />
+            </div>
+
+            {/* Password */}
+            <div>
+              <div className="mb-2 flex items-center justify-between">
+                <label
+                  htmlFor="password"
+                  className="text-sm font-semibold black"
+                >
+                  Password
+                </label>
+
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="text-xs font-semibold text-black transition hover:text-slate-900"
+                >
+                  {showPassword ? 'Hide' : 'Show'}
+                </button>
+              </div>
+
+              <input
+                id="password"
+                type={showPassword ? 'text' : 'password'}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                placeholder="Enter your password"
+                disabled={isLoading}
+                autoComplete="current-password"
+                className={`w-full rounded-xl border bg-white px-4 py-3 text-sm text-black outline-none transition ${
+                  isMerchant
+                    ? 'border-green-200 focus:border-green-500 focus:bg-white focus:ring-4 focus:ring-green-100'
+                    : 'border-slate-200 focus:border-slate-400 focus:bg-white focus:ring-4 focus:ring-slate-100'
+                } disabled:cursor-not-allowed disabled:opacity-50`}
+              />
+            </div>
+
+            {/* Forgot password */}
+            <div className="flex justify-end">
               <button
                 type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                className="font-tape text-[10px] uppercase tracking-[0.18em] text-[var(--ink)]/50 hover:text-[var(--ink)] transition-colors duration-200 focus:outline-none"
-                aria-label={showPassword ? "Hide password" : "Show password"}
+                onClick={() => router.push('/forgot-password')}
+                disabled={isLoading}
+                className="text-sm font-medium text-black transition hover:text-slate-900"
               >
-                {showPassword ? "Hide" : "Show"}
+                Forgot password?
               </button>
             </div>
-            <input
-              id="password"
-              type={showPassword ? "text" : "password"}
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              placeholder="••••••••"
-              className={
+
+            {/* Login */}
+            <button
+              type="submit"
+              disabled={isLoading || !isPhoneNumberValid() || !password}
+              className={`flex w-full items-center justify-center gap-2 rounded-xl px-5 py-3.5 text-sm font-bold text-white shadow-sm transition ${
                 isMerchant
-                  ? 'mt-2 w-full border border-[var(--accent,#b5651d)]/40 bg-white px-3 py-2.5 text-sm text-[var(--ink)] outline-none placeholder:text-[var(--ink)]/30 focus:border-[var(--accent,#b5651d)] disabled:opacity-50 transition-colors duration-200'
-                  : 'mt-2 w-full border border-[var(--ink)]/25 bg-white px-3 py-2.5 text-sm text-[var(--ink)] outline-none placeholder:text-[var(--ink)]/30 focus:border-[var(--ink)] disabled:opacity-50 transition-colors duration-200'
-              }
+                  ? 'bg-green-700 hover:bg-green-800'
+                  : 'bg-slate-900 hover:bg-slate-800'
+              } disabled:cursor-not-allowed disabled:opacity-40`}
+            >
+              {isLoading ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  <span>Signing in...</span>
+                </> 
+              ) : (
+                <span>
+                  {isMerchant ? 'Sign in to dashboard' : 'Sign in'}
+                </span>
+              )}
+            </button>
+          </form>
+
+          {/* Signup */}
+          <div className="mt-6 border-t border-slate-100 pt-6">
+            <p className="mb-3 text-center text-sm text-slate-500">
+              Don&apos;t have an account?
+            </p>
+
+            <button
+              type="button"
+              onClick={goToSignup}
               disabled={isLoading}
-              autoComplete="current-password"
-            />
+              className={`group flex w-full items-center justify-center gap-2 rounded-xl border-2 px-5 py-3 text-sm font-bold transition ${
+                isMerchant
+                  ? 'border-green-600 text-green-700 hover:bg-green-50'
+                  : 'border-slate-900 text-slate-900 hover:bg-slate-50'
+              } disabled:cursor-not-allowed disabled:opacity-50`}
+            >
+              <span>
+                {isMerchant ? 'Create merchant account' : 'Create an account'}
+              </span>
+
+              <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
+            </button>
           </div>
+        </div>
 
-          {/* Submit Button */}
-          <button
-            type="submit"
-            disabled={isLoading || !isPhoneNumberValid() || !password}
-            className={
-              isMerchant
-                ? 'press flex w-full items-center justify-center gap-2 bg-black px-6 py-3 font-tape text-xs uppercase tracking-[0.2em] text-white hover:opacity-90 disabled:opacity-30 transition-colors duration-200'
-                : 'press flex w-full items-center justify-center gap-2 bg-[var(--ink)] px-6 py-3 font-tape text-xs uppercase tracking-[0.2em] text-[var(--paper)] hover:opacity-90 disabled:opacity-30 transition-colors duration-200'
-            }
-          >
-            {isLoading ? (
-              <>
-                <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                <span>Processing...</span>
-              </>
-            ) : (
-              <span>{isMerchant ? 'Sign in to dashboard' : 'Login'}</span>
-            )}
-          </button>
-        </form>
-
-        {/* Footer Links */}
-        <div className="mt-6 flex flex-col gap-2 border-t border-dashed border-(--ink)/20 pt-6">
-          <button
-            onClick={goToSignup}
-            disabled={isLoading}
-            className="text-left font-tape text-[10px] uppercase tracking-[0.18em] text-(--ink)/55 hover:text-ink transition-colors duration-200 focus:outline-none"
-          >
-            {isMerchant ? 'Create an account' : 'Create an account'}
-          </button>
-          <button
-            onClick={() => router.push('/forgot-password')}
-            disabled={isLoading}
-            className="text-left font-tape text-[10px] uppercase tracking-[0.18em] text-[var(--ink)]/55 hover:text-[var(--ink)] transition-colors duration-200 focus:outline-none"
-          >
-            Forgot password?
-          </button>
+        {/* Footer */}
+        <div className="mt-6 text-center text-xs text-slate-400">
+          © {new Date().getFullYear()} RielPoint. All rights reserved.
         </div>
       </div>
-
-      {/* Branding footer */}
-      <div className="text-center md:text-left font-tape text-[9px] uppercase tracking-[0.22em] text-[var(--ink)]/40 mt-auto pt-12">
-        © {new Date().getFullYear()} RielPoint. All rights reserved.
-      </div>
     </div>
-  );
+  )
 }

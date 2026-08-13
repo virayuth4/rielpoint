@@ -20,7 +20,7 @@ const subLabel = 'text-[8px] tracking-[0.06em] uppercase font-normal'
 // actual route names — these are best guesses from the labels you gave.
 const TABS_LEFT = [
   { label: 'Home', href: '/', icon: Home },
-  { label: 'Rewards', href: '/rewards', icon: Trophy },
+  // { label: 'Rewards', href: '/rewards', icon: Trophy },
   // { label: 'Demo', href: '/demo', icon: PlayCircle },
 ]
 const TABS_RIGHT = [
@@ -32,6 +32,7 @@ const TABS_RIGHT = [
 const MERCHANT_ROW = [
   { label: 'Points', href: '/merchant/points', icon: Plus },
   { label: 'Verify', href: '/merchant/verify', icon: ScanLine },
+  { label: 'Offers', href: '/merchant/offers', icon: Trophy },
 ]
 
 function TabItem({ tab, active }) {
@@ -91,12 +92,12 @@ export default function Navigation() {
     <div className="fixed bottom-8 sm:bottom-6 inset-x-0 z-50 flex justify-center px-4 pointer-events-none">
       <nav className={`${island} pointer-events-auto flex flex-col items-center px-3 py-2`}>
         {/* Row 1 — primary tabs, Merchant raised in the center */}
-        <div className="relative flex items-center gap-1 h-16">
+        <div className="relative flex items-center gap-8 h-16">
           {TABS_LEFT.map((tab) => (
             <TabItem key={tab.href} tab={tab} active={isActivePath(pathname, tab.href)} />
           ))}
 
-          <Link
+          {/* <Link
             href={merchantHref}
             aria-label="Merchant"
             className="flex flex-col items-center justify-center -mt-8 mx-1"
@@ -121,7 +122,7 @@ export default function Navigation() {
             >
               Merchant
             </span>
-          </Link>
+          </Link> */}
 
           {TABS_RIGHT.map((tab) => (
             <TabItem key={tab.href} tab={tab} active={isActivePath(pathname, tab.href)} />

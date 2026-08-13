@@ -128,36 +128,42 @@ export default function SignUpForm() {
   const formatTime = (seconds) =>
     `${Math.floor(seconds / 60).toString().padStart(2, '0')}:${(seconds % 60).toString().padStart(2, '0')}`;
 
-  return (
-    <div className="font-body min-h-screen bg-[var(--paper)] text-[var(--ink)] flex flex-col justify-between p-6 md:p-12">
-      {/* Top spacing */}
-      <div className="hidden md:block"></div>
+ return (
+  <div className="min-h-screen px-4 py-0 text-black md:px-6 md:py-12">
+    <div className="mx-auto flex min-h-[calc(100vh-4rem)] w-full max-w-md flex-col justify-center">
 
-      <div className="w-full max-w-[360px] mx-auto my-auto">
-        {/* Header */}
-        <div className="border-b border-[var(--ink)]/15 pb-4">
-          <p className="font-tape text-[10px] uppercase tracking-[0.22em] text-[var(--ink)]/50">
-            Get started
-          </p>
-          <h1 className="mt-1 text-3xl font-semibold tracking-tight">
-            Register
-          </h1>
-        </div>
+      {/* Header */}
+      <div className="mb-6 text-center">
+        <h1 className="text-2xl font-bold tracking-tight md:text-3xl">
+          Create your account
+        </h1>
 
-        {/* Error Message */}
+        <p className="mt-2 text-sm text-slate-500">
+          Join RielPoint and start earning rewards.
+        </p>
+      </div>
+
+      {/* Card */}
+      <div className="rounded-sm border border-slate-100 bg-white p-6 md:p-8">
+
+        {/* Error */}
         {error && (
-          <div className="mt-6 border border-[var(--ink)]/20 bg-[var(--paper-dim)] px-3 py-2 text-[var(--ink)]">
-            <p className="text-sm">{error}</p>
+          <div className="mb-5 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+            {error}
           </div>
         )}
 
-        {/* Form */}
-        <form onSubmit={handleSubmit} className="mt-8 space-y-5">
-          {/* Full Name Field */}
+        <form onSubmit={handleSubmit} className="space-y-5">
+
+          {/* Full Name */}
           <div>
-            <label htmlFor="fullName" className="font-tape text-[10px] uppercase tracking-[0.22em] text-[var(--ink)]/50">
+            <label
+              htmlFor="fullName"
+              className="mb-2 block text-sm font-semibold text-black"
+            >
               Full name
             </label>
+
             <input
               id="fullName"
               type="text"
@@ -165,17 +171,21 @@ export default function SignUpForm() {
               value={fullName}
               onChange={(e) => setFullName(e.target.value)}
               required
-              className="mt-2 w-full border border-[var(--ink)]/25 bg-white px-3 py-2.5 text-sm text-[var(--ink)] outline-none placeholder:text-[var(--ink)]/30 focus:border-[var(--ink)] disabled:opacity-50 transition-colors duration-200"
               disabled={isLoading}
               autoComplete="name"
+              className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-slate-400 focus:bg-white focus:ring-4 focus:ring-slate-100 disabled:cursor-not-allowed disabled:opacity-50"
             />
           </div>
 
-          {/* Phone Number Field */}
+          {/* Phone */}
           <div>
-            <label htmlFor="phoneNumber" className="font-tape text-[10px] uppercase tracking-[0.22em] text-[var(--ink)]/50">
+            <label
+              htmlFor="phoneNumber"
+              className="mb-2 block text-sm font-semibold text-black"
+            >
               Phone number
             </label>
+
             <input
               id="phoneNumber"
               type="tel"
@@ -183,50 +193,60 @@ export default function SignUpForm() {
               value={phoneNumber}
               onChange={handlePhoneChange}
               required
-              className="mt-2 w-full border border-[var(--ink)]/25 bg-white px-3 py-2.5 text-sm text-[var(--ink)] outline-none placeholder:text-[var(--ink)]/30 focus:border-[var(--ink)] disabled:opacity-50 transition-colors duration-200"
               disabled={isLoading}
               autoComplete="tel"
+              className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-slate-400 focus:bg-white focus:ring-4 focus:ring-slate-100 disabled:cursor-not-allowed disabled:opacity-50"
             />
           </div>
 
-          {/* Password Field */}
+          {/* Password */}
           <div>
-            <div className="flex items-baseline justify-between">
-              <label htmlFor="password" className="font-tape text-[10px] uppercase tracking-[0.22em] text-[var(--ink)]/50">
+            <div className="mb-2 flex items-center justify-between">
+              <label
+                htmlFor="password"
+                className="text-sm font-semibold text-black"
+              >
                 Password
               </label>
+
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="font-tape text-[10px] uppercase tracking-[0.18em] text-[var(--ink)]/50 hover:text-[var(--ink)] transition-colors duration-200 focus:outline-none"
-                aria-label={showPassword ? "Hide password" : "Show password"}
+                disabled={isLoading}
+                className="text-xs font-semibold text-black transition hover:text-slate-900"
               >
-                {showPassword ? "Hide" : "Show"}
+                {showPassword ? 'Hide' : 'Show'}
               </button>
             </div>
+
             <input
               id="password"
-              type={showPassword ? "text" : "password"}
+              type={showPassword ? 'text' : 'password'}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
-              placeholder="••••••••"
-              className="mt-2 w-full border border-[var(--ink)]/25 bg-white px-3 py-2.5 text-sm text-[var(--ink)] outline-none placeholder:text-[var(--ink)]/30 focus:border-[var(--ink)] disabled:opacity-50 transition-colors duration-200"
+              placeholder="Enter your password"
               disabled={isLoading}
               autoComplete="new-password"
+              className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-black outline-none transition focus:border-slate-400 focus:bg-white focus:ring-4 focus:ring-slate-100 disabled:cursor-not-allowed disabled:opacity-50"
             />
           </div>
 
-          {/* Submit Button */}
+          {/* Create Account */}
           <button
             type="submit"
-            disabled={isLoading || !isPhoneNumberValid() || !fullName || !password}
-            className="press flex w-full items-center justify-center gap-2 bg-[var(--ink)] px-6 py-3 font-tape text-xs uppercase tracking-[0.2em] text-[var(--paper)] hover:opacity-90 disabled:opacity-30 transition-colors duration-200"
+            disabled={
+              isLoading ||
+              !isPhoneNumberValid() ||
+              !fullName ||
+              !password
+            }
+            className="flex w-full items-center justify-center gap-2 rounded-xl bg-slate-900 px-5 py-3.5 text-sm font-bold text-white shadow-sm transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-40"
           >
             {isLoading ? (
               <>
-                <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                <span>Processing...</span>
+                <Loader2 className="h-4 w-4 animate-spin" />
+                <span>Creating account...</span>
               </>
             ) : (
               <span>Create account</span>
@@ -234,133 +254,143 @@ export default function SignUpForm() {
           </button>
         </form>
 
-        {/* Footer Links */}
-        <div className="mt-6 flex flex-col gap-2 border-t border-dashed border-(--ink)/20 pt-6">
+        {/* Login */}
+        <div className="mt-6 border-t border-slate-100 pt-6">
+          <p className="mb-3 text-center text-sm text-slate-500">
+            Already have an account?
+          </p>
+
           <button
+            type="button"
             onClick={() => router.push('/login')}
             disabled={isLoading}
-            className="text-left font-tape text-[10px] uppercase tracking-[0.18em] text-(--ink)/55 hover:text-ink transition-colors duration-200 focus:outline-none"
+            className="flex w-full items-center justify-center rounded-xl border-2 border-slate-900 px-5 py-3 text-sm font-bold text-slate-900 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
           >
-            Already have an account? Sign in
-          </button>
-          <button
-            onClick={() => router.push('/forgot-password')}
-            disabled={isLoading}
-            className="text-left font-tape text-[10px] uppercase tracking-[0.18em] text-[var(--ink)]/55 hover:text-[var(--ink)] transition-colors duration-200 focus:outline-none"
-          >
-            Forgot password?
+            Sign in
           </button>
         </div>
       </div>
 
-      {/* Branding footer */}
-      <div className="text-center md:text-left font-tape text-[9px] uppercase tracking-[0.22em] text-[var(--ink)]/40 mt-auto pt-12">
+      {/* Footer */}
+      <div className="mt-6 text-center text-xs text-slate-400">
         © {new Date().getFullYear()} RielPoint. All rights reserved.
       </div>
+    </div>
 
-      {/* OTP Modal */}
-      {showOtpModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          {/* Backdrop */}
-          <div
-            className="absolute inset-0 bg-[var(--ink)]/40"
-            onClick={() => !isVerifying && setShowOtpModal(false)}
-          />
+    {/* OTP Modal */}
+    {showOtpModal && (
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+        <div className="relative w-full max-w-md rounded-sm border border-slate-100 bg-white p-6 text-black md:p-8">
 
-          {/* Modal panel */}
-          <div className="font-body relative w-full max-w-[360px] bg-[var(--paper)] text-[var(--ink)] p-6 space-y-6 border border-[var(--ink)]/25">
-            <button
-              type="button"
-              onClick={() => setShowOtpModal(false)}
-              disabled={isVerifying}
-              className="absolute top-4 right-4 text-[var(--ink)]/40 hover:text-[var(--ink)] transition-colors duration-200"
-              aria-label="Close"
-            >
-              <X className="h-4 w-4" />
-            </button>
+          {/* Close */}
+          <button
+            type="button"
+            onClick={() => setShowOtpModal(false)}
+            disabled={isVerifying}
+            className="absolute right-5 top-5 text-slate-400 transition hover:text-black disabled:opacity-50"
+            aria-label="Close"
+          >
+            <X className="h-5 w-5" />
+          </button>
 
-            <div className="border-b border-[var(--ink)]/15 pb-4 pr-6">
-              <p className="font-tape text-[10px] uppercase tracking-[0.22em] text-[var(--ink)]/50">
-                One more step
-              </p>
-              <h2 className="mt-1 text-2xl font-semibold tracking-tight">
-                Verification
-              </h2>
-              <p className="mt-2 text-sm text-[var(--ink)]/60 leading-relaxed">
-                A code has been sent to +855 {formattedPhoneForApi()}
-              </p>
+          {/* Header */}
+          <div className="mb-6 pr-8">
+            <h2 className="text-2xl font-bold tracking-tight">
+              Verify your phone
+            </h2>
+
+            <p className="mt-2 text-sm text-slate-500">
+              Enter the verification code sent to +855{' '}
+              {formattedPhoneForApi()}
+            </p>
+          </div>
+
+          {/* Timer */}
+          <div className="mb-5 rounded-xl bg-slate-50 px-4 py-3 text-sm text-slate-500">
+            Code expires in{' '}
+            <span className="font-semibold text-slate-900">
+              {formatTime(timeLeft)}
+            </span>
+          </div>
+
+          {/* OTP Error */}
+          {otpError && (
+            <div className="mb-5 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+              {otpError}
             </div>
+          )}
 
-            <div className="font-tape text-[10px] uppercase tracking-[0.18em] text-[var(--ink)]/50">
-              Expires in <span className="text-[var(--ink)]">{formatTime(timeLeft)}</span>
-            </div>
+          {/* OTP Form */}
+          <form onSubmit={handleVerifyOTP} className="space-y-5">
 
-            {otpError && (
-              <div className="border border-[var(--ink)]/20 bg-[var(--paper-dim)] px-3 py-2 text-[var(--ink)]">
-                <p className="text-sm">{otpError}</p>
-              </div>
-            )}
-
-            <form onSubmit={handleVerifyOTP} className="space-y-5">
-              <div>
-                <label htmlFor="otp" className="font-tape text-[10px] uppercase tracking-[0.22em] text-[var(--ink)]/50">
-                  Verification code
-                </label>
-                <input
-                  id="otp"
-                  type="text"
-                  value={otp}
-                  onChange={(e) => setOtp(e.target.value)}
-                  placeholder="••••••"
-                  className="mt-2 w-full border border-[var(--ink)]/25 bg-white px-3 py-2.5 text-sm text-[var(--ink)] outline-none placeholder:text-[var(--ink)]/30 focus:border-[var(--ink)] disabled:opacity-50 transition-colors duration-200 tracking-[0.3em]"
-                  required
-                  disabled={isVerifying || timeLeft <= 0}
-                  maxLength={6}
-                  inputMode="numeric"
-                  autoFocus
-                />
-              </div>
-
-              <button
-                type="submit"
-                disabled={isVerifying || timeLeft <= 0}
-                className="press flex w-full items-center justify-center gap-2 bg-[var(--ink)] px-6 py-3 font-tape text-xs uppercase tracking-[0.2em] text-[var(--paper)] hover:opacity-90 disabled:opacity-30 transition-colors duration-200"
+            <div>
+              <label
+                htmlFor="otp"
+                className="mb-2 block text-sm font-semibold text-black"
               >
-                {isVerifying ? (
-                  <>
-                    <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                    <span>Verifying...</span>
-                  </>
-                ) : (
-                  <span>Confirm code</span>
-                )}
-              </button>
-            </form>
+                Verification code
+              </label>
 
-            <div className="border-t border-dashed border-[var(--ink)]/20 pt-4">
-              {timeLeft <= 0 ? (
-                attempts > 3 ? (
-                  <p className="text-sm text-[var(--ink)]/50">
-                    Maximum number of resend attempts reached.
-                  </p>
-                ) : (
-                  <button
-                    onClick={handleResendOTP}
-                    disabled={isVerifying}
-                    className="text-left font-tape text-[10px] uppercase tracking-[0.18em] text-[var(--ink)]/55 hover:text-[var(--ink)] transition-colors duration-200 focus:outline-none"
-                  >
-                    Resend code
-                  </button>
-                )
-              ) : (
-                <p className="text-sm text-[var(--ink)]/50 leading-relaxed">
-                  Didn&apos;t get it? You can request a new code once this one expires.
-                </p>
-              )}
+              <input
+                id="otp"
+                type="text"
+                value={otp}
+                onChange={(e) =>
+                  setOtp(e.target.value.replace(/\D/g, ''))
+                }
+                placeholder="Enter 6-digit code"
+                required
+                disabled={isVerifying || timeLeft <= 0}
+                maxLength={6}
+                inputMode="numeric"
+                autoFocus
+                className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-center text-lg font-semibold tracking-[0.35em] text-slate-900 outline-none transition focus:border-slate-400 focus:bg-white focus:ring-4 focus:ring-slate-100 disabled:cursor-not-allowed disabled:opacity-50"
+              />
             </div>
+
+            <button
+              type="submit"
+              disabled={isVerifying || timeLeft <= 0}
+              className="flex w-full items-center justify-center gap-2 rounded-xl bg-slate-900 px-5 py-3.5 text-sm font-bold text-white shadow-sm transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-40"
+            >
+              {isVerifying ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  <span>Verifying...</span>
+                </>
+              ) : (
+                <span>Verify phone</span>
+              )}
+            </button>
+          </form>
+
+          {/* Resend */}
+          <div className="mt-6 border-t border-slate-100 pt-5">
+            {timeLeft <= 0 ? (
+              attempts > 3 ? (
+                <p className="text-center text-sm text-slate-400">
+                  Maximum number of resend attempts reached.
+                </p>
+              ) : (
+                <button
+                  type="button"
+                  onClick={handleResendOTP}
+                  disabled={isVerifying}
+                  className="w-full text-center text-sm font-semibold text-slate-900 transition hover:text-slate-600 disabled:opacity-50"
+                >
+                  Resend verification code
+                </button>
+              )
+            ) : (
+              <p className="text-center text-sm text-slate-400">
+                Didn&apos;t receive the code? You can request a new one
+                after it expires.
+              </p>
+            )}
           </div>
         </div>
-      )}
-    </div>
-  );
+      </div>
+    )}
+  </div>
+);
 }
