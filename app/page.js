@@ -75,7 +75,19 @@ export default function HomePage() {
             category = "Hotels - Siem Reap";
           } else if (description.includes("phnom penh")) {
             category = "Hotels - Phnom Penh";
-          } else {
+          } else if (description.includes("tokyo")){
+            category = "Hotels - Tokyo, Japan"
+          } else if (description.includes("seoul")){
+            category = "Hotels - Seoul, Korea"
+          } else if (description.includes("jakarta")){
+            category = "Hotels - Jakarta, Indonesia"
+          } else if (description.includes("kuala")){
+            category = "Hotels - Kuala Lumpur, Malaysia"
+          } else if (description.includes("hanoi")){
+            category = "Hotels - Hanoi, Vietnam"
+          }
+          
+          else {
             category = "Hotels - Other";
           }
         }

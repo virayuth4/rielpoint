@@ -3,7 +3,7 @@ import Link from "next/link";
 
 export default function Banner() {
   return (
-    <section className="w-full border-b border-black/10 bg-white py-16 sm:py-20 lg:py-24">
+    <section className="w-full  bg-white py-16 sm:py-20 lg:py-24">
       <div className="mx-auto max-w-4xl px-4 sm:px-6">
         <div className="flex flex-col items-center text-center space-y-6">
           

@@ -206,15 +206,15 @@ export default function AddOfferPage() {
   function resetForm() {
     images.forEach((img) => URL.revokeObjectURL(img.previewUrl));
     setTitle("");
-    setDescription("");
-    setCategory("");
-    setCashbackType("percentage");
-    setCashbackRate("");
-    setFixedCashbackAmount("");
+    // setDescription("");
+    // setCategory("");
+    // setCashbackType("percentage");
+    // setCashbackRate("");
+    // setFixedCashbackAmount("");
     setCurrency("USD");
     setMinPurchaseAmount("");
     setMaxCashbackAmount("");
-    setTerms("");
+    // setTerms("");
     setStartAt("");
     setEndAt("");
     setIsActive(true);
@@ -268,7 +268,7 @@ export default function AddOfferPage() {
         }
  
       setStatus("success");
-    //   if (!isEditMode) resetForm();
+      if (!isEditMode) resetForm();
     } catch (err) {
       setStatus("error");
       setErrorMessage(err.message || "Something went wrong. Please try again.");
