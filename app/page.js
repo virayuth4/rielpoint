@@ -1,15 +1,12 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import Image from "next/image";
-import { bestOffer } from "@/lib/offerHelpers";
 import OfferCard from "./Components/offerCard";
+import Banner from "./Components/baner";
 
 // Preferred display order for known categories.
-// Any category not listed here will still render, just after these.
 const CATEGORY_ORDER = ["Flights", "Hotels - Phnom Penh", "Hotels - Siem Reap"];
 
-// Capitalizes just the first letter, leaves the rest as-is.
 function capitalize(str) {
   if (!str) return str;
   return str.charAt(0).toUpperCase() + str.slice(1);
@@ -30,7 +27,6 @@ export default function HomePage() {
           { method: "GET" }
         );
         const json = await res.json();
-        console.log("data", json.data)
         if (!cancelled) {
           setMerchants(json.data || []);
           setStatus("idle");
@@ -54,7 +50,7 @@ export default function HomePage() {
     [merchants]
   );
 
-const { categorizedOffers, merchantsWithoutOffers } = useMemo(() => {
+  const { categorizedOffers, merchantsWithoutOffers } = useMemo(() => {
     const map = {};
     const noOfferMerchants = [];
 
@@ -71,10 +67,8 @@ const { categorizedOffers, merchantsWithoutOffers } = useMemo(() => {
         let category = rawCategory;
 
         if (rawCategory === "Travel") {
-          // "Travel" offers are displayed as "Flights"
           category = "Flights";
         } else if (rawCategory === "Hotels") {
-          // Split hotels by location, based on keywords in the description
           const description = (offer.description || "").toLowerCase();
 
           if (description.includes("siem reap")) {
@@ -91,8 +85,6 @@ const { categorizedOffers, merchantsWithoutOffers } = useMemo(() => {
       });
     });
 
-    // Within each category, offers whose description mentions "main"
-    // are pinned to the front of the row (order otherwise preserved).
     Object.keys(map).forEach((category) => {
       map[category].sort((a, b) => {
         const aIsMain = (a.offer.description || "")
@@ -110,8 +102,6 @@ const { categorizedOffers, merchantsWithoutOffers } = useMemo(() => {
     return { categorizedOffers: map, merchantsWithoutOffers: noOfferMerchants };
   }, [activeMerchants]);
 
-  // Final category order: known categories first (in CATEGORY_ORDER),
-  // then any remaining categories alphabetically.
   const orderedCategories = useMemo(() => {
     const allCategories = Object.keys(categorizedOffers);
     const known = CATEGORY_ORDER.filter((c) => allCategories.includes(c));
@@ -122,49 +112,17 @@ const { categorizedOffers, merchantsWithoutOffers } = useMemo(() => {
   }, [categorizedOffers]);
 
   return (
-    <main className="">
-      <section className="relative w-full bg-slate-900 overflow-hidden">
-        {/* Banner container with fixed height on mobile & dynamic aspect ratio on desktop */}
-        <div className="relative h-[320px] sm:h-[400px] lg:h-auto lg:aspect-[2400/1256] lg:max-h-[800px] w-full">
-          {/* Background Image */}
-          <Image
-            src="https://rielpoint-bucket.s3.ap-southeast-1.amazonaws.com/rielpoint/banner_image.avif"
-            alt="Affiliate Merchants Promotion"
-            fill
-            priority
-            className="object-cover object-center lg:object-top "
-          />
+    <main className="bg-white">
+      {/* Replaced old full-image banner with text-only Banner component */}
+      <Banner />
 
-          {/* ShopBack style overlay: Full darkening gradient on mobile, side-fade on desktop */}
-          <div className="absolute inset-0  " />
-
-          {/* Centered Content Container */}
-          <div className="absolute inset-0 z-10 flex items-center justify-center lg:justify-start">
-            <div className="container mx-auto px-4 sm:px-10 lg:px-20">
-              <div className="flex flex-col items-center lg:items-start text-center lg:text-left max-w-xl mx-auto lg:mx-0 space-y-2.5 sm:space-y-4">
-                {/* Main Heading */}
-                <h1 className="text-2xl sm:text-4xl lg:text-6xl font-extrabold tracking-tight text-white drop-shadow-md leading-tight">
-                  Earn Up to <span className=" block sm:inline">50% Cashback</span>
-                </h1>
-
-                {/* Subtext */}
-                <p className="text-xs sm:text-base lg:text-lg font-bold text-white leading-relaxed max-w-sm sm:max-w-md lg:max-w-lg">
-                  Shop your favorite local and international brands and get money back automatically.
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <div className="mx-auto max-w-6xl min-h-screen py-12 px-4">
+      <div id="offers" className="mx-auto max-w-6xl min-h-screen py-12 px-4">
         <div className="mb-8">
-          <h1 className="text-4xl font-black text-black">
-            Most Popular 
-          </h1>
+          <h2 className="text-3xl sm:text-4xl font-black text-slate-900 tracking-tight">
+            Most Popular
+          </h2>
           <p className="mt-1 text-sm text-slate-500">
-            Shop your favorite local and international brands and get money back automatically.
-
+            Discover top cashback deals and active merchant promotions.
           </p>
         </div>
 
@@ -191,9 +149,9 @@ const { categorizedOffers, merchantsWithoutOffers } = useMemo(() => {
             {orderedCategories.map((category) => (
               <section key={category}>
                 <div className="mb-4 flex items-center justify-between">
-                  <h2 className="text-lg font-semibold text-slate-900">
+                  <h3 className="text-lg font-semibold text-slate-900">
                     {category}
-                  </h2>
+                  </h3>
                 </div>
 
                 <div className="grid grid-cols-2 gap-x-5 gap-y-8 sm:grid-cols-3 lg:grid-cols-4">
@@ -207,9 +165,9 @@ const { categorizedOffers, merchantsWithoutOffers } = useMemo(() => {
             {merchantsWithoutOffers.length > 0 && (
               <section>
                 <div className="mb-4 flex items-center justify-between">
-                  <h2 className="text-lg font-semibold text-slate-900">
+                  <h3 className="text-lg font-semibold text-slate-900">
                     More merchants
-                  </h2>
+                  </h3>
                 </div>
 
                 <div className="grid grid-cols-2 gap-x-5 gap-y-8 sm:grid-cols-3 lg:grid-cols-4">
