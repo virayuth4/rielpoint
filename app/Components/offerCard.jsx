@@ -9,6 +9,8 @@ export default function OfferCard({ offer, merchant }) {
   const image = offer.image_paths?.[0] || merchant?.logo_url;
   const href = `/go/${offer.merchant_id}?offer=${offer.id}`;
 
+  
+
   return (
     <a
       href={href}

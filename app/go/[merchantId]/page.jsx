@@ -25,6 +25,7 @@ async function getRedirectData(merchantId, offer) {
         user_agent: userAgent,
       }),
       cache: "no-store",
+      signal: AbortSignal.timeout(4000),
     }
   );
 
@@ -53,7 +54,7 @@ export default async function GoPage({ params, searchParams }) {
   try {
     redirectData = await getRedirectData(merchantId, offer);
   } catch (err) {
-    redirect(fallback || "/rewards");
+    redirect(fallback || "/");
   }
 
 
