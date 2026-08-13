@@ -1,20 +1,35 @@
 "use client";
 
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import { formatCashback, endsInLabel } from "@/lib/offerHelpers";
+import { AuthContext } from "../auth/authContext";
+import { useContext } from "react";
 
 export default function OfferCard({ offer, merchant }) {
   const cashbackLabel = formatCashback(offer);
   const endsLabel = endsInLabel(offer.end_at);
   const image = offer.image_paths?.[0] || merchant?.logo_url;
   const href = `/go/${offer.merchant_id}?offer=${offer.id}`;
+  const { currentUser, loading } = useContext(AuthContext) ?? {};
+  const router = useRouter();
 
-  
+  const handleClick = (e) => {
+    if (loading) {
+      e.preventDefault();
+      return;
+    }
+    if (!currentUser) {
+      e.preventDefault();
+      router.push(`/signup?redirect=${encodeURIComponent(href)}`);
+    }
+  };
 
   return (
     <a
       href={href}
-      target="_blank"
+      onClick={handleClick}
+      target={currentUser ? "_blank" : undefined}
       rel="noopener noreferrer sponsored"
       className="group block overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm transition hover:shadow-md"
     >

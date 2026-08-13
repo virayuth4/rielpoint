@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import OfferCard from "./Components/offerCard";
-import Banner from "./Components/baner";
+import Banner from "./Components/banner";
 
 // Preferred display order for known categories.
 const CATEGORY_ORDER = ["Flights", "Hotels - Phnom Penh", "Hotels - Siem Reap"];
@@ -16,6 +16,7 @@ export default function HomePage() {
   const [merchants, setMerchants] = useState([]);
   const [status, setStatus] = useState("loading"); // loading | idle | error
   const [errorMessage, setErrorMessage] = useState("");
+  
 
   useEffect(() => {
     let cancelled = false;

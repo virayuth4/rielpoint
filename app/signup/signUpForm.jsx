@@ -139,7 +139,7 @@ export default function SignUpForm() {
         </h1>
 
         <p className="mt-2 text-sm text-slate-500">
-          Join RielPoint and start earning rewards.
+          Register to start earning cashback.
         </p>
       </div>
 
