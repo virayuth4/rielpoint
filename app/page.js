@@ -57,11 +57,11 @@ function CategorySection({ categoryName, initialData }) {
       </div>
 
       {hasMore && (
-        <div className="mt-6 flex justify-center">
+        <div className="mt-8 flex justify-center">
           <button
             onClick={handleLoadMore}
             disabled={loadingMore}
-            className="rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 shadow-sm hover:bg-slate-50 disabled:opacity-50 transition"
+            className="rounded-2xl border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 shadow-sm hover:bg-slate-50 disabled:opacity-50 transition"
           >
             {loadingMore ? "Loading..." : `Load more ${categoryName}`}
           </button>
