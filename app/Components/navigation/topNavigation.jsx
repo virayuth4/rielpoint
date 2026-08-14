@@ -17,7 +17,7 @@ export default function TopNavigation() {
   const { currentUser, loading } = useContext(AuthContext) ?? {};
 
   return (
-    <header className="sticky top-0 z-20 border-b border-[var(--ink)]/10 bg-white ">
+    <header className="sticky top-0 z-20  bg-white ">
       <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3 sm:px-6 sm:py-4">
 
         <Link href="/" className="group flex shrink-0 items-center gap-2.5 transition-opacity hover:opacity-90">

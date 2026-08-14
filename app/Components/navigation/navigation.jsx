@@ -1,5 +1,5 @@
 'use client'
-import React, { useContext, useState } from 'react'
+import React, { useContext, useState, useEffect } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { 
@@ -14,7 +14,6 @@ import {
   UserPlus, 
   ShoppingBag, 
   ExternalLink, 
-  Gift,
   CircleDollarSign
 } from 'lucide-react'
 import { AuthContext } from '@/app/auth/authContext'
@@ -122,6 +121,23 @@ export default function Navigation() {
   const role = currentUser?.role
   const canManageMerchant = role === 'owner' || role === 'staff'
 
+  // Handle ESC key press
+  useEffect(() => {
+    const handleKeyDown = (event) => {
+      if (event.key === 'Escape') {
+        setIsInfoOpen(false)
+      }
+    }
+
+    if (isInfoOpen) {
+      window.addEventListener('keydown', handleKeyDown)
+    }
+
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown)
+    }
+  }, [isInfoOpen])
+
   return (
     <>
       <div className="fixed bottom-8 sm:bottom-6 inset-x-0 z-50 flex justify-center px-4 pointer-events-none">
@@ -167,7 +183,11 @@ export default function Navigation() {
 
       {/* How It Works Modal */}
       {isInfoOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+        <div 
+          className="fixed inset-0 z-50 flex items-center justify-center p-4"
+          role="dialog"
+          aria-modal="true"
+        >
           {/* Backdrop */}
           <div
             className="fixed inset-0 bg-black/40 backdrop-blur-sm transition-opacity"
