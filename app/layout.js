@@ -47,7 +47,7 @@ export default function RootLayout({ children }) {
       <body className="min-h-full flex flex-col">
         <AuthProvider>
           <TopNavigation/>
-          <main className="flex-1 pb-28 sm:pb-24">{children}</main>
+          <main className="flex-1 pb-62.5 ">{children}</main>
           <Navigation />
         </AuthProvider>
       </body>

@@ -1,132 +1,116 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import OfferCard from "./Components/offerCard";
 import Banner from "./Components/banner";
 
-// Preferred display order for known categories.
-const CATEGORY_ORDER = ["Flights", "Hotels - Phnom Penh", "Hotels - Siem Reap"];
+/**
+ * Sub-component for individual category sections to handle "Load More" independently
+ */
+function CategorySection({ categoryName, initialData }) {
+  // Only track extra items fetched via "Load More"
+  const [extraItems, setExtraItems] = useState([]);
+  const [hasMore, setHasMore] = useState(Boolean(initialData?.hasMore));
+  const [page, setPage] = useState(1);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const LIMIT = 8;
 
-function capitalize(str) {
-  if (!str) return str;
-  return str.charAt(0).toUpperCase() + str.slice(1);
+  // Combine initial items from props + appended items from state
+  const items = [...(initialData?.items || []), ...extraItems];
+
+  const handleLoadMore = async () => {
+    if (loadingMore || !hasMore) return;
+    setLoadingMore(true);
+
+    try {
+      const nextPage = page + 1;
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_BACKEND}/api/merchant/affiliate/homepage-feed?category=${encodeURIComponent(
+          categoryName
+        )}&page=${nextPage}&limit=${LIMIT}`
+      );
+      const json = await res.json();
+      const newOffers = json.offers || [];
+
+      setExtraItems((prev) => [...prev, ...newOffers]);
+      setPage(nextPage);
+      setHasMore(Boolean(json.hasMore));
+    } catch (err) {
+      console.error(`Failed to load more for ${categoryName}:`, err);
+    } finally {
+      setLoadingMore(false);
+    }
+  };
+
+  if (items.length === 0) return null;
+
+  return (
+    <section>
+      <div className="mb-4 flex items-center justify-between">
+        <h3 className="text-lg font-semibold text-slate-900">{categoryName}</h3>
+      </div>
+
+      <div className="grid grid-cols-2 gap-x-5 gap-y-8 sm:grid-cols-3 lg:grid-cols-4">
+        {items.map(({ offer, merchant }, idx) => (
+          <OfferCard key={offer?.id || idx} offer={offer} merchant={merchant} />
+        ))}
+      </div>
+
+      {hasMore && (
+        <div className="mt-6 flex justify-center">
+          <button
+            onClick={handleLoadMore}
+            disabled={loadingMore}
+            className="rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 shadow-sm hover:bg-slate-50 disabled:opacity-50 transition"
+          >
+            {loadingMore ? "Loading..." : `Load more ${categoryName}`}
+          </button>
+        </div>
+      )}
+    </section>
+  );
 }
 
 export default function HomePage() {
-  const [merchants, setMerchants] = useState([]);
-  const [status, setStatus] = useState("loading"); // loading | idle | error
+  const [feed, setFeed] = useState({ categories: {}, merchantsWithoutOffers: [] });
+  const [status, setStatus] = useState("loading");
   const [errorMessage, setErrorMessage] = useState("");
-  
 
   useEffect(() => {
     let cancelled = false;
 
-    async function loadMerchants() {
+    async function loadHomepageFeed() {
       try {
         const res = await fetch(
-          `${process.env.NEXT_PUBLIC_BACKEND}/api/merchant/affiliate/merchants`,
+          `${process.env.NEXT_PUBLIC_BACKEND}/api/merchant/affiliate/homepage-feed`,
           { method: "GET" }
         );
+
+        if (!res.ok) throw new Error(`Server returned ${res.status}`);
         const json = await res.json();
+
         if (!cancelled) {
-          setMerchants(json.data || []);
+          setFeed(json.data || { categories: {}, merchantsWithoutOffers: [] });
           setStatus("idle");
         }
       } catch (err) {
         if (!cancelled) {
           setStatus("error");
-          setErrorMessage(err.message || "Failed to load merchants.");
+          setErrorMessage(err.message || "Failed to load homepage feed.");
         }
       }
     }
 
-    loadMerchants();
+    loadHomepageFeed();
     return () => {
       cancelled = true;
     };
   }, []);
 
-  const activeMerchants = useMemo(
-    () => merchants.filter((m) => m.is_active),
-    [merchants]
-  );
-
-  const { categorizedOffers, merchantsWithoutOffers } = useMemo(() => {
-    const map = {};
-    const noOfferMerchants = [];
-
-    activeMerchants.forEach((merchant) => {
-      const activeOffers = (merchant.offers || []).filter((o) => o.is_active);
-
-      if (activeOffers.length === 0) {
-        noOfferMerchants.push(merchant);
-        return;
-      }
-
-      activeOffers.forEach((offer) => {
-        const rawCategory = capitalize(offer.category?.trim()) || "Other";
-        let category = rawCategory;
-
-        if (rawCategory === "Travel") {
-          category = "Flights";
-        } else if (rawCategory === "Hotels") {
-          const description = (offer.description || "").toLowerCase();
-
-          if (description.includes("siem reap")) {
-            category = "Hotels - Siem Reap";
-          } else if (description.includes("phnom penh")) {
-            category = "Hotels - Phnom Penh";
-          } else if (description.includes("tokyo")){
-            category = "Hotels - Tokyo, Japan"
-          } else if (description.includes("seoul")){
-            category = "Hotels - Seoul, Korea"
-          } else if (description.includes("jakarta")){
-            category = "Hotels - Jakarta, Indonesia"
-          } else if (description.includes("kuala")){
-            category = "Hotels - Kuala Lumpur, Malaysia"
-          } else if (description.includes("hanoi")){
-            category = "Hotels - Hanoi, Vietnam"
-          }
-          
-          else {
-            category = "Hotels - Other";
-          }
-        }
-
-        if (!map[category]) map[category] = [];
-        map[category].push({ offer, merchant });
-      });
-    });
-
-    Object.keys(map).forEach((category) => {
-      map[category].sort((a, b) => {
-        const aIsMain = (a.offer.description || "")
-          .toLowerCase()
-          .includes("main");
-        const bIsMain = (b.offer.description || "")
-          .toLowerCase()
-          .includes("main");
-
-        if (aIsMain === bIsMain) return 0;
-        return aIsMain ? -1 : 1;
-      });
-    });
-
-    return { categorizedOffers: map, merchantsWithoutOffers: noOfferMerchants };
-  }, [activeMerchants]);
-
-  const orderedCategories = useMemo(() => {
-    const allCategories = Object.keys(categorizedOffers);
-    const known = CATEGORY_ORDER.filter((c) => allCategories.includes(c));
-    const rest = allCategories
-      .filter((c) => !CATEGORY_ORDER.includes(c))
-      .sort((a, b) => a.localeCompare(b));
-    return [...known, ...rest];
-  }, [categorizedOffers]);
+  const categoryNames = Object.keys(feed.categories || {});
 
   return (
     <main className="bg-white">
-      {/* Replaced old full-image banner with text-only Banner component */}
       <Banner />
 
       <div id="offers" className="mx-auto max-w-6xl min-h-screen py-12 px-4">
@@ -140,12 +124,19 @@ export default function HomePage() {
         </div>
 
         {status === "loading" && (
-          <div className="grid grid-cols-2 gap-x-5 gap-y-8 sm:grid-cols-3 lg:grid-cols-4">
-            {Array.from({ length: 8 }).map((_, i) => (
-              <div key={i} className="animate-pulse">
-                <div className="aspect-[16/10] rounded-xl bg-slate-100" />
-                <div className="mt-2.5 h-3 w-3/4 rounded bg-slate-100" />
-                <div className="mt-2 h-3 w-1/2 rounded bg-slate-100" />
+          <div className="space-y-12">
+            {Array.from({ length: 2 }).map((_, sectionIdx) => (
+              <div key={sectionIdx} className="space-y-4">
+                <div className="h-6 w-48 rounded bg-slate-200 animate-pulse" />
+                <div className="grid grid-cols-2 gap-x-5 gap-y-8 sm:grid-cols-3 lg:grid-cols-4">
+                  {Array.from({ length: 4 }).map((_, cardIdx) => (
+                    <div key={cardIdx} className="animate-pulse">
+                      <div className="aspect-[16/10] rounded-xl bg-slate-100" />
+                      <div className="mt-2.5 h-3 w-3/4 rounded bg-slate-100" />
+                      <div className="mt-2 h-3 w-1/2 rounded bg-slate-100" />
+                    </div>
+                  ))}
+                </div>
               </div>
             ))}
           </div>
@@ -157,25 +148,17 @@ export default function HomePage() {
           </div>
         )}
 
-        {status === "idle" && activeMerchants.length > 0 && (
+        {status === "idle" && (
           <div className="space-y-12">
-            {orderedCategories.map((category) => (
-              <section key={category}>
-                <div className="mb-4 flex items-center justify-between">
-                  <h3 className="text-lg font-semibold text-slate-900">
-                    {category}
-                  </h3>
-                </div>
-
-                <div className="grid grid-cols-2 gap-x-5 gap-y-8 sm:grid-cols-3 lg:grid-cols-4">
-                  {categorizedOffers[category].map(({ offer, merchant }) => (
-                    <OfferCard key={offer.id} offer={offer} merchant={merchant} />
-                  ))}
-                </div>
-              </section>
+            {categoryNames.map((category) => (
+              <CategorySection
+                key={category}
+                categoryName={category}
+                initialData={feed.categories[category]}
+              />
             ))}
 
-            {merchantsWithoutOffers.length > 0 && (
+            {feed.merchantsWithoutOffers.length > 0 && (
               <section>
                 <div className="mb-4 flex items-center justify-between">
                   <h3 className="text-lg font-semibold text-slate-900">
@@ -184,7 +167,7 @@ export default function HomePage() {
                 </div>
 
                 <div className="grid grid-cols-2 gap-x-5 gap-y-8 sm:grid-cols-3 lg:grid-cols-4">
-                  {merchantsWithoutOffers.map((merchant) => {
+                  {feed.merchantsWithoutOffers.map((merchant) => {
                     const href = `/${merchant.slug}`;
                     return (
                       <a
