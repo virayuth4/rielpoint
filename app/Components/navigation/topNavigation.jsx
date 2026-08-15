@@ -47,7 +47,7 @@ export default function TopNavigation() {
           ) : (
             <Link
               href="/signup"
-              className="shrink-0 whitespace-nowrap rounded-full bg-[var(--ink)] px-3 py-2 text-[9px] font-normal uppercase tracking-[0.08em] text-[var(--paper)] hover:opacity-90 sm:px-4 sm:text-[11px] md:text-xs"
+              className="shrink-0 whitespace-nowrap rounded-full bg-[var(--ink)] px-3 py-2 text-[10px] font-normal  tracking-[0.08em] text-[var(--paper)] hover:opacity-90 sm:px-4 sm:text-[11px] md:text-xs"
             >
               Sign Up
             </Link>

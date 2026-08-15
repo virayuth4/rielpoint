@@ -5,6 +5,7 @@ import { Inter, Space_Mono } from 'next/font/google';
 import { getAuth, onAuthStateChanged } from 'firebase/auth';
 import authenticatedFetch from '../auth/authenticatedFetch';
 import { AuthContext, getUserId } from '../auth/authContext';
+import Link from 'next/link';
 
 
 
@@ -187,41 +188,6 @@ function useTransactions(enabled) {
   return { transactions, balance, status };
 }
 
-
-
-// --- guest phone lookup ---------------------------------------------------
-
-function useGuestTransactions() {
-  const [phone, setPhone] = useState('');
-  const [transactions, setTransactions] = useState([]);
-  const [balance, setBalance] = useState(null);
-  const [status, setStatus] = useState('idle'); // 'idle' | 'loading' | 'success' | 'error'
-  
-
-  async function lookup(inputPhone) {
-    const trimmed = inputPhone.trim();
-    if (!trimmed) return;
-
-    setStatus('loading');
-    try {
-      const res = await fetch(
-        `${process.env.NEXT_PUBLIC_BACKEND}/api/merchant/points/transactions/${encodeURIComponent(trimmed)}`
-      );
-      if (!res.ok) throw new Error(`Request failed: ${res.status}`);
-      const data = await res.json();
-      const rows = data.transactions ?? [];
-      setTransactions(rows.map(mapTransaction));
-      setBalance(rows.length > 0 ? rows[0].new_balance : 0);
-      setStatus('success');
-    } catch (err) {
-      console.error('Error looking up guest transactions:', err);
-      setStatus('error');
-    }
-  }
-
-  return { phone, setPhone, transactions, balance, status, lookup };
-}
-
 // --- page ---------------------------------------------------------------
 
 export default function WalletPage() {
@@ -236,7 +202,6 @@ const { coupons: availableCoupons, status: availableStatus, reload: reloadAvaila
 const [selectedCoupon, setSelectedCoupon] = useState(null);
 const [claimModalOpen, setClaimModalOpen] = useState(false);
 const [claimingId, setClaimingId] = useState(null);
-  const guest = useGuestTransactions();
 
   const [viewingOtpId, setViewingOtpId] = useState(null);
   const [otpModal, setOtpModal] = useState(null); // { otp, expiresInSeconds, coupon }
@@ -599,118 +564,68 @@ async function confirmClaim() {
           </>
         )}
 
-        {/* Signed-out: phone lookup + point history only. No wallet, no coupons. */}
+        {/* Signed-out: explainer cards instead of guest lookup + history */}
         {!authLoading && !isAuthenticated && (
           <div>
-            <h2 className="text-sm font-semibold mb-3" style={{ color: '#0F0F0E' }}>
-              Points history
+            <h2 className="text-sm font-semibold mb-2" style={{ color: '#0F0F0E' }}>
+              You&apos;re not logged in. Sign up and become a member.
             </h2>
-              <p className="text-sm mb-3" style={{ color: '#9A9A9A' }}>
-              Sign in to see your points history.
-            </p>
-              <p className="text-sm mb-3" style={{ color: '#9A9A9A' }}>
-              OR
-            </p>
-            <p className="text-sm mb-3" style={{ color: '#9A9A9A' }}>
-              Enter your phone number to check your points and recent transactions.
+            <p className="text-sm mb-8 leading-relaxed" style={{ color: '#9A9A9A' }}>
+              Shop with partner merchants, earn cashback automatically. Sign in to see your balance and start claiming cash on each purchase.
             </p>
 
-            <form
-              className="flex items-center gap-2 mb-6"
-              onSubmit={(e) => {
-                e.preventDefault();
-                guest.lookup(guest.phone);
-              }}
-            >
-              <input
-                type="tel"
-                inputMode="tel"
-                value={guest.phone}
-                onChange={(e) => guest.setPhone(e.target.value)}
-                placeholder="e.g. 012 345 678"
-                className="flex-1 rounded-xl px-4 py-3 text-sm outline-none"
-                style={{ background: '#F3F3EF', color: '#0F0F0E' }}
-              />
-              <button
-                type="submit"
-                disabled={guest.status === 'loading' || !guest.phone.trim()}
-                className="rounded-xl px-4 py-3 text-sm font-medium disabled:opacity-50"
-                style={{ background: '#0F0F0E', color: '#FFFFFF' }}
-              >
-                Check
-              </button>
-            </form>
-
-            {guest.status === 'loading' && (
-              <p className="text-sm text-center py-6" style={{ color: '#9A9A9A' }}>
-                Looking up your points…
-              </p>
-            )}
-
-            {guest.status === 'error' && (
-              <p className="text-sm text-center py-6" style={{ color: '#B3453D' }}>
-                Couldn&apos;t find a record for that number. Double-check it and try again.
-              </p>
-            )}
-
-            {guest.status === 'success' && (
-              <div>
-                {guest.balance != null && (
-                  <div className="flex items-baseline justify-between mb-4">
-                    <span className="text-xs" style={{ color: '#9A9A9A' }}>
-                      Total points
-                    </span>
-                    <span
-                      className="text-lg font-semibold"
-                      style={{ color: '#0F0F0E', fontFamily: 'var(--font-mono)' }}
-                    >
-                      {guest.balance.toLocaleString()} pts
-                    </span>
-                  </div>
-                )}
-
-                {guest.transactions.map((item, i) => (
-                  <div
-                    key={item.id}
-                    className="flex items-center justify-between py-4"
-                    style={{ borderTop: i === 0 ? 'none' : '1px solid #EFEFED' }}
+            <div className="space-y-3 mb-10">
+              {[
+                {
+                  title: 'Real cashback, no extra step',
+                  description:
+                    'Every purchase at a RielPoint merchant earns you real cash back automatically, with nothing extra to do.',
+                },
+                {
+                  title: 'International & local merchants',
+                  description:
+                    'Earn cashback across a growing network of international and local partner merchants.',
+                },
+                {
+                  title: 'Easy to reclaim',
+                  description:
+                    'Once confirmed, money will be deposited in your bank in less than 24 hours.',
+                },
+              ].map((step, i) => (
+                <div
+                  key={step.title}
+                  className="flex items-start gap-4 rounded-2xl px-5 py-5"
+                  style={{ background: '#F8F8F6' }}
+                >
+                  <span
+                    className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-xs font-semibold"
+                    style={{ background: '#0F0F0E', color: '#F5F5F0', fontFamily: 'var(--font-mono)' }}
                   >
-                    <div className="flex items-center gap-3">
-                      <span
-                        className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-xs font-semibold"
-                        style={{ background: '#F3F3EF', color: '#0F0F0E' }}
-                      >
-                        {item.initial}
-                      </span>
-                      <div>
-                        <p className="text-sm font-medium" style={{ color: '#0F0F0E' }}>
-                          {item.shop}
-                        </p>
-                        <p className="text-xs" style={{ color: '#9A9A9A' }}>
-                          {item.date} &middot; {item.time}
-                          {item.amountLabel ? ` \u00b7 ${item.amountLabel}` : ''}
-                        </p>
-                      </div>
-                    </div>
-
-                    <div className="text-right">
-                      <p className="text-sm font-medium" style={{ color: '#1F5C3F' }}>
-                        {item.points != null ? `+${item.points} pts` : ''}
-                      </p>
-                      <p className="text-[11px]" style={{ color: '#B8B8B2', fontFamily: 'var(--font-mono)' }}>
-                        {item.code}
-                      </p>
-                    </div>
+                    {i + 1}
+                  </span>
+                  <div>
+                    <p className="text-sm font-medium mb-1" style={{ color: '#0F0F0E' }}>
+                      {step.title}
+                    </p>
+                    <p className="text-xs leading-relaxed" style={{ color: '#9A9A9A' }}>
+                      {step.description}
+                    </p>
                   </div>
-                ))}
-
-                {guest.transactions.length === 0 && (
-                  <p className="text-sm text-center py-10" style={{ color: '#9A9A9A' }}>
-                    No transactions found for that number yet.
-                  </p>
-                )}
-              </div>
-            )}
+                </div>
+              ))}
+            </div>
+              
+         <button
+          type="button"
+          onClick={() => router.push('/login')}
+          className="w-full rounded-full p-3 text-center transition-opacity hover:opacity-90 active:scale-[0.99]"
+          style={{ background: '#0F0F0E' }}
+        >
+          <span className="block text-sm font-medium " style={{ color: '#FFFFFF' }}>
+            Login & start earning cashback
+          </span>
+        </button>
+            
           </div>
         )}
       </div>
