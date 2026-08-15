@@ -117,12 +117,26 @@ export default function Navigation() {
   const pathname = usePathname()
   const { currentUser } = useContext(AuthContext) ?? {}
   const [isInfoOpen, setIsInfoOpen] = useState(false)
+  const [isVisible, setIsVisible] = useState(true)
 
   const role = currentUser?.role
   const canManageMerchant = role === 'owner' || role === 'staff'
 
-  // Handle ESC key press
   useEffect(() => {
+    const handleToggleNav = (event) => {
+      if (typeof event.detail?.visible === 'boolean') {
+        setIsVisible(event.detail.visible)
+      }
+    }
+
+    window.addEventListener('toggle-bottom-nav', handleToggleNav)
+    return () => {
+      window.removeEventListener('toggle-bottom-nav', handleToggleNav)
+    }
+  }, [])
+
+  // Handle ESC key press
+ useEffect(() => {
     const handleKeyDown = (event) => {
       if (event.key === 'Escape') {
         setIsInfoOpen(false)
@@ -139,8 +153,12 @@ export default function Navigation() {
   }, [isInfoOpen])
 
   return (
-    <>
-      <div className="fixed bottom-8 sm:bottom-6 inset-x-0 z-50 flex justify-center px-4 pointer-events-none">
+   <>
+      <div 
+        className={`fixed bottom-8 sm:bottom-6 inset-x-0 z-50 flex justify-center px-4 pointer-events-none transition-all duration-300 ease-in-out ${
+          isVisible ? 'translate-y-0 opacity-100' : 'translate-y-24 opacity-0 pointer-events-none'
+        }`}
+      >
         <nav className={`${island} pointer-events-auto flex flex-col items-center px-3 py-2`}>
           {/* Main Navigation Row */}
           <div className="relative flex items-center gap-4 sm:gap-6 h-16">
