@@ -76,7 +76,7 @@ export default function LoginForm({ isMerchant = false }) {
         </div>
 
         {/* Card */}
-        <div className="rounded-sm border border-slate-100 bg-white p-6  md:p-8">
+        <div className="rounded-xl border border-slate-100 bg-white p-6  md:p-8">
 
           {/* Error */}
           {error && (

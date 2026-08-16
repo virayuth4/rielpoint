@@ -14,10 +14,13 @@ import {
   UserPlus, 
   ShoppingBag, 
   ExternalLink, 
-  CircleDollarSign
+  CircleDollarSign,
+  ArrowRight,
+  Store
 } from 'lucide-react'
 import { AuthContext } from '@/app/auth/authContext'
-
+import icon512 from '@/public/icon-512.png'
+import Image from 'next/image'
 // True if the given href is (or is a parent of) the current pathname
 const isActivePath = (pathname, href) =>
   pathname === href || pathname?.startsWith(`${href}/`)
@@ -70,6 +73,14 @@ const HOW_IT_WORKS_STEPS = [
   },
 ]
 
+// Nodes + connector labels for the "money flow" diagram
+const FLOW_NODES = [
+  { label: 'Merchant', icon: Store },
+  { label: 'RielPoint', image: icon512, highlight: true },
+  { label: 'You', icon: User },
+]
+const FLOW_CONNECTORS = ['Pays', 'Splits with you']
+
 function TabItem({ tab, active }) {
   const Icon = tab.icon
   return (
@@ -110,6 +121,64 @@ function SubTabItem({ tab, active }) {
         {tab.label}
       </span>
     </Link>
+  )
+}
+
+// Small flow diagram: Merchant --Pays--> RielPoint --Splits with you--> You
+function MoneyFlowDiagram() {
+  return (
+    <div className="mt-4 rounded-2xl bg-black/[0.03] border border-black/[0.06] px-3 py-4">
+      <div className="flex items-start justify-center">
+        {FLOW_NODES.map((node, idx) => {
+          const Icon = node.icon
+          const isLast = idx === FLOW_NODES.length - 1
+          return (
+            <React.Fragment key={node.label}>
+              <div className="flex flex-col items-center gap-1.5 w-16">
+                <div
+                  className={`w-11 h-11 rounded-2xl flex items-center justify-center overflow-hidden ${
+                    'bg-white border border-black/[0.08]'
+                  }`}
+                >
+                  {node.image ? (
+                    <Image
+                      src={node.image}
+                      alt={node.label}
+                      width={32}
+                      height={32}
+                      className="w-6 h-6 object-contain"
+                    />
+                  ) : (
+                    <Icon
+                      className="w-5 h-5"
+                      strokeWidth={1.75}
+                      color={node.highlight ? 'white' : 'black'}
+                      style={{ opacity: node.highlight ? 1 : 0.7 }}
+                    />
+                  )}
+                </div>
+                <span className="text-[9px] font-medium text-black/70 uppercase tracking-wide text-center">
+                  {node.label}
+                </span>
+              </div>
+
+              {!isLast && (
+                <div className="flex flex-col items-center pt-3.5 px-1 flex-1 min-w-[44px]">
+                  <ArrowRight className="w-3.5 h-3.5 text-black/25" strokeWidth={2} />
+                  <span className="text-[7.5px] text-black/40 text-center leading-tight mt-0.5 whitespace-nowrap">
+                    {FLOW_CONNECTORS[idx]}
+                  </span>
+                </div>
+              )}
+            </React.Fragment>
+          )
+        })}
+      </div>
+
+      <p className="text-center text-[11px] font-semibold text-black mt-3.5 tracking-tight">
+        Get your commission back
+      </p>
+    </div>
   )
 }
 
@@ -213,58 +282,65 @@ export default function Navigation() {
           />
 
           {/* Modal Container */}
-          <div className="relative z-10 w-full max-w-md bg-white rounded-3xl p-6 shadow-2xl border border-black/[0.08] animate-in fade-in zoom-in-95 duration-200">
-            {/* Header */}
-            <div className="flex items-center justify-between pb-4 border-b border-black/[0.06]">
-              <div>
-                <h3 className="text-lg font-semibold text-black">How Cashback Works</h3>
-                <p className="text-xs text-black/50">Follow these simple steps to earn rewards</p>
+{/* Modal Container */}
+<div className="relative z-10 w-full max-w-md max-h-[85vh] bg-white rounded-3xl shadow-2xl border border-black/[0.08] animate-in fade-in zoom-in-95 duration-200 flex flex-col overflow-hidden">
+  {/* Header */}
+  <div className="flex items-center justify-between p-6 pb-4 border-b border-black/[0.06] flex-shrink-0">
+    <div>
+      <h3 className="text-lg font-semibold text-black">How Cashback Works</h3>
+      <p className="text-xs text-black/50">Follow these simple steps to earn rewards</p>
+    </div>
+    <button
+      onClick={() => setIsInfoOpen(false)}
+      className="p-1.5 rounded-full hover:bg-black/[0.05] transition-colors text-black/60 hover:text-black"
+      aria-label="Close modal"
+    >
+      <X className="w-5 h-5" />
+    </button>
+  </div>
+
+  {/* Scrollable content */}
+  <div className="overflow-y-auto px-6">
+    {/* Money Flow Diagram */}
+    <MoneyFlowDiagram />
+
+    {/* Steps Flow */}
+    <div className="mt-5 space-y-4">
+      {HOW_IT_WORKS_STEPS.map((item, idx) => {
+        const StepIcon = item.icon
+        return (
+          <div key={idx} className="flex items-start gap-3.5">
+            <div className="flex-shrink-0 w-9 h-9 rounded-2xl bg-black/[0.04] border border-black/[0.06] flex items-center justify-center text-black">
+              <StepIcon className="w-4 h-4" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2">
+                <span className="text-[10px] font-semibold tracking-wider text-black/40 uppercase">
+                  Step {item.step}
+                </span>
               </div>
-              <button
-                onClick={() => setIsInfoOpen(false)}
-                className="p-1.5 rounded-full hover:bg-black/[0.05] transition-colors text-black/60 hover:text-black"
-                aria-label="Close modal"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            {/* Steps Flow */}
-            <div className="mt-5 space-y-4">
-              {HOW_IT_WORKS_STEPS.map((item, idx) => {
-                const StepIcon = item.icon
-                return (
-                  <div key={idx} className="flex items-start gap-3.5">
-                    <div className="flex-shrink-0 w-9 h-9 rounded-2xl bg-black/[0.04] border border-black/[0.06] flex items-center justify-center text-black">
-                      <StepIcon className="w-4 h-4" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2">
-                        <span className="text-[10px] font-semibold tracking-wider text-black/40 uppercase">
-                          Step {item.step}
-                        </span>
-                      </div>
-                      <h4 className="text-sm font-medium text-black">{item.title}</h4>
-                      <p className="text-xs text-black/60 leading-relaxed mt-0.5">
-                        {item.description}
-                      </p>
-                    </div>
-                  </div>
-                )
-              })}
-            </div>
-
-            {/* Action */}
-            <div className="mt-6">
-              <button
-                type="button"
-                onClick={() => setIsInfoOpen(false)}
-                className="w-full py-3 px-4 rounded-2xl bg-black text-white text-xs font-medium tracking-wide hover:bg-black/90 active:scale-[0.99] transition-all"
-              >
-                Got It, Let&apos;s Shop!
-              </button>
+              <h4 className="text-sm font-medium text-black">{item.title}</h4>
+              <p className="text-xs text-black/60 leading-relaxed mt-0.5">
+                {item.description}
+              </p>
             </div>
           </div>
+        )
+      })}
+    </div>
+  </div>
+
+  {/* Action */}
+  <div className="p-6 pt-4 flex-shrink-0">
+    <button
+      type="button"
+      onClick={() => setIsInfoOpen(false)}
+      className="w-full py-3 px-4 rounded-2xl bg-black text-white text-xs font-medium tracking-wide hover:bg-black/90 active:scale-[0.99] transition-all"
+    >
+      Got It, Let&apos;s Shop!
+    </button>
+  </div>
+</div>
         </div>
       )}
     </>
