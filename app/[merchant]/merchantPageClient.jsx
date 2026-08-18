@@ -55,16 +55,12 @@ export default function MerchantPageClient({
           <h1 className="text-2xl font-semibold text-slate-900">
             {merchant.name}
           </h1>
-          {cashbackLabel && (
+      
             <p className="text-sm font-semibold text-emerald-600">
-              {cashbackLabel}
+              {merchant.max_cashback}
             </p>
-          )}
-          {merchant.affiliate_network && (
-            <p className="text-xs text-slate-400">
-              via {merchant.affiliate_network}
-            </p>
-          )}
+        
+          
         </div>
       </div>
 
