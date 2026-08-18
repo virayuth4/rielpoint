@@ -11,7 +11,7 @@ export default function MerchantCard({ merchant }) {
   return (
     <a 
       href={`/${merchant.slug}`} 
-      className="group block w-full rounded-2xl p-2.5 transition-all duration-300 hover:shadow-md"
+      className="group block w-full rounded-2xl p-2.5 transition-all duration-300 "
     >
       {/* Image container */}
       <div className="relative aspect-[16/9] w-full overflow-hidden rounded-xl bg-slate-100">

@@ -3,14 +3,14 @@ import { useEffect } from 'react'
 import { useNavAction } from '@/app/context/navActionContext'
 
 
-export default function SetNavCta({ href, label }) {
+export default function SetNavCta({ href, label, onClick }) {
   const { setCta, clearCta } = useNavAction()
 
   useEffect(() => {
     if (!href) return
-    setCta({ href, label })
+    setCta({ href, label, onClick })
     return () => clearCta()
-  }, [href, label, setCta, clearCta])
+  }, [href, label, onClick, setCta, clearCta])
 
   return null
 }

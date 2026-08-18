@@ -117,6 +117,7 @@ export default function Navigation() {
               href={cta.href}
               target="_blank"
               rel="noopener noreferrer sponsored"
+              onClick={cta.onClick}
               className="flex items-center justify-center gap-2 w-full px-5 py-2.5 rounded-full bg-black text-white text-xs font-semibold hover:bg-black/90 active:scale-[0.98] transition-all"
             >
               <span>{cta.label}</span>

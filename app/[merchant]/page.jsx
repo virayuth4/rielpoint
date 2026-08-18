@@ -1,7 +1,5 @@
 import { notFound } from "next/navigation";
-import OfferCard from "../Components/offerCard";
-import CashbackExplainer from "../Components/cashbackExplainer";
-import SetNavCta from "../Components/setNavCta";
+import MerchantPageClient from "./merchantPageClient";
 
 async function getMerchantBySlug(slug) {
   const res = await fetch(
@@ -34,6 +32,7 @@ function cashbackHeadline(merchant) {
   return `Up to ${max}% Cashback`;
 }
 
+// This stays a Server Component: it's async (data fetching) and has no hooks.
 export default async function MerchantPage({ params }) {
   const { merchant: slug } = await params;
   const merchant = await getMerchantBySlug(slug);
@@ -55,92 +54,12 @@ export default async function MerchantPage({ params }) {
   );
 
   return (
-    <main className="mx-auto max-w-4xl px-4 py-12">
-      <SetNavCta href={href} label={`Shop ${merchant.name}`} />
-      {/* Header */}
-      <div className="flex items-center gap-4">
-        <div className="h-16 w-16 overflow-hidden rounded-xl bg-slate-100">
-          {merchant.logo_url ? (
-            <img
-              src={merchant.logo_url}
-              alt={merchant.name}
-              className="h-full w-full object-cover"
-            />
-          ) : (
-            <div className="flex h-full w-full items-center justify-center text-xs text-slate-400">
-              {merchant.name}
-            </div>
-          )}
-        </div>
-
-        <div>
-          <h1 className="text-2xl font-semibold text-slate-900">
-            {merchant.name}
-          </h1>
-          {cashbackLabel && (
-            <p className="text-sm font-semibold text-emerald-600">
-              {cashbackLabel}
-            </p>
-          )}
-          {merchant.affiliate_network && (
-            <p className="text-xs text-slate-400">
-              via {merchant.affiliate_network}
-            </p>
-          )}
-        </div>
-        
-      </div>
-
-       {/* Shop CTA */}
-      <a
-        href={href}
-        target="_blank"
-        rel="noopener noreferrer sponsored"
-        className="mt-8 inline-block rounded-full bg-black px-6 py-3 text-sm font-semibold text-white hover:bg-black/90"
-      >
-        Shop {merchant.name} 
-      </a>
-
-      {/* Description */}
-      {merchant.general_description && (
-        <p className="mt-6 text-sm leading-relaxed text-slate-600">
-          {merchant.general_description}
-        </p>
-      )}
-
-      <CashbackExplainer/>
-
-     
-
-      {/* Policy details */}
-      {infoSections.length > 0 && (
-        <div className="mt-10 grid grid-cols-1 gap-6 sm:grid-cols-3">
-          {infoSections.map((section) => (
-            <div key={section.title}>
-              <h3 className="text-sm font-semibold text-slate-900">
-                {section.title}
-              </h3>
-              <p className="mt-2 whitespace-pre-line text-xs leading-relaxed text-slate-500">
-                {section.body}
-              </p>
-            </div>
-          ))}
-        </div>
-      )}
-
-      {/* Offers, pushed to the bottom */}
-      {activeOffers.length > 0 && (
-        <div className="mt-12 border-t border-slate-100 pt-10">
-          <h2 className="text-lg font-semibold text-slate-900">
-            Top offers
-          </h2>
-          <div className="mt-4 grid grid-cols-2 gap-4 sm:grid-cols-2">
-            {activeOffers.map((o) => (
-              <OfferCard key={o.id} offer={o} merchant={merchant} />
-            ))}
-          </div>
-        </div>
-      )}
-    </main>
+    <MerchantPageClient
+      merchant={merchant}
+      activeOffers={activeOffers}
+      cashbackLabel={cashbackLabel}
+      infoSections={infoSections}
+      href={href}
+    />
   );
 }
