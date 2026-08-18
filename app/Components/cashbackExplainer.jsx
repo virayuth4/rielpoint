@@ -21,24 +21,20 @@ const steps = [
 ];
 const tips = [
   {
-    title: "Remember to check T&Cs",
-    body: "Check carefully for Cashback exclusions and caps before you buy or book to avoid disappointment. Don't forget the terms and conditions on any promotion and campaign pages.",
-  },
-  {
     title: "Restart from this platform every time",
-    body: "Complete your shopping in one go: Always start from this platform to visit the store directly, for every new transaction. If your store visit is interrupted by an app update or download screen, restart your shopping from our platform.",
+    body: "Complete your shopping in one go. Always start from our platform for every new transaction, and restart your visit from here if your shopping trip gets interrupted.",
   },
   {
     title: "Don't use adblockers or click on other links",
-    body: "Don't click on any third party links or extensions or use VPN or adblocking software, as they could result in your Cashback not being tracked. Some examples include: Facebook ads, Google Ads, other loyalty or cashback extension links.",
+    body: "Disable ad blockers, VPNs, and coupon browser extensions before shopping. Avoid clicking external ads or links, as they can override tracking and prevent your cashback from recording.",
+  },
+  {
+    title: "Empty shopping cart first",
+    body: "Make sure your cart is completely empty before clicking through our platform. Adding items to your cart only after clicking our link ensures the purchase is properly tracked to your account.",
   },
   {
     title: "Restart from this platform if payment fails",
-    body: "If you encounter payment errors during your purchase, you should restart your visit to the store from this platform to ensure that your Cashback continues to be tracked.",
-  },
-  {
-    title: "Accept all cookies from the store",
-    body: "We can only confirm your transaction if you accept all cookies that appear on the store's pages.",
+    body: "If a payment error occurs or you need to switch checkout methods, return to our platform and click through to the store again before attempting the transaction.",
   },
 ];
 
