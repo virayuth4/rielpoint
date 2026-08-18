@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import OfferCard from "./Components/offerCard";
 import Banner from "./Components/banner";
+import MerchantCard from "./Components/merchantCard";
 
 /**
  * Sub-component for individual category sections to handle "Load More" independently
@@ -31,6 +32,8 @@ function CategorySection({ categoryName, initialData }) {
       );
       const json = await res.json();
       const newOffers = json.offers || [];
+  
+     
 
       setExtraItems((prev) => [...prev, ...newOffers]);
       setPage(nextPage);
@@ -72,7 +75,7 @@ function CategorySection({ categoryName, initialData }) {
 }
 
 export default function HomePage() {
-  const [feed, setFeed] = useState({ categories: {}, merchantsWithoutOffers: [] });
+  const [feed, setFeed] = useState({ categories: {}, merchants: [] });
   const [status, setStatus] = useState("loading");
   const [errorMessage, setErrorMessage] = useState("");
 
@@ -88,9 +91,10 @@ export default function HomePage() {
 
         if (!res.ok) throw new Error(`Server returned ${res.status}`);
         const json = await res.json();
+            console.log("respond", json)
 
         if (!cancelled) {
-          setFeed(json.data || { categories: {}, merchantsWithoutOffers: [] });
+          setFeed(json.data || { categories: {}, merchants: [] });
           setStatus("idle");
         }
       } catch (err) {
@@ -115,6 +119,24 @@ export default function HomePage() {
 
       <div id="offers" className="mx-auto max-w-6xl min-h-screen py-12 px-4">
         <div className="mb-8">
+           <h2 className="text-3xl sm:text-4xl font-black text-slate-900 tracking-tight">
+            Most Popular Store
+          </h2>
+          {feed.merchants.length > 0 && (
+        <section>
+          <div className="mb-4 flex items-center justify-between">
+            <h3 className="text-lg font-semibold text-slate-900">
+              More merchants
+            </h3>
+          </div>
+
+         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+          {feed.merchants.map((merchant) => (
+            <MerchantCard key={`merchant-${merchant.id}`} merchant={merchant} />
+          ))}
+        </div>
+        </section>
+      )}
           <h2 className="text-3xl sm:text-4xl font-black text-slate-900 tracking-tight">
             Most Popular
           </h2>
@@ -158,7 +180,7 @@ export default function HomePage() {
               />
             ))}
 
-            {feed.merchantsWithoutOffers.length > 0 && (
+            {feed.merchants.length > 0 && (
               <section>
                 <div className="mb-4 flex items-center justify-between">
                   <h3 className="text-lg font-semibold text-slate-900">
@@ -167,7 +189,7 @@ export default function HomePage() {
                 </div>
 
                 <div className="grid grid-cols-2 gap-x-5 gap-y-8 sm:grid-cols-3 lg:grid-cols-4">
-                  {feed.merchantsWithoutOffers.map((merchant) => {
+                  {feed.merchants.map((merchant) => {
                     const href = `/${merchant.slug}`;
                     return (
                       <a

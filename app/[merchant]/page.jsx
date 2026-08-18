@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
-import { formatCashback, bestOffer, endsInLabel } from "@/lib/offerHelpers";
 import OfferCard from "../Components/offerCard";
+import CashbackExplainer from "../Components/cashbackExplainer";
+import SetNavCta from "../Components/setNavCta";
 
 async function getMerchantBySlug(slug) {
   const res = await fetch(
@@ -23,6 +24,16 @@ async function getOffers(merchantId) {
   return json.data || [];
 }
 
+// tracked_cashback / confirmed_cashback are plain percentages on the merchant.
+// Lead with whichever is higher, and label it so users understand the split.
+function cashbackHeadline(merchant) {
+  const tracked = merchant.tracked_cashback ?? 0;
+  const confirmed = merchant.confirmed_cashback ?? 0;
+  const max = Math.max(tracked, confirmed);
+  if (!max) return null;
+  return `Up to ${max}% Cashback`;
+}
+
 export default async function MerchantPage({ params }) {
   const { merchant: slug } = await params;
   const merchant = await getMerchantBySlug(slug);
@@ -30,14 +41,23 @@ export default async function MerchantPage({ params }) {
   if (!merchant) notFound();
 
   const offers = await getOffers(merchant.id);
-  const offer = bestOffer(offers);
-  const cashbackLabel = formatCashback(offer);
-  const endsLabel = offer ? endsInLabel(offer.end_at) : null;
-  const href = `/go/${merchant.id}${offer ? `?offer=${offer.id}` : ""}`;
   const activeOffers = offers.filter((o) => o.is_active);
+
+  const cashbackLabel = cashbackHeadline(merchant);
+  const href = `/go/${merchant.id}`;
+
+  const infoSections = [
+    { title: "Exclusions", body: merchant.exclusions },
+    { title: "Refunds", body: merchant.refunds },
+    { title: "Terms", body: merchant.terms },
+  ].filter(
+    (s) => s.body && !/no (refund policy|terms or conditions yet)/i.test(s.body)
+  );
 
   return (
     <main className="mx-auto max-w-4xl px-4 py-12">
+      <SetNavCta href={href} label={`Shop ${merchant.name}`} />
+      {/* Header */}
       <div className="flex items-center gap-4">
         <div className="h-16 w-16 overflow-hidden rounded-xl bg-slate-100">
           {merchant.logo_url ? (
@@ -62,33 +82,59 @@ export default async function MerchantPage({ params }) {
               {cashbackLabel}
             </p>
           )}
-          {endsLabel && (
-            <p className="text-xs font-medium text-orange-600">{endsLabel}</p>
+          {merchant.affiliate_network && (
+            <p className="text-xs text-slate-400">
+              via {merchant.affiliate_network}
+            </p>
           )}
         </div>
+        
       </div>
 
-      {merchant.description && (
-        <p className="mt-6 text-sm leading-relaxed text-slate-600">
-          {merchant.description}
-        </p>
-      )}
-
+       {/* Shop CTA */}
       <a
         href={href}
         target="_blank"
         rel="noopener noreferrer sponsored"
-        className="mt-8 inline-block rounded-full bg-slate-900 px-6 py-3 text-sm font-semibold text-white hover:bg-slate-800"
+        className="mt-8 inline-block rounded-full bg-black px-6 py-3 text-sm font-semibold text-white hover:bg-black/90"
       >
-        Shop now
+        Shop {merchant.name} 
       </a>
 
-      {activeOffers.length > 1 && (
-        <div className="mt-10">
+      {/* Description */}
+      {merchant.general_description && (
+        <p className="mt-6 text-sm leading-relaxed text-slate-600">
+          {merchant.general_description}
+        </p>
+      )}
+
+      <CashbackExplainer/>
+
+     
+
+      {/* Policy details */}
+      {infoSections.length > 0 && (
+        <div className="mt-10 grid grid-cols-1 gap-6 sm:grid-cols-3">
+          {infoSections.map((section) => (
+            <div key={section.title}>
+              <h3 className="text-sm font-semibold text-slate-900">
+                {section.title}
+              </h3>
+              <p className="mt-2 whitespace-pre-line text-xs leading-relaxed text-slate-500">
+                {section.body}
+              </p>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Offers, pushed to the bottom */}
+      {activeOffers.length > 0 && (
+        <div className="mt-12 border-t border-slate-100 pt-10">
           <h2 className="text-lg font-semibold text-slate-900">
-            All offers
+            Top offers
           </h2>
-          <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <div className="mt-4 grid grid-cols-2 gap-4 sm:grid-cols-2">
             {activeOffers.map((o) => (
               <OfferCard key={o.id} offer={o} merchant={merchant} />
             ))}

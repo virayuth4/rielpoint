@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { formatCashback, bestOffer, endsInLabel } from "@/lib/offerHelpers";
 
 export default function MerchantCard({ merchant }) {
@@ -8,16 +9,19 @@ export default function MerchantCard({ merchant }) {
   const endsLabel = offer ? endsInLabel(offer.end_at) : null;
 
   return (
-    <a
-      href={`/${merchant.slug}`}
-      className="group block"
+    <a 
+      href={`/${merchant.slug}`} 
+      className="group block w-full rounded-2xl p-2.5 transition-all duration-300 hover:shadow-md"
     >
-      <div className="relative aspect-[16/10] overflow-hidden rounded-xl bg-slate-100">
+      {/* Image container */}
+      <div className="relative aspect-[16/9] w-full overflow-hidden rounded-xl bg-slate-100">
         {merchant.logo_url ? (
-          <img
+          <Image
             src={merchant.logo_url}
             alt={merchant.name}
-            className="h-full w-full object-cover transition duration-300 group-hover:scale-[1.03]"
+            fill
+            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
+            className="object-cover transition duration-300 group-hover:scale-[1.03]"
           />
         ) : (
           <div className="flex h-full w-full items-center justify-center px-4 text-center text-sm font-medium text-slate-400">
@@ -26,16 +30,27 @@ export default function MerchantCard({ merchant }) {
         )}
 
         {cashbackLabel && (
-          <div className="absolute bottom-2 left-2 rounded-md bg-white/95 px-2.5 py-1 text-xs font-bold text-slate-900 shadow-sm">
+          <div className="absolute bottom-2 left-2 max-w-[calc(100%-1rem)] truncate whitespace-nowrap rounded-md bg-white/95 px-3 py-1 text-xs font-bold text-slate-900 shadow-sm backdrop-blur-sm">
             {cashbackLabel}
           </div>
         )}
       </div>
 
-      <div className="mt-3">
-        <h2 className="line-clamp-2 text-sm font-semibold leading-snug text-slate-900">
+      {/* Details stacked in separate lines */}
+      <div className="mt-3 px-0.5">
+        {/* Line 1: Merchant Name */}
+        <h2 className="line-clamp-1 text-sm font-semibold leading-snug text-slate-400">
           {merchant.name}
         </h2>
+
+        {/* Line 2: Cashback Label */}
+        {merchant.max_cashback && (
+          <div className="mt-1">
+            <span className="inline-block text-md font-medium tracking-wide text-black">
+              {merchant.max_cashback}
+            </span>
+          </div>
+        )}
 
         {merchant.description && (
           <p className="mt-1 line-clamp-2 text-xs leading-relaxed text-slate-500">
@@ -43,15 +58,11 @@ export default function MerchantCard({ merchant }) {
           </p>
         )}
 
-        <div className="mt-2 flex items-center gap-2 text-[11px] font-medium uppercase tracking-wide text-slate-400">
-          {merchant.affiliate_network && <span>{merchant.affiliate_network}</span>}
-          {endsLabel && (
-            <>
-              {merchant.affiliate_network && <span>•</span>}
-              <span className="text-orange-500">{endsLabel}</span>
-            </>
-          )}
-        </div>
+        {endsLabel && (
+          <p className="mt-2 text-[11px] font-medium text-amber-600">
+            {endsLabel}
+          </p>
+        )}
       </div>
     </a>
   );

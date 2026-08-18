@@ -4,6 +4,7 @@ import "./globals.css";
 import Navigation from "./Components/navigation/navigation";
 import { AuthProvider } from "./auth/authContext";
 import TopNavigation from "./Components/navigation/topNavigation";
+import { NavActionProvider } from "./context/navActionContext";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -36,6 +37,7 @@ export const metadata = {
   openGraph: {
     images: ["/icon-192.png"],
   },
+  
 };
 
 export default function RootLayout({ children }) {
@@ -45,11 +47,15 @@ export default function RootLayout({ children }) {
       className={`${geistSans.variable} ${geistMono.variable} ${inter.variable} ${mono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
+       
         <AuthProvider>
+           <NavActionProvider>
           <TopNavigation/>
           <main className="flex-1 pb-62.5 ">{children}</main>
           <Navigation />
+          </NavActionProvider>
         </AuthProvider>
+        
       </body>
     </html>
   );
