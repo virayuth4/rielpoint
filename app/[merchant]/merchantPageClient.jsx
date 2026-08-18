@@ -77,7 +77,7 @@ export default function MerchantPageClient({
 
       {/* Description */}
       {merchant.general_description && (
-        <p className="mt-6 text-sm leading-relaxed text-slate-600">
+        <p className="mt-6 text-sm leading-relaxed text-slate-600 whitespace-pre-wrap">
           {merchant.general_description}
         </p>
       )}

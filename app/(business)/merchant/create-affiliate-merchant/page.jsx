@@ -360,7 +360,7 @@ function generateSlug(text) {
                 type="number"
                 step="1"
                 min="0"
-                max="100"
+                max="1000"
                 value={trackedCashback}
                 onChange={(e) => setTrackedCashback(e.target.value)}
                 placeholder="e.g. 10"
@@ -376,7 +376,7 @@ function generateSlug(text) {
                 type="number"
                 step="1"
                 min="0"
-                max="100"
+                max="1000"
                 value={confirmedCashback}
                 onChange={(e) => setConfirmedCashback(e.target.value)}
                 placeholder="e.g. 8"
