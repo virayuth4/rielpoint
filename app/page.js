@@ -119,18 +119,14 @@ export default function HomePage() {
 
       <div id="offers" className="mx-auto max-w-6xl min-h-screen py-12 px-4">
         <div className="mb-8">
-           <h2 className="text-3xl sm:text-4xl font-black text-slate-900 tracking-tight">
-            Most Popular Store
+           <h2 className="text-3xl sm:text-4xl font-black text-slate-900 tracking-tight mb-8">
+            Most Popular Stores
           </h2>
           {feed.merchants.length > 0 && (
         <section>
-          <div className="mb-4 flex items-center justify-between">
-            <h3 className="text-lg font-semibold text-slate-900">
-              More merchants
-            </h3>
-          </div>
+        
 
-         <div className="grid grid-cols-2 gap-2 md:gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+         <div className="grid grid-cols-2 gap-2 md:gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 mb-8">
           {feed.merchants.map((merchant) => (
             <MerchantCard key={`merchant-${merchant.id}`} merchant={merchant} />
           ))}
