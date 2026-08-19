@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import { formatCashback, bestOffer, endsInLabel } from "@/lib/offerHelpers";
+import Link from "next/link";
 
 export default function MerchantCard({ merchant }) {
   const offer = bestOffer(merchant.offers);
@@ -9,10 +10,10 @@ export default function MerchantCard({ merchant }) {
   const endsLabel = offer ? endsInLabel(offer.end_at) : null;
 
   return (
-    <a 
-      href={`/${merchant.slug}`} 
-      className="group block w-full rounded-2xl p-2.5 transition-all duration-300 "
-    >
+  <Link 
+  href={`/${merchant.slug}`} 
+  className="group block w-full rounded-2xl p-2.5 transition-all duration-300"
+>
       {/* Image container */}
       <div className="relative aspect-[16/9] w-full overflow-hidden rounded-xl bg-slate-100">
         {merchant.logo_url ? (
@@ -64,6 +65,6 @@ export default function MerchantCard({ merchant }) {
           </p>
         )}
       </div>
-    </a>
+    </Link>
   );
 }
