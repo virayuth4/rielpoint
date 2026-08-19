@@ -10,9 +10,9 @@ export default function MerchantCard({ merchant }) {
   const endsLabel = offer ? endsInLabel(offer.end_at) : null;
 
   return (
-  <Link 
+ <Link 
   href={`/${merchant.slug}`} 
-  className="group block w-full rounded-2xl p-2.5 transition-all duration-300"
+  className="group block w-full rounded-2xl p-2.5 transition-all duration-150 ease-out active:scale-[0.98] active:opacity-80 active:bg-blue-100"
 >
       {/* Image container */}
       <div className="relative aspect-[16/9] w-full overflow-hidden rounded-xl bg-slate-100">
