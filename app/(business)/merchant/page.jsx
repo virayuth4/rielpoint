@@ -60,6 +60,33 @@ export default function MerchantDashboard() {
   const dateInputRef = useRef(null);
   const [locations, setLocations] = useState([]);
 const [locationId, setLocationId] = useState(null);
+const [isClearing, setIsClearing] = useState(false);
+
+const handleClearCache = async () => {
+  setIsClearing(true);
+  try {
+    const res = await authenticatedFetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/merchant/affiliate/homepage-feed/clear-cache`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        // include your admin auth header here, e.g.:
+        // 'Authorization': `Bearer ${adminToken}`,
+      },
+    });
+
+    if (!res.ok) throw new Error(`Failed with status ${res.status}`);
+
+    // optional: refetch the feed data on this page so the UI reflects fresh data
+    // await refetchFeed();
+
+    toast.success('Cache cleared');
+  } catch (err) {
+    console.error('Failed to clear cache:', err);
+    toast.error('Failed to clear cache');
+  } finally {
+    setIsClearing(false);
+  }
+};
 
 function withLocation(path) {
   const url = new URL(`${process.env.NEXT_PUBLIC_BACKEND}${path}`);
@@ -425,6 +452,15 @@ function switchLocation(newId) {
           >
             Verify coupon
           </Button>
+         <Button
+  variant="outline"
+  size="sm"
+  onClick={handleClearCache}
+  disabled={isClearing}
+  className="text-[13px] h-auto py-1 px-2"
+>
+  {isClearing ? 'Clearing...' : 'Clear cache'}
+</Button>
         </div>
 
         {/* Business details */}
