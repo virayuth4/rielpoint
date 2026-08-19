@@ -1,3 +1,4 @@
+//app/auth/authenticatedFetch.jsx
 import { getAuth, onAuthStateChanged } from "firebase/auth";
 import { auth } from "@/app/firebase/config";
 
@@ -5,20 +6,15 @@ const authenticatedFetch = async (url, options = {}) => {
 
 
     // Function to get the current user
-    const getCurrentUser = () => {
+   const getCurrentUser = () => {
+        if (auth.currentUser) return Promise.resolve(auth.currentUser);
         return new Promise((resolve, reject) => {
-            const unsubscribe = onAuthStateChanged(auth, 
-                (user) => {
-                    unsubscribe();
-                    resolve(user);
-                },
-                (error) => {
-                    unsubscribe();
-                    reject(error);
-                }
+            const unsubscribe = onAuthStateChanged(auth,
+            (user) => { unsubscribe(); resolve(user); },
+            (error) => { unsubscribe(); reject(error); }
             );
         });
-    };
+        };
 
     try {
         const user = await getCurrentUser();

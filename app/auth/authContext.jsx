@@ -3,6 +3,7 @@ import { createContext, useState, useEffect, useContext } from 'react';
 import { useRouter } from 'next/navigation';
 import authenticatedFetch from './authenticatedFetch';
 import { getAuth, onIdTokenChanged } from 'firebase/auth';
+import { auth } from '../firebase/config';
 
 
 
@@ -176,7 +177,7 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
 useEffect(() => {
-    const auth = getAuth();
+  
     const unsubscribe = onIdTokenChanged(auth, async (firebaseUser) => {
       try {
         if (firebaseUser) {
@@ -302,7 +303,7 @@ useEffect(() => {
       getUserId,
       clearUserData
     }}>
-      {loading ? null : children}
+      {children}
     </AuthContext.Provider>
   );
 };
