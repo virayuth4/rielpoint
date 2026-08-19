@@ -22,7 +22,7 @@ export default function MerchantCard({ merchant }) {
             alt={merchant.name}
             fill
             sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
-            className="object-cover transition duration-300 group-hover:scale-[1.03]"
+            className="object-cover "
           />
         ) : (
           <div className="flex h-full w-full items-center justify-center px-4 text-center text-sm font-medium text-slate-400">
