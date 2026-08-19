@@ -5,6 +5,7 @@ import Navigation from "./Components/navigation/navigation";
 import { AuthProvider } from "./auth/authContext";
 import TopNavigation from "./Components/navigation/topNavigation";
 import { NavActionProvider } from "./context/navActionContext";
+import { Analytics } from "@vercel/analytics/next"
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -52,6 +53,7 @@ export default function RootLayout({ children }) {
            <NavActionProvider>
           <TopNavigation/>
           <main className="flex-1 pb-62.5 ">{children}</main>
+          <Analytics/>
           <Navigation />
           </NavActionProvider>
         </AuthProvider>
