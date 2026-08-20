@@ -6,6 +6,7 @@ import { AuthProvider } from "./auth/authContext";
 import TopNavigation from "./Components/navigation/topNavigation";
 import { NavActionProvider } from "./context/navActionContext";
 import { Analytics } from "@vercel/analytics/next"
+import Script from "next/script";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -57,6 +58,23 @@ export default function RootLayout({ children }) {
           <Navigation />
           </NavActionProvider>
         </AuthProvider>
+         <Script
+          id="travelpayouts-emerald"
+          strategy="afterInteractive"
+          data-noptimize="1"
+          data-cfasync="false"
+          data-wpfc-render="false"
+        >
+          {`
+            (function () {
+                var script = document.createElement("script");
+                script.async = 1;
+                script.setAttribute("data-cmp-ab","2");
+                script.src = 'https://emrld.ltd/NTY0NDY5.js?t=564469';
+                document.head.appendChild(script);
+            })();
+          `}
+        </Script>
         
       </body>
     </html>

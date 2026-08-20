@@ -68,16 +68,20 @@ useEffect(() => {
   const handleOpenModal = () => {
     if (loading) return;
 
-    if (!currentUser) {
-      router.push(`/signup?callback=${encodeURIComponent(href)}`);
-      return;
-    }
+    // if (!currentUser) {
+    //   router.push(`/signup?callback=${encodeURIComponent(href)}`);
+    //   return;
+    // }
 
     setIsRedirecting(false);
     setIsOpen(true);
   };
 
   const handleRedirect = () => {
+     if (!currentUser) {
+      router.push(`/signup?callback=${encodeURIComponent(href)}`);
+      return;
+    }
     setIsRedirecting(true);
 
     // Open affiliate link in new tab
