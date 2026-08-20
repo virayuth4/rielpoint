@@ -17,7 +17,7 @@ export default function Banner() {
 
           {/* Subtext targeting regional travelers & local shoppers */}
           <p className="max-w-2xl text-base font-normal leading-relaxed text-slate-600 sm:text-lg">
-            Turn every spend into real savings. Earn cash back on top brands at home in Cambodia and when you travel across <strong className="text-slate-900 font-semibold">Singapore, Vietnam, Malaysia, and beyond</strong>.
+            Turn every spend into real savings. Earn cash back on top brands at home in<strong className='text-slate-900 font-semibold'> Cambodia </strong>and when you travel across <strong className="text-slate-900 font-semibold">Singapore, Vietnam, Malaysia, and beyond</strong>.
           </p>
 
           {/* CTA & Trust Anchor */}
@@ -29,7 +29,7 @@ export default function Banner() {
               Sign Up and Start Earning
             </Link>
             <p className="text-xs text-slate-600">
-              Direct payout to local Cambodian bank accounts via Bakong / KHQR
+              Direct payout to local Cambodian bank accounts with <br /> Bakong / KHQR 
             </p>
           </div>
 

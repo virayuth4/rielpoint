@@ -31,7 +31,7 @@ const FLOW_NODES = [
   { label: 'You', icon: User },
 ]
 
-const FLOW_CONNECTORS = ['Pays Commission', 'Splits With You']
+const FLOW_CONNECTORS = ['Pays', 'Splits With You']
 
 const HOW_IT_WORKS_STEPS = [
   {
