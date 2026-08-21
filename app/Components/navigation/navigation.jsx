@@ -34,7 +34,7 @@ const TABS_RIGHT = [
 
 const MERCHANT_ROW = [
   { label: 'Points', href: '/merchant/cashback', icon: Plus },
-  { label: 'Verify', href: '/merchant/verify', icon: ScanLine },
+  { label: 'Merchant', href: '/merchant', icon: ScanLine },
   { label: 'Offers', href: '/merchant/offers', icon: Trophy },
 ]
 

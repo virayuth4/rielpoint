@@ -126,9 +126,7 @@ export default function HowItWorksPage() {
     <main className="min-h-screen bg-white text-black px-4 pt-12 pb-36 max-w-2xl mx-auto">
       {/* Header */}
       <div className="text-center space-y-2 mb-8">
-        <span className="text-[10px] font-semibold tracking-[0.2em] text-black/50 uppercase">
-          Cambodia • Singapore • Vietnam • Malaysia
-        </span>
+      
         <h1 className="text-3xl sm:text-4xl font-bold tracking-tight text-black">
           How Cashback Works
         </h1>
