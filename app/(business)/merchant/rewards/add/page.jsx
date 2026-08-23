@@ -3,21 +3,11 @@
 import authenticatedFetch from "@/app/auth/authenticatedFetch";
 import { useState, useRef, useCallback, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
+import { CATEGORY_OPTIONS } from "@/app/utils/categoryOptions";
 
 const MAX_IMAGES = 10;
 
-const CATEGORY_OPTIONS = [
-  { value: "", label: "Select a category" },
-  { value: "hotels", label: "Hotels" },
-  { value: "cafe", label: "Cafe" },
-  { value: "restaurants", label: "Restaurants" },
-  { value: "retail", label: "Retail" },
-  { value: "travel", label: "Travel" },
-  { value: "electronics", label: "Electronics" },
-  { value: "beauty", label: "Beauty & Wellness" },
-  { value: "entertainment", label: "Entertainment" },
-  { value: "other", label: "Other" },
-];
+
 
 export default function AddRewardPage() {
   const searchParams = useSearchParams();

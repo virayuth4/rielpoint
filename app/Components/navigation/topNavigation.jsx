@@ -2,7 +2,9 @@
 import React, { useContext } from 'react'
 import Image from "next/image";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { Montserrat } from 'next/font/google';
+import { Tag, Info, Wallet, User } from 'lucide-react';
 
 import { AuthContext } from "@/app/auth/authContext";
 
@@ -13,11 +15,19 @@ const shopBackFont = Montserrat({
   display: 'swap',
 });
 
+const mobileLinks = [
+  { href: "/deals", label: "Deals", icon: Tag },
+  { href: "/info", label: "Info", icon: Info },
+  { href: "/wallet", label: "Wallet", icon: Wallet },
+  { href: "/profile", label: "Profile", icon: User },
+];
+
 export default function TopNavigation() {
   const { currentUser, loading } = useContext(AuthContext) ?? {};
+  const pathname = usePathname();
 
   return (
-    <header className="sticky top-0 z-20  bg-white ">
+    <header className="sticky top-0 z-20 bg-white">
       <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3 sm:px-6 sm:py-4">
 
         <Link href="/" className="group flex shrink-0 items-center gap-2.5 transition-opacity hover:opacity-90">
@@ -54,6 +64,27 @@ export default function TopNavigation() {
           )
         )}
       </div>
+
+
+     <nav className="mx-auto flex md:max-w-4xl items-center justify-between px-2 py-1.5">
+  {mobileLinks.map(({ href, label, icon: Icon }) => {
+    const isActive = pathname === href;
+    return (
+      <div key={href} className="flex flex-1 justify-center">
+        <Link
+          href={href}
+          className={`flex flex-col items-center gap-0.5 rounded-2xl px-3 py-1.5 text-[14px] font-bold transition-colors uppercase ${
+            isActive
+              ? "text-[var(--ink)] underline"
+              : "text-black hover:bg-gray-300 hover:text-black/90"
+          }`}
+        >
+          {label}
+        </Link>
+      </div>
+    );
+  })}
+</nav>
     </header>
   );
 }

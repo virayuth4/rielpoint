@@ -10,7 +10,8 @@ import {
   ScanLine, 
   Trophy, 
   HelpCircle, 
-  ArrowRight
+  ArrowRight,
+  DollarSign
 } from 'lucide-react'
 import { AuthContext } from '@/app/auth/authContext'
 import { useNavAction } from '@/app/context/navActionContext'
@@ -25,6 +26,7 @@ const subLabel = 'text-[8px] tracking-[0.06em] uppercase font-normal'
 
 const TABS_LEFT = [
   { label: 'Home', href: '/', icon: Home },
+  { label: 'Deals', href: '/deals', icon: DollarSign },
 ]
 
 const TABS_RIGHT = [
@@ -33,7 +35,7 @@ const TABS_RIGHT = [
 ]
 
 const MERCHANT_ROW = [
-  { label: 'Points', href: '/merchant/cashback', icon: Plus },
+  { label: 'Promo', href: '/merchant/promo/add', icon: Plus },
   { label: 'Merchant', href: '/merchant', icon: ScanLine },
   { label: 'Offers', href: '/merchant/offers', icon: Trophy },
 ]
@@ -43,7 +45,9 @@ function TabItem({ tab, active }) {
   return (
     <Link
       href={tab.href}
-      className="flex flex-col items-center justify-center gap-1 w-14 py-2 transition-opacity duration-150"
+      className={`flex flex-col items-center justify-center gap-1 w-14 py-2 rounded-2xl transition-all duration-150 ${
+        active ? 'bg-black/[0.08]' : 'hover:bg-black/[0.04]'
+      }`}
       aria-current={active ? 'page' : undefined}
     >
       <Icon
@@ -105,11 +109,11 @@ export default function Navigation() {
 
   return (
     <div 
-      className={`fixed bottom-8 sm:bottom-6 inset-x-0 z-50 flex justify-center px-4 pointer-events-none transition-all duration-300 ease-in-out ${
+      className={`fixed bottom-8 sm:bottom-6 inset-x-0 z-50 flex justify-center px-8 sm:px-4 pointer-events-none transition-all duration-300 ease-in-out ${
         isVisible ? 'translate-y-0 opacity-100' : 'translate-y-24 opacity-0 pointer-events-none'
       }`}
     >
-      <nav className={`${island} pointer-events-auto flex flex-col items-center px-3 py-2`}>
+      <nav className={`${island} pointer-events-auto flex flex-col items-center px-3 py-2 w-[110%] sm:w-auto max-w-sm sm:max-w-none`}>
         {/* Top CTA Row (Visible when CTA exists) */}
         {cta && (
           <div className="w-full pb-2 mb-1 border-b border-black/[0.06] flex justify-center">
@@ -127,7 +131,7 @@ export default function Navigation() {
         )}
 
         {/* Main Navigation Row */}
-        <div className="relative flex items-center gap-4 sm:gap-6 h-16">
+        <div className="relative flex items-center justify-between w-full gap-2 sm:gap-6 sm:justify-center sm:w-auto h-16">
           {TABS_LEFT.map((tab) => (
             <TabItem key={tab.href} tab={tab} active={isActivePath(pathname, tab.href)} />
           ))}

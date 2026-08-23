@@ -153,179 +153,176 @@ export default function ForgotPasswordForm() {
     }
   };
 
- return (
-  <div className="min-h-screen px-4 py-0 text-black md:px-6 md:py-12">
-    <div className="mx-auto flex min-h-[calc(100vh-4rem)] w-full max-w-md flex-col justify-center">
+return (
+  <div className="min-h-screen px-5 py-8 text-slate-900 md:px-6 md:py-12">
+    <div className="mx-auto flex min-h-[calc(100vh-6rem)] w-full max-w-sm flex-col justify-center">
 
       {/* Header */}
-      <div className="mb-6 text-center">
-        <h1 className="text-2xl font-bold tracking-tight md:text-3xl">
+      <div className="mb-8">
+        <h1 className="text-2xl font-semibold tracking-tight">
           Reset your password
         </h1>
 
-        <p className="mt-2 text-sm text-slate-500">
+        <p className="mt-2 text-sm leading-5 text-slate-500">
           Enter your phone number and choose a new password.
         </p>
       </div>
 
-      {/* Card */}
-      <div className="rounded-sm border border-slate-100 bg-white p-6 md:p-8">
+      {/* Form */}
+      <form onSubmit={handleRequestOtp} className="space-y-5">
 
         {/* Error */}
         {error && (
-          <div className="mb-5 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+          <div className="rounded-lg bg-red-50 px-3.5 py-3 text-sm text-red-600">
             {error}
           </div>
         )}
 
-        <form onSubmit={handleRequestOtp} className="space-y-5">
+        {/* Phone */}
+        <div>
+          <label
+            htmlFor="phoneNumber"
+            className="mb-1.5 block text-sm font-medium"
+          >
+            Phone number
+          </label>
 
-          {/* Phone */}
-          <div>
+          <input
+            id="phoneNumber"
+            type="tel"
+            placeholder="012 xxx 456"
+            value={phoneNumber}
+            onChange={handlePhoneChange}
+            required
+            disabled={isLoading}
+            autoComplete="tel"
+            className="w-full rounded-lg border border-slate-200 bg-white px-3.5 py-3 text-sm outline-none transition placeholder:text-slate-400 focus:border-slate-400 focus:ring-2 focus:ring-slate-100 disabled:cursor-not-allowed disabled:opacity-50"
+          />
+        </div>
+
+        {/* New Password */}
+        <div>
+          <div className="mb-1.5 flex items-center justify-between">
             <label
-              htmlFor="phoneNumber"
-              className="mb-2 block text-sm font-semibold text-black"
+              htmlFor="newPassword"
+              className="text-sm font-medium"
             >
-              Phone number
+              New password
             </label>
 
-            <input
-              id="phoneNumber"
-              type="tel"
-              placeholder="012 xxx 456"
-              value={phoneNumber}
-              onChange={handlePhoneChange}
-              required
+            <button
+              type="button"
+              onClick={() => setShowNewPassword(!showNewPassword)}
               disabled={isLoading}
-              autoComplete="tel"
-              className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-slate-400 focus:bg-white focus:ring-4 focus:ring-slate-100 disabled:cursor-not-allowed disabled:opacity-50"
-            />
+              className="text-xs font-medium text-slate-500 transition hover:text-slate-900 disabled:opacity-50"
+            >
+              {showNewPassword ? 'Hide' : 'Show'}
+            </button>
           </div>
 
-          {/* New Password */}
-          <div>
-            <div className="mb-2 flex items-center justify-between">
-              <label
-                htmlFor="newPassword"
-                className="text-sm font-semibold text-black"
-              >
-                New password
-              </label>
-
-              <button
-                type="button"
-                onClick={() => setShowNewPassword(!showNewPassword)}
-                disabled={isLoading}
-                className="text-xs font-semibold text-black transition hover:text-slate-900"
-              >
-                {showNewPassword ? 'Hide' : 'Show'}
-              </button>
-            </div>
-
-            <input
-              id="newPassword"
-              type={showNewPassword ? 'text' : 'password'}
-              value={newPassword}
-              onChange={(e) => setNewPassword(e.target.value)}
-              required
-              placeholder="Enter your new password"
-              disabled={isLoading}
-              autoComplete="new-password"
-              className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-black outline-none transition focus:border-slate-400 focus:bg-white focus:ring-4 focus:ring-slate-100 disabled:cursor-not-allowed disabled:opacity-50"
-            />
-          </div>
-
-          {/* Confirm Password */}
-          <div>
-            <div className="mb-2 flex items-center justify-between">
-              <label
-                htmlFor="confirmPassword"
-                className="text-sm font-semibold text-black"
-              >
-                Confirm password
-              </label>
-
-              <button
-                type="button"
-                onClick={() =>
-                  setShowConfirmPassword(!showConfirmPassword)
-                }
-                disabled={isLoading}
-                className="text-xs font-semibold text-black transition hover:text-slate-900"
-              >
-                {showConfirmPassword ? 'Hide' : 'Show'}
-              </button>
-            </div>
-
-            <input
-              id="confirmPassword"
-              type={showConfirmPassword ? 'text' : 'password'}
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-              required
-              placeholder="Confirm your new password"
-              disabled={isLoading}
-              autoComplete="new-password"
-              className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-black outline-none transition focus:border-slate-400 focus:bg-white focus:ring-4 focus:ring-slate-100 disabled:cursor-not-allowed disabled:opacity-50"
-            />
-          </div>
-
-          {/* Submit */}
-          <button
-            type="submit"
-            disabled={
-              isLoading ||
-              !isPhoneNumberValid() ||
-              !newPassword ||
-              !confirmPassword
-            }
-            className="flex w-full items-center justify-center gap-2 rounded-xl bg-slate-900 px-5 py-3.5 text-sm font-bold text-white shadow-sm transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-40"
-          >
-            {isLoading ? (
-              <>
-                <Loader2 className="h-4 w-4 animate-spin" />
-                <span>Sending code...</span>
-              </>
-            ) : (
-              <span>Send verification code</span>
-            )}
-          </button>
-        </form>
-
-        {/* Login */}
-        <div className="mt-6 border-t border-slate-100 pt-6">
-          <p className="mb-3 text-center text-sm text-slate-500">
-            Remember your password?
-          </p>
-
-          <button
-            type="button"
-            onClick={() => router.push('/login')}
+          <input
+            id="newPassword"
+            type={showNewPassword ? 'text' : 'password'}
+            value={newPassword}
+            onChange={(e) => setNewPassword(e.target.value)}
+            required
+            placeholder="Enter your new password"
             disabled={isLoading}
-            className="flex w-full items-center justify-center rounded-xl border-2 border-slate-900 px-5 py-3 text-sm font-bold text-slate-900 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
-          >
-            Back to sign in
-          </button>
+            autoComplete="new-password"
+            className="w-full rounded-lg border border-slate-200 bg-white px-3.5 py-3 text-sm outline-none transition placeholder:text-slate-400 focus:border-slate-400 focus:ring-2 focus:ring-slate-100 disabled:cursor-not-allowed disabled:opacity-50"
+          />
         </div>
+
+        {/* Confirm Password */}
+        <div>
+          <div className="mb-1.5 flex items-center justify-between">
+            <label
+              htmlFor="confirmPassword"
+              className="text-sm font-medium"
+            >
+              Confirm password
+            </label>
+
+            <button
+              type="button"
+              onClick={() =>
+                setShowConfirmPassword(!showConfirmPassword)
+              }
+              disabled={isLoading}
+              className="text-xs font-medium text-slate-500 transition hover:text-slate-900 disabled:opacity-50"
+            >
+              {showConfirmPassword ? 'Hide' : 'Show'}
+            </button>
+          </div>
+
+          <input
+            id="confirmPassword"
+            type={showConfirmPassword ? 'text' : 'password'}
+            value={confirmPassword}
+            onChange={(e) => setConfirmPassword(e.target.value)}
+            required
+            placeholder="Confirm your new password"
+            disabled={isLoading}
+            autoComplete="new-password"
+            className="w-full rounded-lg border border-slate-200 bg-white px-3.5 py-3 text-sm outline-none transition placeholder:text-slate-400 focus:border-slate-400 focus:ring-2 focus:ring-slate-100 disabled:cursor-not-allowed disabled:opacity-50"
+          />
+        </div>
+
+        {/* Submit */}
+        <button
+          type="submit"
+          disabled={
+            isLoading ||
+            !isPhoneNumberValid() ||
+            !newPassword ||
+            !confirmPassword
+          }
+          className="flex w-full items-center justify-center gap-2 rounded-lg bg-slate-900 px-4 py-3 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-40"
+        >
+          {isLoading ? (
+            <>
+              <Loader2 className="h-4 w-4 animate-spin" />
+              <span>Sending code...</span>
+            </>
+          ) : (
+            <span>Send verification code</span>
+          )}
+        </button>
+      </form>
+
+      {/* Login */}
+      <div className="mt-8 text-center text-sm">
+        <span className="text-slate-500">
+          Remember your password?
+        </span>{' '}
+
+        <button
+          type="button"
+          onClick={() => router.push('/login')}
+          disabled={isLoading}
+          className="font-semibold text-slate-900 hover:underline disabled:opacity-50"
+        >
+          Back to sign in
+        </button>
       </div>
 
       {/* Footer */}
-      <div className="mt-6 text-center text-xs text-slate-400">
-        © {new Date().getFullYear()} RielPoint. All rights reserved.
+      <div className="mt-10 text-center text-xs text-slate-400">
+        © {new Date().getFullYear()} RielPoint
       </div>
     </div>
 
     {/* OTP Modal */}
     {showOtpModal && (
-      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
-        <div className="relative w-full max-w-md rounded-sm border border-slate-100 bg-white p-6 text-black md:p-8">
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 px-5">
+        <div className="relative w-full max-w-sm rounded-xl bg-white p-6 shadow-xl">
 
           {/* Close */}
           <button
             type="button"
             onClick={() => setShowOtpModal(false)}
             disabled={isVerifying}
-            className="absolute right-5 top-5 text-slate-400 transition hover:text-black disabled:opacity-50"
+            className="absolute right-4 top-4 text-slate-400 transition hover:text-slate-900 disabled:opacity-50"
             aria-label="Close"
           >
             <X className="h-5 w-5" />
@@ -333,27 +330,27 @@ export default function ForgotPasswordForm() {
 
           {/* Header */}
           <div className="mb-6 pr-8">
-            <h2 className="text-2xl font-bold tracking-tight">
+            <h2 className="text-xl font-semibold tracking-tight">
               Verify your phone
             </h2>
 
-            <p className="mt-2 text-sm text-slate-500">
+            <p className="mt-2 text-sm leading-5 text-slate-500">
               Enter the verification code sent to +855{' '}
               {formattedPhone()}
             </p>
           </div>
 
           {/* Timer */}
-          <div className="mb-5 rounded-xl bg-slate-50 px-4 py-3 text-sm text-slate-500">
+          <div className="mb-5 text-center text-sm text-slate-500">
             Code expires in{' '}
-            <span className="font-semibold text-slate-900">
+            <span className="font-medium text-slate-900">
               {formatTime(timeLeft)}
             </span>
           </div>
 
           {/* OTP Error */}
           {otpError && (
-            <div className="mb-5 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+            <div className="mb-5 rounded-lg bg-red-50 px-3.5 py-3 text-sm text-red-600">
               {otpError}
             </div>
           )}
@@ -366,12 +363,12 @@ export default function ForgotPasswordForm() {
             <div>
               <label
                 htmlFor="otp-0"
-                className="mb-2 block text-sm font-semibold text-black"
+                className="mb-1.5 block text-sm font-medium"
               >
                 Verification code
               </label>
 
-              <div className="flex justify-between gap-2">
+              <div className="flex gap-2">
                 {otp.map((digit, index) => (
                   <input
                     key={index}
@@ -388,7 +385,7 @@ export default function ForgotPasswordForm() {
                       handleOtpKeyDown(index, e)
                     }
                     disabled={isVerifying || timeLeft <= 0}
-                    className="h-12 w-full rounded-xl border border-slate-200 bg-white text-center text-lg font-semibold text-slate-900 outline-none transition focus:border-slate-400 focus:ring-4 focus:ring-slate-100 disabled:cursor-not-allowed disabled:opacity-50"
+                    className="h-12 w-full rounded-lg border border-slate-200 bg-white text-center text-lg font-semibold text-slate-900 outline-none transition focus:border-slate-400 focus:ring-2 focus:ring-slate-100 disabled:cursor-not-allowed disabled:opacity-50"
                   />
                 ))}
               </div>
@@ -397,7 +394,7 @@ export default function ForgotPasswordForm() {
             <button
               type="submit"
               disabled={isVerifying || timeLeft <= 0}
-              className="flex w-full items-center justify-center gap-2 rounded-xl bg-slate-900 px-5 py-3.5 text-sm font-bold text-white shadow-sm transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-40"
+              className="flex w-full items-center justify-center gap-2 rounded-lg bg-slate-900 px-4 py-3 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-40"
             >
               {isVerifying ? (
                 <>
@@ -411,26 +408,25 @@ export default function ForgotPasswordForm() {
           </form>
 
           {/* Resend */}
-          <div className="mt-6 border-t border-slate-100 pt-5">
+          <div className="mt-6 text-center">
             {timeLeft <= 0 ? (
               attempts > 3 ? (
-                <p className="text-center text-sm text-slate-400">
-                  Maximum number of resend attempts reached.
+                <p className="text-sm text-slate-400">
+                  Maximum resend attempts reached.
                 </p>
               ) : (
                 <button
                   type="button"
                   onClick={handleResendOtp}
                   disabled={isVerifying}
-                  className="w-full text-center text-sm font-semibold text-slate-900 transition hover:text-slate-600 disabled:opacity-50"
+                  className="text-sm font-medium text-slate-900 transition hover:underline disabled:opacity-50"
                 >
                   Resend verification code
                 </button>
               )
             ) : (
-              <p className="text-center text-sm text-slate-400">
-                Didn&apos;t receive the code? You can request a new
-                one after it expires.
+              <p className="text-sm text-slate-400">
+                You can request a new code after it expires.
               </p>
             )}
           </div>
