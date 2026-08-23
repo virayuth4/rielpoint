@@ -1,16 +1,30 @@
+// dealsPage.jsx (or page.js)
 import DealsClient from "./dealsClient";
 
 async function getDeals() {
-  const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/merchant/promos`, {
-    next: { revalidate: 60 }, // ISR: cache 60s, then revalidate in background
-  });
+  const backendUrl = process.env.NEXT_PUBLIC_BACKEND;
+  
+  if (!backendUrl) {
+    console.warn("NEXT_PUBLIC_BACKEND is not defined. Falling back to empty deals.");
+    return [];
+  }
 
-  if (!res.ok) throw new Error(`Server returned ${res.status}`);
-  const json = await res.json();
-  console.log("data", json)
+  try {
+    const res = await fetch(`${backendUrl}/api/merchant/promos`, {
+      next: { revalidate: 60 },
+    });
 
-  // backend currently returns a single row (result.rows[0]) — should be result.rows
-  return Array.isArray(json.data) ? json.data : json.data ? [json.data] : [];
+    if (!res.ok) {
+      console.error(`Failed to fetch deals at build/runtime: Server returned ${res.status}`);
+      return [];
+    }
+
+    const json = await res.json();
+    return Array.isArray(json?.data) ? json.data : json?.data ? [json.data] : [];
+  } catch (error) {
+    console.error("Error fetching deals:", error.message);
+    return [];
+  }
 }
 
 export default async function DealsPage() {

@@ -6,16 +6,15 @@ import DealCard from "../Components/dealCard";
 export default function DealsClient({ deals }) {
   const [activeCategory, setActiveCategory] = useState("all");
 
-  const categories = useMemo(() => {
-    const set = new Set(deals.map((d) => d.category).filter(Boolean));
+ const categories = useMemo(() => {
+    const set = new Set((deals || []).map((d) => d.category).filter(Boolean));
     return ["all", ...Array.from(set)];
   }, [deals]);
 
   const filtered = useMemo(() => {
-    if (activeCategory === "all") return deals;
-    return deals.filter((d) => d.category === activeCategory);
+    if (activeCategory === "all") return deals || [];
+    return (deals || []).filter((d) => d.category === activeCategory);
   }, [deals, activeCategory]);
-
   return (
     <div>
       <div className="mb-8 flex flex-wrap gap-2">
