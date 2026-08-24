@@ -16,7 +16,9 @@ const shopBackFont = Montserrat({
 });
 
 const mobileLinks = [
+  { href: "/", label: "Cashback", icon: Tag },
   { href: "/deals", label: "Deals", icon: Tag },
+  { href: "/hotels", label: "Hotels", icon: Tag },
   { href: "/info", label: "Info", icon: Info },
   { href: "/wallet", label: "Wallet", icon: Wallet },
   { href: "/profile", label: "Profile", icon: User },
@@ -28,7 +30,7 @@ export default function TopNavigation() {
 
   return (
     <header className="sticky top-0 z-20 bg-white">
-      <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3 sm:px-6 sm:py-4">
+      <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-6 sm:py-4">
 
         <Link href="/" className="group flex shrink-0 items-center gap-2.5 transition-opacity hover:opacity-90">
           <Image
@@ -39,7 +41,6 @@ export default function TopNavigation() {
             className="h-8 w-8 transition-transform duration-300 group-hover:scale-105 sm:h-9 sm:w-9"
           />
 
-          {/* ShopBack style typography: All-caps, Montserrat 900, tight line height, distinct color split */}
           <span className={`${shopBackFont.className} text-xl font-black uppercase leading-none tracking-[0.02em] sm:text-2xl`}>
             <span className="text-black">RIEL</span>
             <span className="text-black">POINT</span>
@@ -57,7 +58,7 @@ export default function TopNavigation() {
           ) : (
             <Link
               href="/signup"
-              className="shrink-0 whitespace-nowrap rounded-full bg-[var(--ink)] px-3 py-2 text-[10px] font-normal  tracking-[0.08em] text-[var(--paper)] hover:opacity-90 sm:px-4 sm:text-[11px] md:text-xs"
+              className="shrink-0 whitespace-nowrap rounded-full bg-[var(--ink)] px-3 py-2 text-[10px] font-normal tracking-[0.08em] text-[var(--paper)] hover:opacity-90 sm:px-4 sm:text-[11px] md:text-xs"
             >
               Sign Up
             </Link>
@@ -65,26 +66,26 @@ export default function TopNavigation() {
         )}
       </div>
 
-
-     <nav className="mx-auto flex md:max-w-4xl items-center justify-between px-2 py-1.5">
-  {mobileLinks.map(({ href, label, icon: Icon }) => {
-    const isActive = pathname === href;
-    return (
-      <div key={href} className="flex flex-1 justify-center">
-        <Link
-          href={href}
-          className={`flex flex-col items-center gap-0.5 rounded-2xl px-3 py-1.5 text-[14px] font-bold transition-colors uppercase ${
-            isActive
-              ? "text-[var(--ink)] underline"
-              : "text-black hover:bg-gray-300 hover:text-black/90"
-          }`}
-        >
-          {label}
-        </Link>
-      </div>
-    );
-  })}
-</nav>
+      {/* Hide scrollbar classes added: no-scrollbar & inline cross-browser rules */}
+      <nav className="mx-auto flex md:max-w-5xl items-center gap-1 overflow-x-auto px-2 py-1.5 md:justify-center md:overflow-visible [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+        {mobileLinks.map(({ href, label }) => {
+          const isActive = pathname === href;
+          return (
+            <div key={href} className="flex shrink-0 snap-start justify-center">
+              <Link
+                href={href}
+                className={`flex flex-col items-center justify-center gap-0.5 rounded-2xl px-3 py-1.5 md:px-6 md:min-w-[110px] text-[14px] font-bold transition-colors uppercase whitespace-nowrap ${
+                  isActive
+                    ? "text-[var(--ink)] underline"
+                    : "text-black hover:bg-gray-300 hover:text-black/90"
+                }`}
+              >
+                {label}
+              </Link>
+            </div>
+          );
+        })}
+      </nav>
     </header>
   );
 }

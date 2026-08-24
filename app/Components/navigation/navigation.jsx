@@ -45,9 +45,7 @@ function TabItem({ tab, active }) {
   return (
     <Link
       href={tab.href}
-      className={`flex flex-col items-center justify-center gap-1 w-14 py-2 rounded-2xl transition-all duration-150 ${
-        active ? 'bg-black/[0.08]' : 'hover:bg-black/[0.04]'
-      }`}
+      className={`flex flex-col items-center justify-center gap-1 w-14 py-2 rounded-2xl transition-all duration-150`}
       aria-current={active ? 'page' : undefined}
     >
       <Icon
