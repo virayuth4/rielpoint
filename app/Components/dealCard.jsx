@@ -1,16 +1,22 @@
 import Image from "next/image";
 
-function formatDateRange(startAt, endAt) {
-  const opts = { month: "short", day: "numeric" };
-  const start = startAt ? new Date(startAt).toLocaleDateString("en-US", opts) : null;
-  const end = endAt ? new Date(endAt).toLocaleDateString("en-US", opts) : null;
+function formatDateRange(startAt, endAt, options = {}) {
+  const { fallbackOpen = "From", includeYear = false } = options;
+  const dateOpts = { 
+    month: "short", 
+    day: "numeric", 
+    ...(includeYear && { year: "numeric" }) 
+  };
+
+  const start = startAt ? new Date(startAt).toLocaleDateString("en-US", dateOpts) : null;
+  const end = endAt ? new Date(endAt).toLocaleDateString("en-US", dateOpts) : null;
 
   if (start && end) return `${start} – ${end}`;
-  if (start && !end) return `From ${start} (Ongoing)`;
+  if (start && !end) return `From ${start}`; // or simply: `From ${start}`
   if (!start && end) return `Until ${end}`;
-  return "Ongoing";
+  
+  return "Limited time offer"; // safer fallback than "Ongoing"
 }
-
 function isExpired(endAt) {
   if (!endAt) return false;
   return new Date(endAt).getTime() < Date.now();
@@ -75,7 +81,7 @@ export default function DealCard({ deal }) {
         {expired && (
           <div className="absolute inset-0 flex items-center justify-center bg-black/50">
             <span className="rounded-full bg-white px-3 py-1 text-xs font-semibold text-slate-900">
-              Expired
+              Expired or Paused
             </span>
           </div>
         )}
