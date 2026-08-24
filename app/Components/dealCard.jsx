@@ -1,4 +1,10 @@
+"use client";
+
+import { useEffect, useState } from "react";
 import Image from "next/image";
+import {
+  X
+} from "lucide-react"
 
 function formatDateRange(startAt, endAt) {
   const opts = { month: "short", day: "numeric" };
@@ -10,6 +16,7 @@ function formatDateRange(startAt, endAt) {
   if (!start && end) return `Until ${end}`;
   return "Date not specified";
 }
+
 function isExpired(endAt) {
   if (!endAt) return false;
   return new Date(endAt).getTime() < Date.now();
@@ -32,86 +39,214 @@ function formatPostedDate(createdAt) {
   })}`;
 }
 
+function DealModal({ deal, onClose }) {
+  const {
+    merchant_name,
+    title,
+    description,
+    promo,
+    category,
+    image_paths,
+    start_at,
+    end_at,
+    map,
+    created_at,
+    terms,
+  } = deal;
 
+  const expired = isExpired(end_at);
+  const images = image_paths?.length ? image_paths : [];
+
+  useEffect(() => {
+  window.dispatchEvent(new CustomEvent('toggle-bottom-nav', { detail: { visible: false } }));
+  return () => {
+    window.dispatchEvent(new CustomEvent('toggle-bottom-nav', { detail: { visible: true } }));
+  };
+}, []);
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4"
+      onClick={onClose}
+    >
+      <div
+        className="relative flex max-h-[85vh] w-full max-w-lg flex-col overflow-hidden rounded-2xl bg-white"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <button
+          onClick={onClose}
+          aria-label="Close"
+          className="absolute right-3 top-3 z-10 flex h-8 w-8 items-center justify-center rounded-full bg-black/50 text-white hover:bg-black/70"
+        >
+          <X />
+        </button>
+
+        <div className="overflow-y-auto">
+          {images[0] && (
+            <div className="relative aspect-[5/4] w-full bg-slate-100">
+              <Image
+                src={images[0]}
+                alt={title}
+                fill
+                sizes="(max-width: 640px) 100vw, 500px"
+                className="object-cover"
+              />
+              {promo && (
+                <span className="absolute left-3 top-3 rounded-full bg-rose-600 px-3 py-1 text-xs font-bold text-white shadow">
+                  {promo}
+                </span>
+              )}
+              {expired && (
+                <div className="absolute inset-0 flex items-center justify-center bg-black/50">
+                  <span className="rounded-full bg-white px-3 py-1 text-xs font-semibold text-slate-900">
+                    Expired or Paused
+                  </span>
+                </div>
+              )}
+            </div>
+          )}
+
+          <div className="flex flex-col gap-3 p-5">
+            <div className="flex items-center justify-between gap-2">
+              <p className="text-xs font-semibold uppercase tracking-wide text-rose-600">
+                {merchant_name}
+                {category && (
+                  <span className="ml-2 text-slate-400">· {category}</span>
+                )}
+              </p>
+              <span className="text-xs text-slate-400">
+                {formatPostedDate(created_at)}
+              </span>
+            </div>
+
+            <h2 className="text-xl font-bold text-slate-900">{title}</h2>
+
+            <p className="text-sm font-medium text-slate-600">
+              Valid: {formatDateRange(start_at, end_at)}
+            </p>
+
+            {description && (
+              <p className="whitespace-pre-line text-sm leading-relaxed text-slate-700">
+                {description}
+              </p>
+            )}
+
+            {terms && (
+              <div className="rounded-lg bg-slate-50 p-3 text-xs text-slate-500">
+                <p className="mb-1 font-semibold text-slate-600">Terms</p>
+                <p className="whitespace-pre-line">{terms}</p>
+              </div>
+            )}
+
+            {images.length > 1 && (
+              <div className="flex gap-2 overflow-x-auto pt-1">
+                {images.slice(1).map((src, i) => (
+                  <div
+                    key={i}
+                    className="relative h-20 w-20 flex-shrink-0 overflow-hidden rounded-lg bg-slate-100"
+                  >
+                    <Image src={src} alt={`${title} ${i + 2}`} fill className="object-cover" />
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {map && (
+              <a
+                href={map}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mt-1 inline-flex w-fit items-center gap-1 rounded-full bg-black px-4 py-2 text-xs font-semibold text-white hover:bg-black/90"
+              >
+                Open in Maps
+              </a>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 export default function DealCard({ deal }) {
-  const { merchant_name, title, description, promo, category, image_paths, start_at, end_at, map, created_at } = deal;
+  const [showModal, setShowModal] = useState(false);
+  const { merchant_name, title, promo, image_paths, start_at, end_at, map, created_at } = deal;
 
   const expired = isExpired(end_at);
   const image = image_paths?.[0];
 
   return (
-    <div className="group relative flex flex-col overflow-hidden rounded-2xl ">
-      <div className="relative aspect-[5/5] w-full overflow-hidden rounded-xl bg-slate-100">
-        {image ? (
-          <Image
-            src={image}
-            alt={title}
-            fill
-            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
-            className="object-cover "
-          />
-        ) : (
-          <div className="flex h-full w-full items-center justify-center text-sm text-slate-400">
-            No image
-          </div>
-        )}
+    <>
+      <div className="group relative flex flex-col overflow-hidden rounded-2xl">
+        <div className="relative aspect-[5/5] w-full overflow-hidden rounded-xl bg-slate-100">
+          {image ? (
+            <Image
+              src={image}
+              alt={title}
+              fill
+              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
+              className="object-cover"
+            />
+          ) : (
+            <div className="flex h-full w-full items-center justify-center text-sm text-slate-400">
+              No image
+            </div>
+          )}
 
-        {promo && (
-          <span className="absolute left-3 top-3 rounded-full bg-rose-600 px-3 py-1 text-xs font-bold text-white shadow">
-            {promo}
-          </span>
-        )}
+          {promo && (
+            <span className="absolute left-3 top-3 rounded-full bg-rose-600 px-3 py-1 text-xs font-bold text-white shadow">
+              {promo}
+            </span>
+          )}
 
-         
-          <div className="absolute inset-0 flex items-center justify-center ">
-            <span className="absolute left-3 bottom-3 rounded-full bg-white px-3 py-1 text-xs font-bold text-black ">
+          <div className="absolute inset-0 flex items-center justify-center">
+            <span className="absolute left-3 bottom-3 rounded-full bg-white px-3 py-1 text-xs font-bold text-black">
               {formatPostedDate(created_at)}
             </span>
           </div>
-   
 
-        {expired && (
-          <div className="absolute inset-0 flex items-center justify-center bg-black/50">
-            <span className="rounded-full bg-white px-3 py-1 text-xs font-semibold text-slate-900">
-              Expired or Paused
-            </span>
-          </div>
-        )}
-      </div>
-
-      <div className="flex flex-1 flex-col gap-2 p-4">
-        
-        <div className="flex items-center justify-between gap-2">
-          
-          <p className="truncate text-xs font-semibold uppercase tracking-wide text-rose-600">
-            {merchant_name}
-          </p>
-        
-        </div>
-
-        <h3 className="line-clamp-2 text-base font-bold text-slate-900">{title}</h3>
-
-        {/* {description && (
-          <p className="line-clamp-2 whitespace-pre-line text-sm text-slate-500">
-            {description}
-          </p>
-        )} */}
-
-        <div className="mt-auto font-black flex items-center justify-between pt-2 text-xs text-black">
-          <span>Valid: {formatDateRange(start_at, end_at)}</span>
-          {map && (
-            <a
-              href={map}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="font-medium text-rose-600 hover:underline"
-            >
-              Map
-            </a>
+          {expired && (
+            <div className="absolute inset-0 flex items-center justify-center bg-black/50">
+              <span className="rounded-full bg-white px-3 py-1 text-xs font-semibold text-slate-900">
+                Expired or Paused
+              </span>
+            </div>
           )}
         </div>
+
+        <div className="flex flex-1 flex-col gap-2 p-4">
+          <div className="flex items-center justify-between gap-2">
+            <p className="truncate text-xs font-semibold uppercase tracking-wide text-rose-600">
+              {merchant_name}
+            </p>
+          </div>
+
+          <h3 className="line-clamp-2 text-base font-bold text-slate-900">{title}</h3>
+
+          <div className="mt-auto flex items-center justify-between pt-2 text-xs font-black text-black">
+            <span>Valid: {formatDateRange(start_at, end_at)}</span>
+            {/* {map && (
+              <a
+                href={map}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="font-medium text-rose-600 hover:underline"
+              >
+                Map
+              </a>
+            )} */}
+          </div>
+
+          <button
+            onClick={() => setShowModal(true)}
+            className="mt-2 w-full rounded-full border border-black py-2 text-xs font-semibold text-black transition hover:border-black/900 "
+          >
+            View more
+          </button>
+        </div>
       </div>
-    </div>
+
+      {showModal && <DealModal deal={deal} onClose={() => setShowModal(false)} />}
+    </>
   );
 }
