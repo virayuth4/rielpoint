@@ -83,27 +83,27 @@ function DealModal({ deal, onClose }) {
 
         <div className="overflow-y-auto">
           {images[0] && (
-            <div className="relative aspect-[5/4] w-full bg-slate-100">
-              <Image
-                src={images[0]}
-                alt={title}
-                fill
-                sizes="(max-width: 640px) 100vw, 500px"
-                className="object-cover"
-              />
-              {promo && (
-                <span className="absolute left-3 top-3 rounded-full bg-rose-600 px-3 py-1 text-xs font-bold text-white shadow">
-                  {promo}
-                </span>
-              )}
-              {expired && (
-                <div className="absolute inset-0 flex items-center justify-center bg-black/50">
-                  <span className="rounded-full bg-white px-3 py-1 text-xs font-semibold text-slate-900">
-                    Expired or Paused
-                  </span>
-                </div>
-              )}
+           <div className="relative aspect-[9/5] w-full bg-white rounded-xl overflow-hidden">
+          <Image
+            src={images[0]}
+            alt={title}
+            fill
+            sizes="(max-width: 640px) 50vw, 500px"
+            className="object-contain"
+          />
+          {promo && (
+            <span className="absolute left-3 top-3 rounded-full bg-rose-600 px-3 py-1 text-xs font-bold text-white shadow">
+              {promo}
+            </span>
+          )}
+          {expired && (
+            <div className="absolute inset-0 flex items-center justify-center bg-black/50">
+              <span className="rounded-full bg-white px-3 py-1 text-xs font-semibold text-slate-900">
+                Expired or Paused
+              </span>
             </div>
+          )}
+        </div>
           )}
 
           <div className="flex flex-col gap-3 p-5">
