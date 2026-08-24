@@ -92,7 +92,7 @@ function DealModal({ deal, onClose }) {
             className="object-contain"
           />
           {promo && (
-            <span className="absolute left-3 top-3 rounded-full bg-rose-600 px-3 py-1 text-xs font-bold text-white shadow">
+            <span className="absolute left-3 top-3 rounded-full bg-black px-3 py-1 text-xs font-bold text-white shadow">
               {promo}
             </span>
           )}
@@ -194,7 +194,7 @@ export default function DealCard({ deal }) {
           )}
 
           {promo && (
-            <span className="absolute left-3 top-3 rounded-full bg-rose-600 px-3 py-1 text-xs font-bold text-white shadow">
+            <span className="absolute left-3 top-3 rounded-full bg-black px-3 py-1 text-xs font-bold text-white shadow">
               {promo}
             </span>
           )}
@@ -207,23 +207,23 @@ export default function DealCard({ deal }) {
 
           {expired && (
             <div className="absolute inset-0 flex items-center justify-center bg-black/50">
-              <span className="rounded-full bg-white px-3 py-1 text-xs font-semibold text-slate-900">
+              <span className="rounded-full bg-white px-3 py-1 text-xs font-semibold text-black">
                 Expired or Paused
               </span>
             </div>
           )}
         </div>
 
-        <div className="flex flex-1 flex-col gap-2 p-4">
+        <div className="flex flex-1 flex-col gap-1.5 p-4">
           <div className="flex items-center justify-between gap-2">
             <p className="truncate text-xs font-semibold uppercase tracking-wide text-rose-600">
               {merchant_name}
             </p>
           </div>
 
-          <h3 className="line-clamp-2 text-base font-bold text-slate-900">{title}</h3>
+          <h3 className="line-clamp-2 text-base font-medium text-black">{title}</h3>
 
-          <div className="mt-auto flex items-center justify-between pt-2 text-xs font-black text-black">
+          <div className="mt-auto flex items-center justify-between text-xs font-black text-black">
             <span>Valid: {formatDateRange(start_at, end_at)}</span>
             {/* {map && (
               <a
