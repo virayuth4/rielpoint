@@ -1,21 +1,14 @@
 import Image from "next/image";
 
-function formatDateRange(startAt, endAt, options = {}) {
-  const { fallbackOpen = "From", includeYear = false } = options;
-  const dateOpts = { 
-    month: "short", 
-    day: "numeric", 
-    ...(includeYear && { year: "numeric" }) 
-  };
-
-  const start = startAt ? new Date(startAt).toLocaleDateString("en-US", dateOpts) : null;
-  const end = endAt ? new Date(endAt).toLocaleDateString("en-US", dateOpts) : null;
+function formatDateRange(startAt, endAt) {
+  const opts = { month: "short", day: "numeric" };
+  const start = startAt ? new Date(startAt).toLocaleDateString("en-US", opts) : null;
+  const end = endAt ? new Date(endAt).toLocaleDateString("en-US", opts) : null;
 
   if (start && end) return `${start} – ${end}`;
-  if (start && !end) return `From ${start}`; // or simply: `From ${start}`
+  if (start && !end) return `From ${start} (End date not specified)`;
   if (!start && end) return `Until ${end}`;
-  
-  return "Limited time offer"; // safer fallback than "Ongoing"
+  return "Date not specified";
 }
 function isExpired(endAt) {
   if (!endAt) return false;
