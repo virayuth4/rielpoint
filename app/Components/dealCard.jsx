@@ -103,21 +103,21 @@ function DealModal({ deal, onClose }) {
                 {(foodpanda || grabfood) && (
                   <div className="flex items-center gap-1.5 rounded-full ">
                     {foodpanda && (
-                      <Image
-                        src="/foodpanda-icon.png"
-                        alt="foodpanda"
-                        width={24}
-                        height={24}
-                        className="object-contain"
-                      />
+                    <Image
+                      src="/foodpanda-icon.png"
+                      alt="foodpanda"
+                      width={72}
+                      height={72}
+                      className="h-6 w-6 object-contain rounded"
+                    />
                     )}
                     {grabfood && (
                       <Image
                         src="/grabfood-icon.png"
                         alt="GrabFood"
-                        width={24}
-                        height={24}
-                        className="object-contain"
+                        width={72}
+                        height={72}
+                       className="h-6 w-6 object-contain rounded"
                       />
                     )}
                   </div>
@@ -250,18 +250,18 @@ export default function DealCard({ deal }) {
                   <Image
                     src="/foodpanda-icon.png"
                     alt="foodpanda"
-                    width={22}
-                    height={22}
-                    className="object-contain"
+                    width={72}
+                    height={72}
+                    className="h-6 w-6 object-contain rounded"
                   />
                 )}
                 {grabfood && (
                   <Image
                     src="/grabfood-icon.png"
                     alt="GrabFood"
-                    width={22}
-                    height={22}
-                    className="object-contain"
+                    width={72}
+                    height={72}
+                    className="h-6 w-6 object-contain rounded"
                   />
                 )}
               </div>
