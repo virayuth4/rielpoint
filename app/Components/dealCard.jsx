@@ -52,6 +52,8 @@ function DealModal({ deal, onClose }) {
     map,
     created_at,
     terms,
+    foodpanda,
+    grabfood
   } = deal;
 
   const expired = isExpired(end_at);
@@ -91,6 +93,29 @@ function DealModal({ deal, onClose }) {
             sizes="(max-width: 640px) 50vw, 500px"
             className="object-contain"
           />
+         {(foodpanda || grabfood) && (
+            <div className="absolute right-10 top-3 flex flex-col items-center gap-1.5 p-1.5">
+              {foodpanda && (
+                <Image
+                  src="/foodpanda-icon.png"
+                  alt="foodpanda"
+                  width={28}
+                  height={28}
+                  className="object-contain"
+                />
+              )}
+
+              {grabfood && (
+                <Image
+                  src="/grabfood-icon.png"
+                  alt="GrabFood"
+                  width={28}
+                  height={28}
+                  className="object-contain"
+                />
+              )}
+            </div>
+          )}
           {promo && (
             <span className="absolute left-3 top-3 rounded-full bg-black px-3 py-1 text-xs font-bold text-white shadow">
               {promo}
@@ -170,7 +195,7 @@ function DealModal({ deal, onClose }) {
 
 export default function DealCard({ deal }) {
   const [showModal, setShowModal] = useState(false);
-  const { merchant_name, title, promo, image_paths, start_at, end_at, map, created_at } = deal;
+  const { merchant_name, title, promo, image_paths, start_at, end_at, map, created_at , foodpanda, grabfood} = deal;
 
   const expired = isExpired(end_at);
   const image = image_paths?.[0];
@@ -190,6 +215,30 @@ export default function DealCard({ deal }) {
           ) : (
             <div className="flex h-full w-full items-center justify-center text-sm text-slate-400">
               No image
+            </div>
+          )}
+
+            {(foodpanda || grabfood) && (
+            <div className="absolute right-3 top-3 flex flex-col items-center gap-1.5 ">
+              {foodpanda && (
+                <Image
+                  src="/foodpanda-icon.png"
+                  alt="foodpanda"
+                  width={28}
+                  height={28}
+                  className="object-contain"
+                />
+              )}
+
+              {grabfood && (
+                <Image
+                  src="/grabfood-icon.png"
+                  alt="GrabFood"
+                  width={28}
+                  height={28}
+                  className="object-contain"
+                />
+              )}
             </div>
           )}
 
