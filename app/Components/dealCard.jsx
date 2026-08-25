@@ -2,9 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Image from "next/image";
-import {
-  X
-} from "lucide-react"
+import { X } from "lucide-react";
 
 function formatDateRange(startAt, endAt) {
   const opts = { month: "short", day: "numeric" };
@@ -53,18 +51,18 @@ function DealModal({ deal, onClose }) {
     created_at,
     terms,
     foodpanda,
-    grabfood
+    grabfood,
   } = deal;
 
   const expired = isExpired(end_at);
   const images = image_paths?.length ? image_paths : [];
 
   useEffect(() => {
-  window.dispatchEvent(new CustomEvent('toggle-bottom-nav', { detail: { visible: false } }));
-  return () => {
-    window.dispatchEvent(new CustomEvent('toggle-bottom-nav', { detail: { visible: true } }));
-  };
-}, []);
+    window.dispatchEvent(new CustomEvent("toggle-bottom-nav", { detail: { visible: false } }));
+    return () => {
+      window.dispatchEvent(new CustomEvent("toggle-bottom-nav", { detail: { visible: true } }));
+    };
+  }, []);
 
   return (
     <div
@@ -85,50 +83,55 @@ function DealModal({ deal, onClose }) {
 
         <div className="overflow-y-auto">
           {images[0] && (
-           <div className="relative aspect-[9/5] w-full bg-white rounded-xl overflow-hidden">
-          <Image
-            src={images[0]}
-            alt={title}
-            fill
-            sizes="(max-width: 640px) 50vw, 500px"
-            className="object-contain"
-          />
-         {(foodpanda || grabfood) && (
-            <div className="absolute right-10 top-3 flex flex-col items-center gap-1.5 p-1.5">
-              {foodpanda && (
-                <Image
-                  src="/foodpanda-icon.png"
-                  alt="foodpanda"
-                  width={28}
-                  height={28}
-                  className="object-contain"
-                />
-              )}
+            <div className="relative aspect-[9/5] w-full overflow-hidden rounded-xl bg-white">
+              <Image
+                src={images[0]}
+                alt={title}
+                fill
+                sizes="(max-width: 640px) 50vw, 500px"
+                className="object-contain"
+              />
 
-              {grabfood && (
-                <Image
-                  src="/grabfood-icon.png"
-                  alt="GrabFood"
-                  width={28}
-                  height={28}
-                  className="object-contain"
-                />
+              {/* Promo badge and delivery icons stacked in normal flow */}
+              <div className="absolute left-3 top-3 flex flex-col items-start gap-2">
+                {promo && (
+                  <span className="rounded-full bg-black px-3 py-1 text-xs font-bold text-white shadow">
+                    {promo}
+                  </span>
+                )}
+
+                {(foodpanda || grabfood) && (
+                  <div className="flex items-center gap-1.5 rounded-full ">
+                    {foodpanda && (
+                      <Image
+                        src="/foodpanda-icon.png"
+                        alt="foodpanda"
+                        width={24}
+                        height={24}
+                        className="object-contain"
+                      />
+                    )}
+                    {grabfood && (
+                      <Image
+                        src="/grabfood-icon.png"
+                        alt="GrabFood"
+                        width={24}
+                        height={24}
+                        className="object-contain"
+                      />
+                    )}
+                  </div>
+                )}
+              </div>
+
+              {expired && (
+                <div className="absolute inset-0 flex items-center justify-center bg-black/50">
+                  <span className="rounded-full bg-white px-3 py-1 text-xs font-semibold text-slate-900">
+                    Expired or Paused
+                  </span>
+                </div>
               )}
             </div>
-          )}
-          {promo && (
-            <span className="absolute left-3 top-3 rounded-full bg-black px-3 py-1 text-xs font-bold text-white shadow">
-              {promo}
-            </span>
-          )}
-          {expired && (
-            <div className="absolute inset-0 flex items-center justify-center bg-black/50">
-              <span className="rounded-full bg-white px-3 py-1 text-xs font-semibold text-slate-900">
-                Expired or Paused
-              </span>
-            </div>
-          )}
-        </div>
           )}
 
           <div className="flex flex-col gap-3 p-5">
@@ -170,7 +173,12 @@ function DealModal({ deal, onClose }) {
                     key={i}
                     className="relative h-20 w-20 flex-shrink-0 overflow-hidden rounded-lg bg-slate-100"
                   >
-                    <Image src={src} alt={`${title} ${i + 2}`} fill className="object-cover" />
+                    <Image
+                      src={src}
+                      alt={`${title} ${i + 2}`}
+                      fill
+                      className="object-cover"
+                    />
                   </div>
                 ))}
               </div>
@@ -195,7 +203,17 @@ function DealModal({ deal, onClose }) {
 
 export default function DealCard({ deal }) {
   const [showModal, setShowModal] = useState(false);
-  const { merchant_name, title, promo, image_paths, start_at, end_at, map, created_at , foodpanda, grabfood} = deal;
+  const {
+    merchant_name,
+    title,
+    promo,
+    image_paths,
+    start_at,
+    end_at,
+    created_at,
+    foodpanda,
+    grabfood,
+  } = deal;
 
   const expired = isExpired(end_at);
   const image = image_paths?.[0];
@@ -218,38 +236,40 @@ export default function DealCard({ deal }) {
             </div>
           )}
 
+          {/* Promo badge and delivery icons stacked in normal flow */}
+          <div className="absolute left-3 top-3 flex flex-col items-start gap-1.5">
+            {promo && (
+              <span className="rounded-full bg-black px-3 py-1 text-xs font-bold text-white shadow">
+                {promo}
+              </span>
+            )}
+
             {(foodpanda || grabfood) && (
-            <div className="absolute right-3 top-3 flex flex-col items-center gap-1.5 ">
-              {foodpanda && (
-                <Image
-                  src="/foodpanda-icon.png"
-                  alt="foodpanda"
-                  width={28}
-                  height={28}
-                  className="object-contain"
-                />
-              )}
+              <div className="flex items-center gap-1.5 rounded-full ">
+                {foodpanda && (
+                  <Image
+                    src="/foodpanda-icon.png"
+                    alt="foodpanda"
+                    width={22}
+                    height={22}
+                    className="object-contain"
+                  />
+                )}
+                {grabfood && (
+                  <Image
+                    src="/grabfood-icon.png"
+                    alt="GrabFood"
+                    width={22}
+                    height={22}
+                    className="object-contain"
+                  />
+                )}
+              </div>
+            )}
+          </div>
 
-              {grabfood && (
-                <Image
-                  src="/grabfood-icon.png"
-                  alt="GrabFood"
-                  width={28}
-                  height={28}
-                  className="object-contain"
-                />
-              )}
-            </div>
-          )}
-
-          {promo && (
-            <span className="absolute left-3 top-3 rounded-full bg-black px-3 py-1 text-xs font-bold text-white shadow">
-              {promo}
-            </span>
-          )}
-
-          <div className="absolute inset-0 flex items-center justify-center">
-            <span className="absolute left-3 bottom-3 rounded-full bg-white px-3 py-1 text-xs font-bold text-black">
+          <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+            <span className="absolute bottom-3 left-3 rounded-full bg-white px-3 py-1 text-xs font-bold text-black shadow-sm">
               {formatPostedDate(created_at)}
             </span>
           </div>
@@ -270,32 +290,26 @@ export default function DealCard({ deal }) {
             </p>
           </div>
 
-          <h3 className="line-clamp-2 text-base font-medium text-black">{title}</h3>
+          <h3 className="line-clamp-2 text-base font-medium text-black">
+            {title}
+          </h3>
 
           <div className="mt-auto flex items-center justify-between text-xs font-black text-black">
             <span>Valid: {formatDateRange(start_at, end_at)}</span>
-            {/* {map && (
-              <a
-                href={map}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="font-medium text-rose-600 hover:underline"
-              >
-                Map
-              </a>
-            )} */}
           </div>
 
           <button
             onClick={() => setShowModal(true)}
-            className="mt-2 w-full rounded-full border border-black py-2 text-xs font-semibold text-black transition hover:border-black/900 "
+            className="mt-2 w-full rounded-full border border-black py-2 text-xs font-semibold text-black transition hover:bg-black hover:text-white"
           >
             View more
           </button>
         </div>
       </div>
 
-      {showModal && <DealModal deal={deal} onClose={() => setShowModal(false)} />}
+      {showModal && (
+        <DealModal deal={deal} onClose={() => setShowModal(false)} />
+      )}
     </>
   );
 }

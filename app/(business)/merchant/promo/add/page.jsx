@@ -26,6 +26,8 @@ export default function AddPromoPage() {
   const [map, setMap] = useState("");
   const [startAt, setStartAt] = useState("");
   const [endAt, setEndAt] = useState("");
+  const [foodpanda, setFoodpanda] = useState(false);
+  const [grabfood, setGrabfood] = useState(false);
 
   const [merchants, setMerchants] = useState([]);
   const [merchantName, setMerchantName] = useState("");
@@ -76,6 +78,8 @@ export default function AddPromoPage() {
         setMap(promoData.map || "");
         setIsInternational(Boolean(promoData.is_international));
         setTerms(promoData.terms || "");
+        setFoodpanda(Boolean(promoData.foodpanda));
+        setGrabfood(Boolean(promoData.grabfood));
 
         setStartAt(
           promoData.start_at ? promoData.start_at.slice(0, 10) : ""
@@ -195,6 +199,8 @@ export default function AddPromoPage() {
     setEndAt("");
     setImages([]);
     setExistingImages([]);
+    setFoodpanda(false);
+    setGrabfood(false);
   }
 
   async function handleSubmit(e) {
@@ -212,6 +218,8 @@ export default function AddPromoPage() {
     formData.append("map", map);
     formData.append("promo", promo.trim());
     formData.append("is_international", isInternational);
+    formData.append("foodpanda", foodpanda);
+    formData.append("grabfood", grabfood);
 
     if (terms.trim()) {
       formData.append("terms", terms.trim());
@@ -414,6 +422,39 @@ export default function AddPromoPage() {
 
             <p className="mt-1 text-xs text-slate-400">
               Enter the promotion exactly as you want it displayed.
+            </p>
+          </div>
+
+                    {/* Delivery platforms */}
+          <div>
+            <label className="block text-sm font-medium text-slate-700">
+              Delivery platforms
+            </label>
+
+            <div className="mt-1.5 flex gap-4">
+              <label className="flex items-center gap-2 rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-700 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={foodpanda}
+                  onChange={(e) => setFoodpanda(e.target.checked)}
+                  className="h-4 w-4 rounded border-slate-300 text-slate-900 focus:ring-slate-400"
+                />
+                Foodpanda
+              </label>
+
+              <label className="flex items-center gap-2 rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-700 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={grabfood}
+                  onChange={(e) => setGrabfood(e.target.checked)}
+                  className="h-4 w-4 rounded border-slate-300 text-slate-900 focus:ring-slate-400"
+                />
+                GrabFood
+              </label>
+            </div>
+
+            <p className="mt-1 text-xs text-slate-400">
+              Select any platforms this promo is available on.
             </p>
           </div>
 
