@@ -10,8 +10,8 @@ async function getDeals() {
   }
 
   try {
-    const res = await fetch(`${backendUrl}/api/merchant/promos`, {
-      next: { revalidate: 60 },
+    const res = await fetch(`${backendUrl}/api/merchant/promos/v2`, {
+      next: { revalidate: 1800 },
     });
 
     if (!res.ok) {
