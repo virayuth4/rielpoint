@@ -23,7 +23,6 @@ export default function HotelsClient({ hotels }) {
 
   const categories = useMemo(() => {
     const set = new Set(hotelsWithCity.map((h) => h.city));
-    // Keep a stable, sensible order: known cities first, then "Other" if present
     const ordered = CITIES.filter((c) => set.has(c));
     if (set.has("Other")) ordered.push("Other");
     return ["all", ...ordered];
@@ -33,6 +32,17 @@ export default function HotelsClient({ hotels }) {
     if (activeCategory === "all") return hotelsWithCity;
     return hotelsWithCity.filter((h) => h.city === activeCategory);
   }, [hotelsWithCity, activeCategory]);
+
+  const cityGroups = useMemo(() => {
+    if (activeCategory !== "all") return [];
+    return categories
+      .filter((c) => c !== "all")
+      .map((city) => ({
+        city,
+        hotels: filtered.filter((h) => h.city === city),
+      }))
+      .filter((group) => group.hotels.length > 0);
+  }, [categories, filtered, activeCategory]);
 
   return (
     <div>
@@ -52,14 +62,34 @@ export default function HotelsClient({ hotels }) {
         ))}
       </div>
 
-      {filtered.length > 0 ? (
-        <div className="grid grid-cols-2 gap-x-5 gap-y-8 sm:grid-cols-3 lg:grid-cols-4">
-          {filtered.map((hotel) => (
-            <OfferCard key={hotel.id} offer={hotel} />
+      {filtered.length === 0 ? (
+        <p className="text-sm text-slate-500">No hotels in this category right now.</p>
+      ) : activeCategory === "all" ? (
+        <div className="space-y-10">
+          {cityGroups.map(({ city, hotels: cityHotels }) => (
+            <div key={city}>
+              <h2 className="mb-4 text-xl font-black text-black ">
+                {city}
+              </h2>
+              <div className="grid grid-cols-2 gap-x-5 gap-y-8 sm:grid-cols-3 lg:grid-cols-4">
+                {cityHotels.map((hotel) => (
+                  <OfferCard key={hotel.id} offer={hotel} />
+                ))}
+              </div>
+            </div>
           ))}
         </div>
       ) : (
-        <p className="text-sm text-slate-500">No hotels in this category right now.</p>
+        <div>
+          <h2 className="mb-4 text-lg font-semibold text-slate-900">
+            {activeCategory}
+          </h2>
+          <div className="grid grid-cols-2 gap-x-5 gap-y-8 sm:grid-cols-3 lg:grid-cols-4">
+            {filtered.map((hotel) => (
+              <OfferCard key={hotel.id} offer={hotel} />
+            ))}
+          </div>
+        </div>
       )}
     </div>
   );
