@@ -7,6 +7,9 @@ import authenticatedFetch from '../auth/authenticatedFetch';
 import { AuthContext } from '../auth/authContext';
 
 // --- mapping helpers -------------------------------------------------
+function cashbackLabelFor(status) {
+  return status === 'pending' ? 'Potential cashback' : 'Cashback';
+}
 
 function initialFor(name) {
   return (name || '?').trim().charAt(0).toUpperCase();
@@ -215,14 +218,24 @@ export default function WalletPage() {
                       </div>
                     </div>
 
-                    <div className="text-right">
-                      <p className="text-sm font-medium" style={{ color: '#1F5C3F' }}>
-                        {item.cashbackAmount != null ? `+${formatCurrency(item.cashbackAmount, item.currency)}` : ''}
+                  <div className="text-right">
+                    {item.status === 'pending' && (
+                      <p className="text-[10px] font-medium mb-0.5" style={{ color: '#B08900' }}>
+                        Potential cashback
                       </p>
-                      <p className="text-[11px] capitalize" style={{ color: statusColorFor(item.status) }}>
-                        {item.status}
+                    )}
+                    <p className="text-sm font-medium" style={{ color: item.status === 'pending' ? '#B08900' : '#1F5C3F' }}>
+                      {item.cashbackAmount != null ? `+${formatCurrency(item.cashbackAmount, item.currency)}` : ''}
+                    </p>
+                    <p className="text-[11px] capitalize" style={{ color: statusColorFor(item.status) }}>
+                      {item.status}
+                    </p>
+                    {item.status === 'pending' && (
+                      <p className="text-[10px] leading-tight mt-0.5 max-w-[110px] ml-auto" style={{ color: '#9A9A9A' }}>
+                        Estimate — not yet confirmed by merchant
                       </p>
-                    </div>
+                    )}
+                  </div>
                   </div>
                 ))}
 

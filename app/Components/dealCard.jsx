@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Image from "next/image";
-import { X } from "lucide-react";
+import { X, Instagram, Facebook, Globe, ExternalLink } from "lucide-react";
 
 function formatDateRange(startAt, endAt) {
   const opts = { month: "short", day: "numeric" };
@@ -37,6 +37,85 @@ function formatPostedDate(createdAt) {
   })}`;
 }
 
+// Lucide doesn't ship a TikTok glyph, so a tiny inline SVG covers it.
+function TiktokIcon({ className }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="currentColor"
+      className={className}
+      aria-hidden="true"
+    >
+      <path d="M16.6 5.82a4.3 4.3 0 0 1-.32-.32A4.85 4.85 0 0 1 15.15 3H12.2v13.19a2.86 2.86 0 1 1-2.02-2.74v-3a5.86 5.86 0 1 0 5.02 5.8V9.4a8.16 8.16 0 0 0 4.4 1.28V7.6a4.85 4.85 0 0 1-2.99-1.78Z" />
+    </svg>
+  );
+}
+
+// Maps a redirect_source value to display label + icon + brand color.
+function getSourceMeta(source) {
+  const key = (source || "").toLowerCase();
+
+  switch (key) {
+    case "instagram":
+      return { label: "Instagram", Icon: Instagram, className: "text-pink-600" };
+    case "tiktok":
+      return { label: "TikTok", Icon: TiktokIcon, className: "text-black" };
+    case "facebook":
+      return { label: "Facebook", Icon: Facebook, className: "text-blue-600" };
+    case "website":
+      return { label: "Website", Icon: Globe, className: "text-slate-600" };
+    case "foodpanda":
+      return { label: "Foodpanda", Icon: null, image: "/foodpanda-icon.png" };
+    case "grab":
+    case "grabfood":
+      return { label: "GrabFood", Icon: null, image: "/grabfood-icon.png" };
+    default:
+      return { label: "View deal", Icon: ExternalLink, className: "text-slate-600" };
+  }
+}
+
+function RedirectButton({ redirectUrl, redirectSource, variant = "full" }) {
+  if (!redirectUrl) return null;
+  const { label, Icon, image, className } = getSourceMeta(redirectSource);
+
+  if (variant === "icon") {
+    // Compact circular icon button, used on the card thumbnail.
+    return (
+      <a
+        href={redirectUrl}
+        target="_blank"
+        rel="noopener noreferrer"
+        onClick={(e) => e.stopPropagation()}
+        aria-label={label}
+        className="flex h-8 w-8 items-center justify-center rounded-full bg-white/90 shadow backdrop-blur hover:bg-white"
+      >
+        {image ? (
+          <Image src={image} alt={label} width={20} height={20} className="h-5 w-5 object-contain rounded" />
+        ) : (
+          <Icon className={`h-4 w-4 ${className}`} />
+        )}
+      </a>
+    );
+  }
+
+  // Full-width button, used in the modal.
+  return (
+    <a
+      href={redirectUrl}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="mt-1 inline-flex w-fit items-center gap-1.5 rounded-full bg-black px-4 py-2 text-xs font-semibold text-white hover:bg-black/90"
+    >
+      {image ? (
+        <Image src={image} alt={label} width={16} height={16} className="h-4 w-4 object-contain rounded" />
+      ) : (
+        <Icon className="h-4 w-4" />
+      )}
+      {label}
+    </a>
+  );
+}
+
 function DealModal({ deal, onClose }) {
   const {
     merchant_name,
@@ -52,6 +131,8 @@ function DealModal({ deal, onClose }) {
     terms,
     foodpanda,
     grabfood,
+    redirect_url,
+    redirect_source,
   } = deal;
 
   const expired = isExpired(end_at);
@@ -184,16 +265,20 @@ function DealModal({ deal, onClose }) {
               </div>
             )}
 
-            {map && (
-              <a
-                href={map}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="mt-1 inline-flex w-fit items-center gap-1 rounded-full bg-black px-4 py-2 text-xs font-semibold text-white hover:bg-black/90"
-              >
-                Open in Maps
-              </a>
-            )}
+            <div className="flex flex-wrap items-center gap-2">
+              {map && (
+                <a
+                  href={map}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="mt-1 inline-flex w-fit items-center gap-1 rounded-full bg-black px-4 py-2 text-xs font-semibold text-white hover:bg-black/90"
+                >
+                  Open in Maps
+                </a>
+              )}
+
+              <RedirectButton redirectUrl={redirect_url} redirectSource={redirect_source} />
+            </div>
           </div>
         </div>
       </div>
@@ -213,6 +298,8 @@ export default function DealCard({ deal }) {
     created_at,
     foodpanda,
     grabfood,
+    redirect_url,
+    redirect_source,
   } = deal;
 
   const expired = isExpired(end_at);
@@ -266,6 +353,11 @@ export default function DealCard({ deal }) {
                 )}
               </div>
             )}
+          </div>
+
+          {/* Redirect shortcut, top-right of the thumbnail */}
+          <div className="absolute right-3 top-3">
+            <RedirectButton redirectUrl={redirect_url} redirectSource={redirect_source} variant="icon" />
           </div>
 
           <div className="absolute inset-0 flex items-center justify-center pointer-events-none">

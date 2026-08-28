@@ -28,6 +28,8 @@ export default function AddPromoPage() {
   const [endAt, setEndAt] = useState("");
   const [foodpanda, setFoodpanda] = useState(false);
   const [grabfood, setGrabfood] = useState(false);
+  const [redirectSource, setRedirectSource] = useState("");
+  const [redirectUrl, setRedirectUrl] = useState("");
 
   const [merchants, setMerchants] = useState([]);
   const [merchantName, setMerchantName] = useState("");
@@ -80,6 +82,8 @@ export default function AddPromoPage() {
         setTerms(promoData.terms || "");
         setFoodpanda(Boolean(promoData.foodpanda));
         setGrabfood(Boolean(promoData.grabfood));
+        setRedirectSource(promoData.redirect_source || "");
+        setRedirectUrl(promoData.redirect_url || "");
 
         setStartAt(
           promoData.start_at ? promoData.start_at.slice(0, 10) : ""
@@ -201,6 +205,8 @@ export default function AddPromoPage() {
     setExistingImages([]);
     setFoodpanda(false);
     setGrabfood(false);
+    setRedirectSource("");
+    setRedirectUrl("");
   }
 
   async function handleSubmit(e) {
@@ -233,9 +239,19 @@ export default function AddPromoPage() {
       formData.append("end_at", endAt);
     }
 
+    if (redirectSource) {
+  formData.append("redirect_source", redirectSource);
+}
+
+    if (redirectUrl.trim()) {
+      formData.append("redirect_url", redirectUrl.trim());
+    }
+
     images.forEach((img) => {
       formData.append("images", img.file);
     });
+
+    
 
     if (isEditMode) {
       formData.append(
@@ -243,6 +259,7 @@ export default function AddPromoPage() {
         JSON.stringify(existingImages)
       );
     }
+    
 
     try {
       const url = isEditMode
@@ -255,6 +272,7 @@ export default function AddPromoPage() {
       });
 
       const json = await res.json().catch(() => null);
+      console.log("data", res.json)
 
       if (!res.ok) {
         throw new Error(
@@ -556,6 +574,57 @@ export default function AddPromoPage() {
               />
             </div>
           </div>
+
+          {/* Redirect */}
+<div>
+  <label
+    htmlFor="redirect_source"
+    className="block text-sm font-medium text-slate-700"
+  >
+    Redirect source
+  </label>
+
+  <select
+    id="redirect_source"
+    value={redirectSource}
+    onChange={(e) => setRedirectSource(e.target.value)}
+    className="mt-1.5 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 focus:border-slate-500 focus:outline-none focus:ring-2 focus:ring-slate-200"
+  >
+    <option value="">None</option>
+    <option value="Instagram">Instagram</option>
+    <option value="Facebook">Facebook</option>
+    <option value="Tiktok">Tiktok</option>
+    <option value="Website">Website</option>
+    <option value="Foodpanda">Foodpanda</option>
+    <option value="Grab">Grab</option>
+  </select>
+
+  <p className="mt-1 text-xs text-slate-400">
+    Optional: Where should this promo redirect users to?
+  </p>
+</div>
+
+<div>
+  <label
+    htmlFor="redirect_url"
+    className="block text-sm font-medium text-slate-700"
+  >
+    Redirect URL
+  </label>
+
+  <input
+    id="redirect_url"
+    type="url"
+    value={redirectUrl}
+    onChange={(e) => setRedirectUrl(e.target.value)}
+    placeholder="https://..."
+    className="mt-1.5 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:border-slate-500 focus:outline-none focus:ring-2 focus:ring-slate-200"
+  />
+
+  <p className="mt-1 text-xs text-slate-400">
+    Optional: Link users will be sent to.
+  </p>
+</div>
 
           {/* Terms */}
           <div>
