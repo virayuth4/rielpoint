@@ -77,9 +77,9 @@ function getSourceMeta(source) {
 function RedirectButton({ redirectUrl, redirectSource, variant = "full" }) {
   if (!redirectUrl) return null;
   const { label, Icon, image, className } = getSourceMeta(redirectSource);
+  const IconComponent = Icon || ExternalLink; // guard against a bad/undefined icon
 
   if (variant === "icon") {
-    // Compact circular icon button, used on the card thumbnail.
     return (
       <a
         href={redirectUrl}
@@ -92,13 +92,12 @@ function RedirectButton({ redirectUrl, redirectSource, variant = "full" }) {
         {image ? (
           <Image src={image} alt={label} width={20} height={20} className="h-5 w-5 object-contain rounded" />
         ) : (
-          <Icon className={`h-4 w-4 ${className}`} />
+          <IconComponent className={`h-4 w-4 ${className}`} />
         )}
       </a>
     );
   }
 
-  // Full-width button, used in the modal.
   return (
     <a
       href={redirectUrl}
@@ -109,7 +108,7 @@ function RedirectButton({ redirectUrl, redirectSource, variant = "full" }) {
       {image ? (
         <Image src={image} alt={label} width={16} height={16} className="h-4 w-4 object-contain rounded" />
       ) : (
-        <Icon className="h-4 w-4" />
+        <IconComponent className="h-4 w-4" />
       )}
       {label}
     </a>
