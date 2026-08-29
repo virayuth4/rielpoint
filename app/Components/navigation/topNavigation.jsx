@@ -17,7 +17,7 @@ const shopBackFont = Montserrat({
 
 const mobileLinks = [
   { href: "/", label: "Cashback", icon: Tag },
-  { href: "/deals", label: "Deals", icon: Flame, isHighlighted: true },
+  // { href: "/deals", label: "Deals", icon: Flame, isHighlighted: true },
   { href: "/hotels", label: "Hotels", icon: Tag },
   { href: "/info", label: "Info", icon: Info },
   { href: "/wallet", label: "Wallet", icon: Wallet },

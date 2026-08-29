@@ -26,7 +26,7 @@ const subLabel = 'text-[8px] tracking-[0.06em] uppercase font-normal'
 
 const TABS_LEFT = [
   { label: 'Home', href: '/', icon: Home },
-  { label: 'Deals', href: '/deals', icon: DollarSign },
+  // { label: 'Deals', href: '/deals', icon: DollarSign },
 ]
 
 const TABS_RIGHT = [
