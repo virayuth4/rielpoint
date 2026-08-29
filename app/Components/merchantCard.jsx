@@ -54,7 +54,7 @@ export default function MerchantCard({ merchant }) {
         )}
 
         <div className="mt-3 flex w-full items-center justify-center gap-1.5 rounded-2xl bg-black py-2.5 text-xs font-semibold text-white transition-all duration-150 group-hover:bg-black/90"> 
-        View offer
+        Earn cashback
         <span className="text-sm">→</span> </div>
 
         {merchant.description && (
