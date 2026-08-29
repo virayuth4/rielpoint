@@ -187,12 +187,14 @@ useEffect(() => {
                 )}
               </div>
             </div>
+            
 
-          {/* How to Earn Cashback Instructions */}
+        {/* How to Earn Cashback Instructions */}
 <div className="my-5">
   <h5 className="mb-3 text-xs font-bold tracking-wider text-black uppercase">
     How to earn cashback
   </h5>
+
   <ol className="space-y-3 text-sm text-black">
     <li className="flex items-start gap-2.5">
       <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-slate-100 text-xs font-bold text-black">
@@ -223,6 +225,26 @@ useEffect(() => {
       <span>We&apos;ll track your order automatically and credit cashback to your account.</span>
     </li>
   </ol>
+
+  {/* Critical tracking warning */}
+  <div className="mt-4 flex items-start gap-2 rounded-lg bg-amber-50 border border-amber-100 px-3 py-2.5">
+    <svg
+      className="h-4 w-4 shrink-0 text-amber-500 mt-0.5"
+      fill="none"
+      viewBox="0 0 24 24"
+      strokeWidth={2}
+      stroke="currentColor"
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        d="M11.25 11.25l.041-.02a.75.75 0 011.063.852l-.708 2.836a.75.75 0 001.063.853l.041-.021M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9-3.75h.008v.008H12V8.25z"
+      />
+    </svg>
+    <p className="text-xs text-amber-800 leading-snug">
+      <span className="font-semibold">Important:</span> Always click through from RielPoint right before each purchase — don&apos;t reuse a partner tab or a link from your history/bookmarks. If you already have {merchantName} {" "}open from an earlier visit, close it and click &quot;Continue to Partner Site&quot; again, or your cashback may not be tracked.
+    </p>
+  </div>
 </div>
 
             {/* Redirection Notice & Action Buttons */}

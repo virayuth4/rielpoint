@@ -1,374 +1,223 @@
-'use client';
+"use client";
 
-import { useEffect, useMemo, useState } from 'react';
-import { Inter, Space_Mono } from 'next/font/google';
-import authenticatedFetch from '@/app/auth/authenticatedFetch';
+import { useEffect, useState, useCallback } from "react";
+import authenticatedFetch from "@/app/auth/authenticatedFetch";
+import StatusUpdateModal from "./statusUpdateModal";
 
-const inter = Inter({
-  subsets: ['latin'],
-  weight: ['400', '500', '600'],
-  variable: '--font-body',
-});
+function formatCurrency(amount, currency) {
+  const value = Number(amount);
+  if (currency === "KHR") {
+    return `${value.toLocaleString("en-US")} ៛`;
+  }
+  return value.toLocaleString("en-US", {
+    style: "currency",
+    currency: "USD",
+  });
+}
 
-const mono = Space_Mono({
-  subsets: ['latin'],
-  weight: ['400', '700'],
-  variable: '--font-mono',
-});
+function formatDate(dateStr) {
+  return new Date(dateStr).toLocaleString("en-US", {
+    dateStyle: "medium",
+    timeStyle: "short",
+  });
+}
 
-export default function CreditCashbackPage() {
-  const [phone, setPhone] = useState('');
-  const [externalTransactionId, setExternalTransactionId] = useState('');
-  const [orderAmount, setOrderAmount] = useState('');
-  const [currency, setCurrency] = useState('USD');
-  const [commission, setCommission] = useState('');
-  const [cashbackRate, setCashbackRate] = useState('');
-  const [clickId, setClickId] = useState('');
-  const [result, setResult] = useState(null);
-  const [isSubmitting, setIsSubmitting] = useState(false);
+const STATUS_STYLES = {
+  confirmed: "bg-green-100 text-green-700 ring-1 ring-green-600/20",
+  pending: "bg-amber-100 text-amber-700 ring-1 ring-amber-600/20",
+  rejected: "bg-red-100 text-red-700 ring-1 ring-red-600/20",
+};
+
+function StatusBadge({ status }) {
+  const style =
+    STATUS_STYLES[status] ??
+    "bg-gray-100 text-gray-700 ring-1 ring-gray-600/20";
+  return (
+    <span
+      className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium capitalize ${style}`}
+    >
+      {status}
+    </span>
+  );
+}
+
+export default function CashbackTransactionsPage() {
+  const [transactions, setTransactions] = useState([]);
+  const [balance, setBalance] = useState(0);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [merchants, setMerchants] = useState([]);
-  const [merchantId, setMerchantId] = useState('');
+  const [editingTx, setEditingTx] = useState(null);
 
-  const numericOrderAmount = Number(orderAmount);
-  const numericCommission = Number(commission);
-  const numericCashbackRate = Number(cashbackRate);
-
-  useEffect(() => {
-    async function loadMerchants() {
-      try {
-        const res = await authenticatedFetch(
-          `${process.env.NEXT_PUBLIC_BACKEND}/api/merchant/affiliate/merchants`,
-          { method: 'GET' }
-        );
-        const json = await res.json();
-        setMerchants(json.data || []);
-      } catch (err) {
-        console.error('Failed to load merchants:', err);
-      }
-    }
-    loadMerchants();
-  }, []);
-
-  const isValid =
-    merchantId.trim().length > 0 &&
-    phone.trim().length >= 8 &&
-    externalTransactionId.trim().length > 0 &&
-    numericOrderAmount > 0 &&
-    numericCommission >= 0 &&
-    cashbackRate.trim().length > 0 &&
-    numericCashbackRate >= 0 &&
-    numericCashbackRate <= 100;
-
-  // Live preview only — server recomputes this independently and is authoritative.
-  const cashbackPreview = useMemo(() => {
-    if (!numericCommission || numericCommission <= 0 || !numericCashbackRate || numericCashbackRate < 0) return 0;
-    return Math.round(numericCommission * (numericCashbackRate / 100) * 100) / 100;
-  }, [numericCommission, numericCashbackRate]);
-
-  const handleCredit = async () => {
-    if (!isValid || isSubmitting) return;
-
-    setIsSubmitting(true);
+  const fetchTransactions = useCallback(async () => {
+    setLoading(true);
     setError(null);
-
     try {
-      const response = await authenticatedFetch(
-        `${process.env.NEXT_PUBLIC_BACKEND}/api/merchant/cashback/add`,
-        {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            merchantId,
-            phone: phone.trim(),
-            externalTransactionId: externalTransactionId.trim(),
-            orderAmount: numericOrderAmount,
-            currency,
-            commission: numericCommission,
-            cashbackRate: numericCashbackRate,
-            clickId: clickId.trim() || undefined,
-          }),
-        }
+      const res = await authenticatedFetch(
+        `${process.env.NEXT_PUBLIC_BACKEND}/api/merchant/cashback/transactions/all`
       );
 
-      if (!response.ok) {
-        const errData = await response.json().catch(() => null);
-        throw new Error(errData?.message || 'Failed to credit cashback');
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        throw new Error(body?.message || "Failed to load transactions.");
       }
 
-      const data = await response.json();
-
-      setResult({
-        merchantId,
-        userName: data.userName ?? 'Customer',
-        phone,
-        externalTransactionId: data.transactionId ? externalTransactionId : externalTransactionId,
-        orderAmount: data.orderAmount,
-        currency: data.currency,
-        commission: data.commission,
-        cashbackRate: data.cashbackRate,
-        cashbackAmount: data.cashbackAmount,
-        status: data.status,
-        idempotent: data.idempotent ?? false,
-      });
+      const data = await res.json();
+      setTransactions(data.transactions);
+      setBalance(data.balance);
     } catch (err) {
-      setError(err.message || 'Something went wrong. Please try again.');
+      setError(err instanceof Error ? err.message : "Something went wrong.");
     } finally {
-      setIsSubmitting(false);
+      setLoading(false);
     }
-  };
+  }, []);
 
-  const handleReset = () => {
-    setPhone('');
-    setExternalTransactionId('');
-    setOrderAmount('');
-    setCurrency('USD');
-    setCommission('');
-    setCashbackRate('');
-    setClickId('');
-    setResult(null);
-    setError(null);
-  };
+  useEffect(() => {
+    fetchTransactions();
+  }, [fetchTransactions]);
+
+  function handleStatusUpdated(updatedTx) {
+    setTransactions((prev) =>
+      prev.map((t) => (t.id === updatedTx.id ? { ...t, ...updatedTx } : t))
+    );
+  }
 
   return (
-    <main className={`${inter.variable} ${mono.variable} min-h-screen bg-white font-sans`}>
-      <div className="mx-auto max-w-md px-6 pt-10 pb-20">
-        <p className="mb-6 text-[11px] font-semibold uppercase tracking-[0.18em] text-neutral-400">
-          Merchant
-        </p>
+    <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <h1 className="text-2xl font-semibold text-gray-900">
+            Cashback Transactions
+          </h1>
+          <p className="mt-1 text-sm text-gray-500">
+            A history of cashback earned from your purchases.
+          </p>
+        </div>
 
-        <h1 className="mb-2 text-2xl font-semibold text-black">Credit cashback</h1>
-        <p className="mb-8 text-sm text-neutral-500">
-          Enter the order details to credit cashback to a customer. Cashback
-          starts as <span className="font-medium text-black">pending</span> and is
-          confirmed separately.
-        </p>
+        <div className="rounded-xl bg-gray-900 px-5 py-4 text-white shadow-sm">
+          <p className="text-xs uppercase tracking-wide text-gray-300">
+            Confirmed balance
+          </p>
+          <p className="mt-1 text-xl font-semibold">
+            {loading ? "—" : formatCurrency(balance, "USD")}
+          </p>
+        </div>
+      </div>
 
-        {!result ? (
-          <div className="border border-neutral-200 bg-white px-5 py-6">
-            {/* Merchant */}
-            <label htmlFor="merchant_id" className="mb-1 block text-sm font-medium text-slate-700">
-              Merchant
-            </label>
-            <select
-              id="merchant_id"
-              required
-              value={merchantId}
-              onChange={(e) => setMerchantId(e.target.value)}
-              className="mb-5 mt-1.5 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 focus:border-slate-500 focus:outline-none focus:ring-2 focus:ring-slate-200"
-            >
-              <option value="" disabled>Select a merchant</option>
-              {merchants.map((m) => (
-                <option key={m.id} value={m.id}>
-                  {m.name}
-                </option>
-              ))}
-            </select>
-
-            {/* Phone Number */}
-            <label className="mb-1 block text-xs font-medium text-neutral-500">
-              Customer phone number
-            </label>
-            <input
-              type="tel"
-              value={phone}
-              onChange={(e) => setPhone(e.target.value.replace(/[^0-9]/g, ''))}
-              placeholder="0977 123 456"
-              className="mb-5 w-full border border-neutral-200 px-4 py-3 font-mono text-base md:text-sm text-black outline-none focus:border-black"
-            />
-
-            {/* External Transaction ID */}
-            <label className="mb-1 block text-xs font-medium text-neutral-500">
-              Order / transaction ID
-            </label>
-            <input
-              type="text"
-              value={externalTransactionId}
-              onChange={(e) => setExternalTransactionId(e.target.value)}
-              placeholder="e.g. invoice or POS reference"
-              className="mb-5 w-full border border-neutral-200 px-4 py-3 font-mono text-base md:text-sm text-black outline-none focus:border-black"
-            />
-            <p className="-mt-4 mb-5 text-[11px] text-neutral-400">
-              Re-submitting the same ID won&apos;t double-credit — it returns the original entry.
-            </p>
-
-              {/* Click ID (optional) */}
-            <label className="mb-1 block text-xs font-medium text-neutral-500">
-              Click ID <span className="text-neutral-400">(optional)</span>
-            </label>
-            <input
-              type="text"
-              value={clickId}
-              onChange={(e) => setClickId(e.target.value)}
-              placeholder="Only if this order came from a tracked link"
-              className="mb-5 w-full border border-neutral-200 px-4 py-3 font-mono text-base md:text-sm text-black outline-none focus:border-black"
-            />
-
-            {/* Currency Selector */}
-            <div className="mb-1.5 flex items-center justify-between">
-              <label className="text-xs font-medium text-neutral-500">
-                Order amount ({currency})
-              </label>
-              <div className="flex gap-1 bg-neutral-100 p-0.5 text-xs font-medium">
-                <button
-                  type="button"
-                  onClick={() => setCurrency('USD')}
-                  className={`px-2.5 py-1 transition-colors ${
-                    currency === 'USD'
-                      ? 'bg-black font-semibold text-white'
-                      : 'text-neutral-500 hover:text-black'
-                  }`}
-                >
-                  $ USD
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setCurrency('KHR')}
-                  className={`px-2.5 py-1 transition-colors ${
-                    currency === 'KHR'
-                      ? 'bg-black font-semibold text-white'
-                      : 'text-neutral-500 hover:text-black'
-                  }`}
-                >
-                  ៛ KHR
-                </button>
-              </div>
-            </div>
-
-            {/* Order Amount */}
-            <input
-              type="number"
-              value={orderAmount}
-              onChange={(e) => setOrderAmount(e.target.value)}
-              placeholder={currency === 'USD' ? '50.00' : '200050'}
-              min="0"
-              step={currency === 'USD' ? '0.01' : '100'}
-              className="mb-5 w-full border border-neutral-200 px-4 py-3 font-mono text-base md:text-sm text-black outline-none focus:border-black"
-            />
-
-            {/* Commission */}
-            <label className="mb-1 block text-xs font-medium text-neutral-500">
-              Commission earned ({currency})
-            </label>
-            <input
-              type="number"
-              value={commission}
-              onChange={(e) => setCommission(e.target.value)}
-              placeholder={currency === 'USD' ? '5.00' : '20005'}
-              min="0"
-              step={currency === 'USD' ? '0.01' : '100'}
-              className="mb-5 w-full border border-neutral-200 px-4 py-3 font-mono text-base md:text-sm text-black outline-none focus:border-black"
-            />
-
-          
-
-            {/* Cashback Rate Input */}
-            <label className="mb-1 block text-xs font-medium text-neutral-500">
-              Cashback rate (% of commission)
-            </label>
-            <div className="relative mb-6">
-              <input
-                type="number"
-                value={cashbackRate}
-                onChange={(e) => setCashbackRate(e.target.value)}
-                placeholder="e.g. 15"
-                min="0"
-                max="100"
-                step="0.1"
-                className="w-full border border-neutral-200 px-4 py-3 pr-8 font-mono text-base md:text-sm text-black outline-none focus:border-black"
-              />
-              <span className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 font-mono text-sm text-neutral-400">
-                %
-              </span>
-            </div>
-
-            {/* Cashback Preview */}
-            <div className="mb-6 flex items-center justify-between border border-neutral-200 bg-neutral-50 px-4 py-3">
-              <span className="text-xs text-neutral-500">Cashback to credit</span>
-              <span className="font-mono text-lg font-semibold text-black">
-                {currency === 'USD' ? '$' : '៛'}
-                {cashbackPreview.toLocaleString()}
-              </span>
-            </div>
-
-            {error && (
-              <div className="mb-4 flex items-start gap-2 border border-black px-4 py-3 text-xs font-medium text-black">
-                <span aria-hidden="true">⚠</span>
-                <span>{error}</span>
-              </div>
-            )}
-
+      <div className="mt-6 overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
+        {loading ? (
+          <div className="flex items-center justify-center py-16 text-sm text-gray-500">
+            Loading transactions…
+          </div>
+        ) : error ? (
+          <div className="flex flex-col items-center justify-center gap-3 py-16 text-center">
+            <p className="text-sm text-red-600">{error}</p>
             <button
-              onClick={handleCredit}
-              disabled={!isValid || isSubmitting}
-              className={`w-full bg-black py-3 text-sm font-semibold text-white transition-opacity ${
-                isValid && !isSubmitting ? 'opacity-100' : 'opacity-40'
-              }`}
+              onClick={fetchTransactions}
+              className="rounded-md bg-gray-900 px-3 py-1.5 text-sm font-medium text-white hover:bg-gray-800"
             >
-              {isSubmitting ? 'Crediting...' : error ? 'Retry' : 'Credit cashback'}
+              Try again
             </button>
           </div>
+        ) : transactions.length === 0 ? (
+          <div className="flex flex-col items-center justify-center gap-1 py-16 text-center">
+            <p className="text-sm font-medium text-gray-900">
+              No cashback transactions yet
+            </p>
+            <p className="text-sm text-gray-500">
+              Your cashback history will show up here once you start earning.
+            </p>
+          </div>
         ) : (
-          /* Result View */
-          <div className="border border-neutral-200 bg-white px-5 py-6">
-            <div className="mb-5 flex items-center justify-between">
-              <span className="flex items-center gap-1.5 border border-black px-2.5 py-1 text-xs font-bold text-black">
-                <span aria-hidden="true">✓</span>{' '}
-                {result.status === 'pending' ? 'Pending' : 'Credited'}
-                {result.idempotent ? ' (existing)' : ''}
-              </span>
-              <button onClick={handleReset} className="text-xs text-neutral-500 hover:text-black">
-                Credit another
-              </button>
-            </div>
-
-            <div className="flex items-center justify-between py-2">
-              <span className="text-xs text-neutral-500">Customer</span>
-              <span className="text-sm font-medium text-black">{result.userName}</span>
-            </div>
-            <div className="flex items-center justify-between border-t border-neutral-200 py-2">
-              <span className="text-xs text-neutral-500">Phone</span>
-              <span className="font-mono text-sm text-black">{result.phone}</span>
-            </div>
-            <div className="flex items-center justify-between border-t border-neutral-200 py-2">
-              <span className="text-xs text-neutral-500">Transaction ID</span>
-              <span className="font-mono text-sm text-black">{result.externalTransactionId}</span>
-            </div>
-            <div className="flex items-center justify-between border-t border-neutral-200 py-2">
-              <span className="text-xs text-neutral-500">Order amount</span>
-              <span className="font-mono text-sm text-black">
-                {result.orderAmount.toLocaleString()}{' '}
-                {result.currency === 'USD' ? 'USD ($)' : 'KHR (៛)'}
-              </span>
-            </div>
-            <div className="flex items-center justify-between border-t border-neutral-200 py-2">
-              <span className="text-xs text-neutral-500">Commission</span>
-              <span className="font-mono text-sm text-black">
-                {result.commission.toLocaleString()}{' '}
-                {result.currency === 'USD' ? 'USD ($)' : 'KHR (៛)'}
-              </span>
-            </div>
-            <div className="flex items-center justify-between border-t border-neutral-200 py-2">
-              <span className="text-xs text-neutral-500">Cashback rate</span>
-              <span className="text-sm text-black">{result.cashbackRate}%</span>
-            </div>
-            <div className="flex items-center justify-between border-t border-neutral-200 py-2">
-              <span className="text-xs text-neutral-500">Cashback amount</span>
-              <span className="font-mono text-sm font-semibold text-black">
-                +{result.cashbackAmount.toLocaleString()}{' '}
-                {result.currency === 'USD' ? 'USD ($)' : 'KHR (៛)'}
-              </span>
-            </div>
-
-            <button
-              onClick={handleReset}
-              className="mt-4 w-full border border-neutral-200 bg-white py-3 text-sm font-semibold text-black transition-colors hover:bg-neutral-50"
-            >
-              ← Credit another customer
-            </button>
+          <div className="overflow-x-auto">
+            <table className="min-w-full divide-y divide-gray-200 text-sm">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="px-4 py-3 text-left font-medium text-gray-500">
+                    Merchant
+                  </th>
+                  <th className="px-4 py-3 text-left font-medium text-gray-500">
+                    Order ID
+                  </th>
+                  <th className="px-4 py-3 text-right font-medium text-gray-500">
+                    Order Amount
+                  </th>
+                  <th className="px-4 py-3 text-right font-medium text-gray-500">
+                    Commission
+                  </th>
+                  <th className="px-4 py-3 text-right font-medium text-gray-500">
+                    Rate
+                  </th>
+                  <th className="px-4 py-3 text-right font-medium text-gray-500">
+                    Cashback
+                  </th>
+                  <th className="px-4 py-3 text-left font-medium text-gray-500">
+                    Status
+                  </th>
+                  <th className="px-4 py-3 text-left font-medium text-gray-500">
+                    Date
+                  </th>
+                  <th className="px-4 py-3 text-left font-medium text-gray-500">
+                    Actions
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-100">
+                {transactions.map((tx) => (
+                  <tr key={tx.id} className="hover:bg-gray-50">
+                    <td className="whitespace-nowrap px-4 py-3 font-medium text-gray-900">
+                      {tx.merchant_name ?? "—"}
+                    </td>
+                    <td className="whitespace-nowrap px-4 py-3 text-gray-500">
+                      {tx.external_transaction_id}
+                    </td>
+                    <td className="whitespace-nowrap px-4 py-3 text-right text-gray-700">
+                      {formatCurrency(tx.order_amount, tx.currency)}
+                    </td>
+                    <td className="whitespace-nowrap px-4 py-3 text-right text-gray-700">
+                      {formatCurrency(tx.commission_amount, tx.currency)}
+                    </td>
+                    <td className="whitespace-nowrap px-4 py-3 text-right text-gray-700">
+                      {Number(tx.cashback_rate)}%
+                    </td>
+                    <td className="whitespace-nowrap px-4 py-3 text-right font-medium text-gray-900">
+                      {formatCurrency(tx.cashback_amount, tx.currency)}
+                      {tx.status === "pending" && (
+                        <span className="ml-1 text-xs font-normal text-gray-400">
+                          (est.)
+                        </span>
+                      )}
+                    </td>
+                    <td className="whitespace-nowrap px-4 py-3">
+                      <StatusBadge status={tx.status} />
+                    </td>
+                    <td className="whitespace-nowrap px-4 py-3 text-gray-500">
+                      {formatDate(tx.transaction_at)}
+                    </td>
+                    <td className="whitespace-nowrap px-4 py-3">
+                      {tx.status === "pending" && (
+                        <button
+                          onClick={() => setEditingTx(tx)}
+                          className="rounded-md bg-gray-900 px-2 py-1 text-xs font-medium text-white hover:bg-gray-800"
+                        >
+                          Review
+                        </button>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         )}
       </div>
-    </main>
+
+      {editingTx && (
+        <StatusUpdateModal
+          transaction={editingTx}
+          onClose={() => setEditingTx(null)}
+          onSuccess={handleStatusUpdated}
+        />
+      )}
+    </div>
   );
 }

@@ -75,6 +75,18 @@ export default function MerchantPageClient({
         Shop {merchant.name}
       </a>
 
+        {/* Cashback tracking reminder */}
+      <div className="mt-6 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3">
+        <p className="text-sm font-semibold text-amber-900">
+          Important: Click “Shop” before every booking
+        </p>
+        <p className="mt-1 text-xs leading-relaxed text-amber-800">
+          To make sure your booking is tracked and your cashback is credited
+          correctly, please return to RielPoint and click the “Shop” button
+          again before making each new booking/purchase.
+        </p>
+      </div>
+
       {/* Description */}
       {merchant.general_description && (
         <p className="mt-6 text-sm leading-relaxed text-slate-600 whitespace-pre-wrap">

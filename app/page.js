@@ -5,7 +5,7 @@ import MerchantCard from "./Components/merchantCard";
 async function getHomepageFeed() {
   const res = await fetch(
     `${process.env.NEXT_PUBLIC_BACKEND}/api/merchant/affiliate/homepage-feed`,
-    { next: { revalidate: 60 } } // ISR: cache 60s, then revalidate in background
+    { next: { revalidate: 86400 } } // ISR: cache 60s, then revalidate in background
   );
 
   if (!res.ok) throw new Error(`Server returned ${res.status}`);
