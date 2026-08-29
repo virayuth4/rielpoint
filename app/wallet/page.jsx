@@ -230,9 +230,9 @@ export default function WalletPage() {
                     <p className="text-[11px] capitalize" style={{ color: statusColorFor(item.status) }}>
                       {item.status}
                     </p>
-                    {item.status === 'pending' && (
+                                      {item.status === 'pending' && (
                       <p className="text-[10px] leading-tight mt-0.5 max-w-[110px] ml-auto" style={{ color: '#9A9A9A' }}>
-                        Estimate — not yet confirmed by merchant
+                        Expected payout: 60–90 days after your stay is completed
                       </p>
                     )}
                   </div>
