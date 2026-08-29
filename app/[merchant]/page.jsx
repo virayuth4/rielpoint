@@ -1,10 +1,24 @@
 import { notFound } from "next/navigation";
 import MerchantPageClient from "./merchantPageClient";
 
+export async function generateStaticParams() {
+  const res = await fetch(
+    `${process.env.NEXT_PUBLIC_BACKEND}/api/merchant/affiliate/merchants`
+  );
+  if (!res.ok) return []; // don't fail the whole build if this errors
+  const json = await res.json();
+  const merchants = json.data || [];
+
+  // must return an array of objects matching your [merchant] param name
+  return merchants.map((m) => ({
+    merchant: m.slug,
+  }));
+}
+
 async function getMerchantBySlug(slug) {
   const res = await fetch(
     `${process.env.NEXT_PUBLIC_BACKEND}/api/merchant/affiliate/merchants`,
-    { cache: "no-store" }
+    { next: { revalidate: 86400 } }
   );
   if (!res.ok) throw new Error("Failed to load merchants");
   const json = await res.json();
@@ -15,7 +29,7 @@ async function getMerchantBySlug(slug) {
 async function getOffers(merchantId) {
   const res = await fetch(
     `${process.env.NEXT_PUBLIC_BACKEND}/api/merchant/affiliate/offers/${merchantId}`,
-    { cache: "no-store" }
+    { next: { revalidate: 86400 } }
   );
   if (!res.ok) return [];
   const json = await res.json();

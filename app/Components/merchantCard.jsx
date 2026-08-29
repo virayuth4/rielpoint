@@ -53,6 +53,10 @@ export default function MerchantCard({ merchant }) {
           </div>
         )}
 
+        <div className="mt-3 flex w-full items-center justify-center gap-1.5 rounded-2xl bg-black py-2.5 text-xs font-semibold text-white transition-all duration-150 group-hover:bg-black/90"> 
+        Shop  Now 
+        <span className="text-sm">→</span> </div>
+
         {merchant.description && (
           <p className="mt-1 line-clamp-2 text-xs leading-relaxed text-slate-500">
             {merchant.description}
