@@ -6,11 +6,75 @@ import { getAuth, onAuthStateChanged } from 'firebase/auth';
 import authenticatedFetch from '../auth/authenticatedFetch';
 import { AuthContext } from '../auth/authContext';
 
-// --- mapping helpers -------------------------------------------------
-function cashbackLabelFor(status) {
-  return status === 'pending' ? 'Potential cashback' : 'Cashback';
+// --- status metadata ---------------------------------------------------
+// Single source of truth for how each transaction status is labeled,
+// colored, and annotated in the history list.
+const STATUS_META = {
+  pending: {
+    label: 'Pending',
+    cashbackLabel: 'Potential cashback',
+    color: '#B08900',
+    amountColor: '#B08900',
+    note: 'Expected payout: 60–90 days after your stay is completed',
+  },
+  merchant_confirmed: {
+    label: 'Merchant confirmed',
+    cashbackLabel: 'Estimated cashback',
+    color: '#1F5C3F',
+    amountColor: '#1F5C3F',
+    note:
+      'Confirmed by the merchant. Payout can take up to 30-60 additional days — the merchant controls this timing and RielPoint is unable to speed it up.',
+  },
+  rielpoint_confirmed: {
+    label: 'Processing payout',
+    cashbackLabel: 'Cashback',
+    color: '#1F5C3F',
+    amountColor: '#1F5C3F',
+    note: 'Confirmed and being processed for payout.',
+  },
+  confirmed: {
+    label: 'Paid out',
+    cashbackLabel: 'Cashback',
+    color: '#1F5C3F',
+    amountColor: '#1F5C3F',
+    note: null,
+  },
+  rejected: {
+    label: 'Rejected',
+    cashbackLabel: 'Cashback',
+    color: '#B3453D',
+    amountColor: '#9A9A9A',
+    note: null,
+  },
+  cancelled: {
+    label: 'Cancelled',
+    cashbackLabel: 'Cashback',
+    color: '#B3453D',
+    amountColor: '#9A9A9A',
+    note: null,
+  },
+  refunded: {
+    label: 'Refunded',
+    cashbackLabel: 'Cashback',
+    color: '#B3453D',
+    amountColor: '#9A9A9A',
+    note: null,
+  },
+};
+
+const DEFAULT_STATUS_META = {
+  label: 'Unknown',
+  cashbackLabel: 'Cashback',
+  color: '#9A9A9A',
+  amountColor: '#9A9A9A',
+  note: null,
+};
+
+function metaFor(status) {
+  return STATUS_META[status] ?? DEFAULT_STATUS_META;
 }
 
+// --- mapping helpers -------------------------------------------------
 function initialFor(name) {
   return (name || '?').trim().charAt(0).toUpperCase();
 }
@@ -29,13 +93,6 @@ function formatCurrency(amount, currency) {
   if (amount == null) return '';
   const n = Number(amount);
   return `${currency ?? 'USD'} ${n.toFixed(2)}`;
-}
-
-function statusColorFor(status) {
-  if (status === 'confirmed') return '#1F5C3F';
-  if (status === 'pending') return '#B08900';
-  if (status === 'rejected' || status === 'reversed') return '#B3453D';
-  return '#9A9A9A';
 }
 
 function mapTransaction(row) {
@@ -194,50 +251,54 @@ export default function WalletPage() {
 
             {status === 'success' && (
               <div>
-                {transactions.map((item, i) => (
-                  <div
-                    key={item.id}
-                    className="flex items-center justify-between py-4"
-                    style={{ borderTop: i === 0 ? 'none' : '1px solid #EFEFED' }}
-                  >
-                    <div className="flex items-center gap-3">
-                      <span
-                        className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-xs font-semibold"
-                        style={{ background: '#F3F3EF', color: '#0F0F0E' }}
-                      >
-                        {item.initial}
-                      </span>
-                      <div>
-                        <p className="text-sm font-medium" style={{ color: '#0F0F0E' }}>
-                          {item.shop}
+                {transactions.map((item, i) => {
+                  const meta = metaFor(item.status);
+                  return (
+                    <div
+                      key={item.id}
+                      className="flex items-center justify-between py-4"
+                      style={{ borderTop: i === 0 ? 'none' : '1px solid #EFEFED' }}
+                    >
+                      <div className="flex items-center gap-3">
+                        <span
+                          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-xs font-semibold"
+                          style={{ background: '#F3F3EF', color: '#0F0F0E' }}
+                        >
+                          {item.initial}
+                        </span>
+                        <div>
+                          <p className="text-sm font-medium" style={{ color: '#0F0F0E' }}>
+                            {item.shop}
+                          </p>
+                          <p className="text-xs" style={{ color: '#9A9A9A' }}>
+                            {item.date} &middot; {item.time}
+                            {item.orderAmountLabel ? ` \u00b7 ${item.orderAmountLabel}` : ''}
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="text-right">
+                        <p className="text-[10px] font-medium mb-0.5" style={{ color: meta.color }}>
+                          {meta.cashbackLabel}
                         </p>
-                        <p className="text-xs" style={{ color: '#9A9A9A' }}>
-                          {item.date} &middot; {item.time}
-                          {item.orderAmountLabel ? ` \u00b7 ${item.orderAmountLabel}` : ''}
+                        <p className="text-sm font-medium" style={{ color: meta.amountColor }}>
+                          {item.cashbackAmount != null ? `+${formatCurrency(item.cashbackAmount, item.currency)}` : ''}
                         </p>
+                        <p className="text-[11px] capitalize" style={{ color: meta.color }}>
+                          {meta.label}
+                        </p>
+                        {meta.note && (
+                          <p
+                            className="text-[10px] leading-tight mt-0.5 max-w-[130px] ml-auto"
+                            style={{ color: '#9A9A9A' }}
+                          >
+                            {meta.note}
+                          </p>
+                        )}
                       </div>
                     </div>
-
-                  <div className="text-right">
-                    {item.status === 'pending' && (
-                      <p className="text-[10px] font-medium mb-0.5" style={{ color: '#B08900' }}>
-                        Potential cashback
-                      </p>
-                    )}
-                    <p className="text-sm font-medium" style={{ color: item.status === 'pending' ? '#B08900' : '#1F5C3F' }}>
-                      {item.cashbackAmount != null ? `+${formatCurrency(item.cashbackAmount, item.currency)}` : ''}
-                    </p>
-                    <p className="text-[11px] capitalize" style={{ color: statusColorFor(item.status) }}>
-                      {item.status}
-                    </p>
-                                      {item.status === 'pending' && (
-                      <p className="text-[10px] leading-tight mt-0.5 max-w-[110px] ml-auto" style={{ color: '#9A9A9A' }}>
-                        Expected payout: 60–90 days after your stay is completed
-                      </p>
-                    )}
-                  </div>
-                  </div>
-                ))}
+                  );
+                })}
 
                 {transactions.length === 0 && (
                   <p className="text-sm text-center py-10" style={{ color: '#9A9A9A' }}>

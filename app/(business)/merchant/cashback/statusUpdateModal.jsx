@@ -4,12 +4,13 @@ import { useState } from "react";
 import authenticatedFetch from "@/app/auth/authenticatedFetch";
 
 const STATUS_OPTIONS = [
-  { value: "confirmed", label: "Confirm" },
+  { value: "merchant_confirmed", label: "Merchant Confirm" },
+  { value: "rielpoint_confirmed", label: "RielPoint Confirm" },
   { value: "rejected", label: "Reject" },
 ];
 
 export default function StatusUpdateModal({ transaction, onClose, onSuccess }) {
-  const [status, setStatus] = useState("confirmed");
+  const [status, setStatus] = useState("merchant_confirmed");
   const [amount, setAmount] = useState(transaction.cashback_amount);
   const [reason, setReason] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -22,11 +23,15 @@ export default function StatusUpdateModal({ transaction, onClose, onSuccess }) {
       const res = await authenticatedFetch(
         `${process.env.NEXT_PUBLIC_BACKEND}/api/merchant/cashback/transactions/${transaction.id}/status`,
         {
-          method: "PATCH",
+          method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             status,
-            cashbackAmount: status === "confirmed" ? Number(amount) : undefined,
+            // amount is only entered/relevant at the merchant_confirmed stage —
+            // it was previously gated on status === "confirmed", which is never
+            // reachable from this modal, so it was silently never sent
+            cashbackAmount:
+              status === "merchant_confirmed" ? Number(amount) : undefined,
             reason: reason || undefined,
           }),
         }
@@ -79,7 +84,7 @@ export default function StatusUpdateModal({ transaction, onClose, onSuccess }) {
             </select>
           </div>
 
-          {status === "confirmed" && (
+          {status === "merchant_confirmed" && (
             <div>
               <label className="block text-sm font-medium text-gray-700">
                 Cashback amount
