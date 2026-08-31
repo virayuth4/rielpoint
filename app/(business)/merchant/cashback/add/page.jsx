@@ -287,7 +287,7 @@ export default function CreditCashbackPage() {
               <span className="text-xs text-neutral-500">Cashback to credit</span>
               <span className="font-mono text-lg font-semibold text-black">
                 {currency === 'USD' ? '$' : '៛'}
-                {cashbackPreview.toLocaleString()}
+                {cashbackPreview}
               </span>
             </div>
 
@@ -337,14 +337,14 @@ export default function CreditCashbackPage() {
             <div className="flex items-center justify-between border-t border-neutral-200 py-2">
               <span className="text-xs text-neutral-500">Order amount</span>
               <span className="font-mono text-sm text-black">
-                {result.orderAmount.toLocaleString()}{' '}
+                {result.orderAmount}{' '}
                 {result.currency === 'USD' ? 'USD ($)' : 'KHR (៛)'}
               </span>
             </div>
             <div className="flex items-center justify-between border-t border-neutral-200 py-2">
               <span className="text-xs text-neutral-500">Commission</span>
               <span className="font-mono text-sm text-black">
-                {result.commission.toLocaleString()}{' '}
+                {result.commission}{' '}
                 {result.currency === 'USD' ? 'USD ($)' : 'KHR (៛)'}
               </span>
             </div>
@@ -355,7 +355,7 @@ export default function CreditCashbackPage() {
             <div className="flex items-center justify-between border-t border-neutral-200 py-2">
               <span className="text-xs text-neutral-500">Cashback amount</span>
               <span className="font-mono text-sm font-semibold text-black">
-                +{result.cashbackAmount.toLocaleString()}{' '}
+                +{result.cashbackAmount}{' '}
                 {result.currency === 'USD' ? 'USD ($)' : 'KHR (៛)'}
               </span>
             </div>

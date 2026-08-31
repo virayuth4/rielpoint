@@ -1,20 +1,35 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import authenticatedFetch from "@/app/auth/authenticatedFetch";
 
-const STATUS_OPTIONS = [
-  { value: "merchant_confirmed", label: "Merchant Confirm" },
-  { value: "rielpoint_confirmed", label: "RielPoint Confirm" },
-  { value: "rejected", label: "Reject" },
-];
+// Mirrors the server's VALID_TRANSITIONS map — keep these in sync.
+const NEXT_STATUS_OPTIONS = {
+  pending: [
+    { value: "merchant_confirmed", label: "Merchant Confirm" },
+    { value: "rejected", label: "Reject" },
+  ],
+  merchant_confirmed: [
+    { value: "rielpoint_confirmed", label: "RielPoint Confirm (make withdrawable)" },
+    { value: "rejected", label: "Reject" },
+  ],
+};
 
 export default function StatusUpdateModal({ transaction, onClose, onSuccess }) {
-  const [status, setStatus] = useState("merchant_confirmed");
+  const options = useMemo(
+    () => NEXT_STATUS_OPTIONS[transaction.status] ?? [],
+    [transaction.status]
+  );
+
+  const [status, setStatus] = useState(options[0]?.value ?? "");
   const [amount, setAmount] = useState(transaction.cashback_amount);
   const [reason, setReason] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState(null);
+
+  // The amount is only entered at merchant_confirmed — every later stage
+  // (rielpoint_confirmed, confirmed) carries the already-set amount forward.
+  const showAmountField = status === "merchant_confirmed";
 
   async function handleSubmit() {
     setSubmitting(true);
@@ -27,11 +42,7 @@ export default function StatusUpdateModal({ transaction, onClose, onSuccess }) {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             status,
-            // amount is only entered/relevant at the merchant_confirmed stage —
-            // it was previously gated on status === "confirmed", which is never
-            // reachable from this modal, so it was silently never sent
-            cashbackAmount:
-              status === "merchant_confirmed" ? Number(amount) : undefined,
+            cashbackAmount: showAmountField ? Number(amount) : undefined,
             reason: reason || undefined,
           }),
         }
@@ -50,6 +61,34 @@ export default function StatusUpdateModal({ transaction, onClose, onSuccess }) {
     } finally {
       setSubmitting(false);
     }
+  }
+
+  // Defensive: if a row somehow has no valid next status (shouldn't happen
+  // since the table only shows Review for actionable statuses), don't
+  // render a broken form.
+  if (options.length === 0) {
+    return (
+      <div
+        className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4"
+        role="dialog"
+        aria-modal="true"
+      >
+        <div className="w-full max-w-md rounded-xl bg-white p-6 shadow-lg">
+          <p className="text-sm text-gray-700">
+            This transaction has no further actions available in its current
+            status (&quot;{transaction.status}&quot;).
+          </p>
+          <div className="mt-4 flex justify-end">
+            <button
+              onClick={onClose}
+              className="rounded-md px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-100"
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -76,7 +115,7 @@ export default function StatusUpdateModal({ transaction, onClose, onSuccess }) {
               onChange={(e) => setStatus(e.target.value)}
               className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-gray-900 focus:ring-gray-900 sm:text-sm"
             >
-              {STATUS_OPTIONS.map((opt) => (
+              {options.map((opt) => (
                 <option key={opt.value} value={opt.value}>
                   {opt.label}
                 </option>
@@ -84,7 +123,7 @@ export default function StatusUpdateModal({ transaction, onClose, onSuccess }) {
             </select>
           </div>
 
-          {status === "merchant_confirmed" && (
+          {showAmountField && (
             <div>
               <label className="block text-sm font-medium text-gray-700">
                 Cashback amount
@@ -101,6 +140,13 @@ export default function StatusUpdateModal({ transaction, onClose, onSuccess }) {
                 className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-gray-900 focus:ring-gray-900 sm:text-sm"
               />
             </div>
+          )}
+
+          {status === "rielpoint_confirmed" && (
+            <p className="rounded-md bg-green-50 px-3 py-2 text-xs text-green-800">
+              This will move {transaction.cashback_amount} {transaction.currency} into the
+              user&apos;s withdrawable balance.
+            </p>
           )}
 
           <div>

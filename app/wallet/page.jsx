@@ -1,14 +1,13 @@
 'use client';
 
-import { useContext, useEffect, useState } from 'react';
+import { useContext, useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { getAuth, onAuthStateChanged } from 'firebase/auth';
 import authenticatedFetch from '../auth/authenticatedFetch';
 import { AuthContext } from '../auth/authContext';
+import WithdrawalRequestModal from './withdrawalRequestModal';
 
-// --- status metadata ---------------------------------------------------
-// Single source of truth for how each transaction status is labeled,
-// colored, and annotated in the history list.
+// --- status metadata (transaction history) ------------------------------
 const STATUS_META = {
   pending: {
     label: 'Pending',
@@ -20,17 +19,17 @@ const STATUS_META = {
   merchant_confirmed: {
     label: 'Merchant confirmed',
     cashbackLabel: 'Estimated cashback',
-    color: '#1F5C3F',
-    amountColor: '#1F5C3F',
+    color: '#B08900',
+    amountColor: '#B08900',
     note:
-      'Confirmed by the merchant. Payout can take up to 30-60 additional days — the merchant controls this timing and RielPoint is unable to speed it up.',
+      'Confirmed by the merchant. Payout can take up to 30 additional days — the merchant controls this timing and RielPoint is unable to speed it up.',
   },
   rielpoint_confirmed: {
-    label: 'Processing payout',
+    label: 'Withdrawable',
     cashbackLabel: 'Cashback',
     color: '#1F5C3F',
     amountColor: '#1F5C3F',
-    note: 'Confirmed and being processed for payout.',
+    note: 'This cashback is confirmed and available to withdraw.',
   },
   confirmed: {
     label: 'Paid out',
@@ -74,6 +73,14 @@ function metaFor(status) {
   return STATUS_META[status] ?? DEFAULT_STATUS_META;
 }
 
+// --- withdrawal status metadata ------------------------------------------
+const WITHDRAWAL_STATUS_META = {
+  requested: { label: 'Requested', color: '#B08900' },
+  processing: { label: 'Processing', color: '#B08900' },
+  paid: { label: 'Paid', color: '#1F5C3F' },
+  failed: { label: 'Failed — refunded to balance', color: '#B3453D' },
+};
+
 // --- mapping helpers -------------------------------------------------
 function initialFor(name) {
   return (name || '?').trim().charAt(0).toUpperCase();
@@ -112,8 +119,6 @@ function mapTransaction(row) {
 }
 
 // --- auth hook ---------------------------------------------------------
-// undefined = still resolving, null = signed out, object = signed in
-
 function useAuthUser() {
   const [user, setUser] = useState(undefined);
 
@@ -126,11 +131,9 @@ function useAuthUser() {
   return user;
 }
 
-// --- data hook (authenticated) -------------------------------------------
-
+// --- data hook: transaction history --------------------------------------
 function useTransactions(enabled) {
   const [transactions, setTransactions] = useState([]);
-  const [balance, setBalance] = useState(null);
   const [status, setStatus] = useState('loading'); // 'loading' | 'success' | 'error'
 
   useEffect(() => {
@@ -146,7 +149,6 @@ function useTransactions(enabled) {
         if (!cancelled) {
           const rows = data.transactions ?? [];
           setTransactions(rows.map(mapTransaction));
-          setBalance(data.balance ?? 0);
           setStatus('success');
         }
       } catch (err) {
@@ -161,7 +163,53 @@ function useTransactions(enabled) {
     };
   }, [enabled]);
 
-  return { transactions, balance, status };
+  return { transactions, status };
+}
+
+// --- data hook: ledger-backed balance + withdrawal history ---------------
+function useWallet(enabled) {
+  const [balance, setBalance] = useState(0);
+  const [withdrawals, setWithdrawals] = useState([]);
+  const [status, setStatus] = useState('loading');
+
+  const reload = useCallback(async () => {
+    setStatus('loading');
+    try {
+      const [balanceRes, withdrawalsRes] = await Promise.all([
+        authenticatedFetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/merchant/wallet/balance`),
+        authenticatedFetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/merchant/wallet/withdrawals`),
+      ]);
+
+      if (!balanceRes.ok) throw new Error(`Balance request failed: ${balanceRes.status}`);
+
+      const balanceData = await balanceRes.json();
+      setBalance(balanceData.balance ?? 0);
+
+      // Withdrawal history endpoint is optional — don't fail the whole
+      // wallet load if it's not wired up yet.
+      if (withdrawalsRes.ok) {
+        const withdrawalsData = await withdrawalsRes.json();
+        setWithdrawals(withdrawalsData.withdrawals ?? []);
+      }
+
+      setStatus('success');
+    } catch (err) {
+      console.error('Error loading wallet:', err);
+      setStatus('error');
+    }
+  }, []);
+
+useEffect(() => {
+  if (!enabled) return;
+
+  const timeout = setTimeout(() => {
+    reload();
+  }, 0);
+
+  return () => clearTimeout(timeout);
+}, [enabled, reload]);
+
+  return { balance, withdrawals, status, reload };
 }
 
 // --- page ---------------------------------------------------------------
@@ -172,10 +220,18 @@ export default function WalletPage() {
   const authLoading = user === undefined;
   const isAuthenticated = !!user;
 
-  const { transactions, balance, status } = useTransactions(isAuthenticated);
+  const { transactions, status: txStatus } = useTransactions(isAuthenticated);
+  const { balance, withdrawals, status: walletStatus, reload: reloadWallet } = useWallet(isAuthenticated);
+  const [showWithdrawModal, setShowWithdrawModal] = useState(false);
 
   const context = useContext(AuthContext);
   const currentUser = context?.currentUser || null;
+
+  function handleWithdrawalSuccess() {
+    // Re-fetch balance + history so the locked amount disappears from
+    // "available" immediately and shows up in the withdrawal list.
+    reloadWallet();
+  }
 
   return (
     <main
@@ -183,7 +239,6 @@ export default function WalletPage() {
       style={{ background: '#FFFFFF', fontFamily: 'var(--font-body)' }}
     >
       <div className="mx-auto max-w-md px-6 pt-10 pb-20">
-        {/* Page label */}
         <p className="text-[11px] uppercase tracking-[0.18em] mb-6" style={{ color: '#9A9A9A' }}>
           Wallet
         </p>
@@ -194,11 +249,10 @@ export default function WalletPage() {
           </p>
         )}
 
-        {/* Signed-in: balance card + history */}
         {!authLoading && isAuthenticated && (
           <>
             {/* Balance card */}
-            <div className="rounded-2xl px-6 py-7 mb-10" style={{ background: '#0F0F0E' }}>
+            <div className="rounded-2xl px-6 py-7 mb-4" style={{ background: '#0F0F0E' }}>
               <div className="flex items-center justify-between mb-8">
                 <span className="text-xs font-semibold tracking-wide" style={{ color: '#F5F5F0' }}>
                   RielPoint
@@ -207,11 +261,11 @@ export default function WalletPage() {
               </div>
 
               <p className="text-xs mb-1" style={{ color: '#9A9A94' }}>
-                Available cashback
+                Available to withdraw
               </p>
               <div className="flex items-baseline gap-2">
                 <span className="text-4xl font-semibold" style={{ color: '#FFFFFF', fontFamily: 'var(--font-mono)' }}>
-                  {formatCurrency(balance ?? 0, 'USD')}
+                  {walletStatus === 'loading' ? '—' : formatCurrency(balance, 'USD')}
                 </span>
               </div>
 
@@ -225,31 +279,79 @@ export default function WalletPage() {
               </div>
             </div>
 
-            {/* History */}
+            <button
+              type="button"
+              onClick={() => setShowWithdrawModal(true)}
+              disabled={walletStatus !== 'success' || balance <= 0}
+              className="w-full rounded-full p-3 text-center mb-10 transition-opacity hover:opacity-90 active:scale-[0.99] disabled:opacity-40"
+              style={{ background: '#0F0F0E' }}
+            >
+              <span className="block text-sm font-medium" style={{ color: '#FFFFFF' }}>
+                Withdraw
+              </span>
+            </button>
+
+            {/* Withdrawal history */}
+            {withdrawals.length > 0 && (
+              <div className="mb-10">
+                <h2 className="text-sm font-semibold mb-3" style={{ color: '#0F0F0E' }}>
+                  Withdrawal requests
+                </h2>
+                <div>
+                  {withdrawals.map((w, i) => {
+                    const meta = WITHDRAWAL_STATUS_META[w.status] ?? {
+                      label: w.status,
+                      color: '#9A9A9A',
+                    };
+                    return (
+                      <div
+                        key={w.id}
+                        className="flex items-center justify-between py-3"
+                        style={{ borderTop: i === 0 ? 'none' : '1px solid #EFEFED' }}
+                      >
+                        <div>
+                          <p className="text-sm font-medium" style={{ color: '#0F0F0E' }}>
+                            {formatCurrency(w.amount, w.currency)}
+                          </p>
+                          <p className="text-xs" style={{ color: '#9A9A9A' }}>
+                            Requested {formatDate(w.requested_at)}
+                          </p>
+                        </div>
+                        <span className="text-xs font-medium" style={{ color: meta.color }}>
+                          {meta.label}
+                        </span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            {/* Cashback history */}
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-sm font-semibold" style={{ color: '#0F0F0E' }}>
                 Cashback history
               </h2>
-              {status === 'success' && (
+              {txStatus === 'success' && (
                 <span className="text-xs" style={{ color: '#9A9A9A' }}>
                   {transactions.length}
                 </span>
               )}
             </div>
 
-            {status === 'loading' && (
+            {txStatus === 'loading' && (
               <p className="text-sm text-center py-10" style={{ color: '#9A9A9A' }}>
                 Loading transactions…
               </p>
             )}
 
-            {status === 'error' && (
+            {txStatus === 'error' && (
               <p className="text-sm text-center py-10" style={{ color: '#B3453D' }}>
                 Couldn&apos;t load your transaction history. Pull to refresh or try again later.
               </p>
             )}
 
-            {status === 'success' && (
+            {txStatus === 'success' && (
               <div>
                 {transactions.map((item, i) => {
                   const meta = metaFor(item.status);
@@ -284,7 +386,7 @@ export default function WalletPage() {
                         <p className="text-sm font-medium" style={{ color: meta.amountColor }}>
                           {item.cashbackAmount != null ? `+${formatCurrency(item.cashbackAmount, item.currency)}` : ''}
                         </p>
-                        <p className="text-[11px] capitalize" style={{ color: meta.color }}>
+                        <p className="text-[11px]" style={{ color: meta.color }}>
                           {meta.label}
                         </p>
                         {meta.note && (
@@ -374,6 +476,14 @@ export default function WalletPage() {
           </div>
         )}
       </div>
+
+      {showWithdrawModal && (
+        <WithdrawalRequestModal
+          availableBalance={balance}
+          onClose={() => setShowWithdrawModal(false)}
+          onSuccess={handleWithdrawalSuccess}
+        />
+      )}
     </main>
   );
 }

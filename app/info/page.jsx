@@ -13,16 +13,15 @@ import {
   AlertCircle,
   CheckCircle2,
   HelpCircle,
-  Globe2,
   Plane,
-  Building2,
-  CreditCard
+  Laptop,
+  Shirt
 } from 'lucide-react'
 import icon512 from '@/public/icon-512.png'
 
 export const metadata = {
   title: 'How Cashback Works | RielPoint Cambodia',
-  description: 'Earn cashback locally in Cambodia and across regional travel hubs like Singapore, Vietnam, and Malaysia. Direct payouts via Bakong & KHQR.',
+  description: 'Earn cashback on online shopping, travel, and lifestyle bookings. Direct payouts via Bakong & KHQR in USD and KHR.',
 }
 
 const FLOW_NODES = [
@@ -31,26 +30,26 @@ const FLOW_NODES = [
   { label: 'You', icon: User },
 ]
 
-const FLOW_CONNECTORS = ['Pays', 'Splits With You']
+const FLOW_CONNECTORS = ['Pays Commission', 'Splits With You']
 
 const HOW_IT_WORKS_STEPS = [
   {
     step: '01',
     icon: UserPlus,
     title: 'Create Your Account',
-    description: 'Sign up in seconds to track cross-border earnings, view dual-currency balances (USD & KHR), and manage payouts.',
+    description: 'Sign up in seconds to track earnings, view dual-currency balances (USD & KHR), and manage payouts.',
   },
   {
     step: '02',
     icon: ShoppingBag,
-    title: 'Browse Local & Regional Brands',
-    description: 'Explore verified partners in Cambodia alongside regional flight, hotel, and shopping hubs across Southeast Asia.',
+    title: 'Browse Partner Stores',
+    description: 'Explore verified partner brands across travel, fashion, electronics, and everyday online services.',
   },
   {
     step: '03',
     icon: ExternalLink,
     title: 'Shop via Partner App or Web',
-    description: 'Click out to the merchant platform and complete your transaction directly to preserve your tracking session.',
+    description: 'Click out to the merchant store and complete your purchase directly to preserve your tracking session.',
   },
   {
     step: '04',
@@ -60,24 +59,24 @@ const HOW_IT_WORKS_STEPS = [
   },
 ]
 
-const REGIONAL_COVERAGE = [
+const POPULAR_CATEGORIES = [
   {
-    country: 'Cambodia',
-    type: 'Local Retail & Services',
-    focus: 'Phnom Penh dining, luxury lifestyle, electronics & delivery vouchers',
-    icon: Building2,
-  },
-  {
-    country: 'Singapore',
-    type: 'Luxury & Flight Hub',
-    focus: 'Marina Bay shopping, luxury duty-free, flights & business travel stays',
+    title: 'Travel & Stays',
+    type: 'Flights & Hotels',
+    focus: 'Flight tickets, hotel reservations, airport transfers, and vacation stays.',
     icon: Plane,
   },
   {
-    country: 'Vietnam & Malaysia',
-    type: 'Regional Escapes',
-    focus: 'Boutique hotels, weekend getaways, medical wellness & transport',
-    icon: Globe2,
+    title: 'Fashion & Beauty',
+    type: 'Apparel & Lifestyle',
+    focus: 'Clothing, skincare, accessories, and luxury lifestyle brands.',
+    icon: Shirt,
+  },
+  {
+    title: 'Electronics & Tech',
+    type: 'Gadgets & Software',
+    focus: 'Consumer electronics, accessories, subscriptions, and digital tools.',
+    icon: Laptop,
   },
 ]
 
@@ -85,18 +84,18 @@ const TIMELINE_STAGES = [
   {
     status: 'Tracked (Pending)',
     timeframe: '1 – 48 Hours',
-    description: 'The merchant logs your transaction. Your cashback displays as "Pending" in your RielPoint wallet.',
+    description: 'The merchant logs your purchase. Your estimated cashback displays as "Pending" in your RielPoint wallet.',
     icon: Clock,
   },
   {
-    status: 'Merchant Return Period',
-    timeframe: '14 – 30 Days',
-    description: 'Brands wait for return and exchange windows to clear. Regional travel/hotel stays track until checkout is finalized.',
+    status: 'Merchant Verification Period',
+    timeframe: '14 – 45 Days',
+    description: 'Brands verify that orders were completed and return/cancellation windows have closed.',
     icon: AlertCircle,
   },
   {
     status: 'Confirmed & Withdrawable',
-    timeframe: '30 – 90 Days',
+    timeframe: '30 – 60 Days',
     description: 'Commission is approved. Withdraw your earnings straight to ABA, Wing, or any Bakong-connected wallet.',
     icon: CheckCircle2,
   },
@@ -104,20 +103,20 @@ const TIMELINE_STAGES = [
 
 const FAQ_ITEMS = [
   {
-    q: 'Can I earn cashback when traveling outside Cambodia?',
-    a: 'Yes. Simply click through RielPoint before booking international flights, regional hotels, or shopping online with overseas partner stores in Singapore, Vietnam, Malaysia, and beyond.',
+    q: 'How does RielPoint give me cash back?',
+    a: 'Partner merchants pay us a referral commission whenever you shop through our platform. We pass the majority of that commission straight back to you as cash.',
   },
   {
     q: 'How do payouts work for Cambodian bank accounts?',
-    a: 'You can withdraw confirmed balances in USD or KHR directly to any local bank via Bakong and KHQR with zero hidden transfer penalties.',
+    a: 'You can withdraw confirmed balances in USD or KHR directly to any local bank via Bakong and KHQR with zero hidden transfer fees.',
   },
   {
-    q: 'Why do travel bookings take longer to confirm than retail orders?',
-    a: 'E-commerce orders confirm 14–30 days after delivery, whereas airline and hotel bookings confirm 30–60 days after your actual travel dates to ensure stays are completed.',
+    q: 'Why does cashback take time to confirm?',
+    a: 'Merchants wait for return policies, cancellation windows, or completed travel dates to pass before releasing the referral commission.',
   },
   {
     q: 'Why did my cashback not track?',
-    a: 'Using ad-blockers, external coupon extensions, or navigating away before completing checkout can sever the tracking cookie. Always complete your purchase directly in the opened session.',
+    a: 'Using third-party coupon extensions, enabling strict ad-blockers, or switching browser tabs mid-checkout can break the tracking link. Always complete your order immediately after clicking through RielPoint.',
   },
 ]
 
@@ -126,12 +125,11 @@ export default function HowItWorksPage() {
     <main className="min-h-screen bg-white text-black px-4 pt-12 pb-36 max-w-2xl mx-auto">
       {/* Header */}
       <div className="text-center space-y-2 mb-8">
-      
         <h1 className="text-3xl sm:text-4xl font-bold tracking-tight text-black">
           How Cashback Works
         </h1>
         <p className="text-sm text-black/60 max-w-md mx-auto">
-          Earn real cash back on local essentials in Cambodia and high-spend trips across Southeast Asia.
+          Earn real cash back every time you shop online and withdraw directly to your Cambodian bank account.
         </p>
       </div>
 
@@ -182,30 +180,30 @@ export default function HowItWorksPage() {
         </p>
       </section>
 
-      {/* Regional Spend Coverage */}
+      {/* Popular Categories */}
       <section className="rounded-3xl bg-white border border-black/[0.06] p-6 shadow-sm mb-6 space-y-4">
         <div className="flex items-center gap-2">
-          <Globe2 className="w-5 h-5 text-black/70" />
-          <h2 className="text-base font-semibold text-black">Cross-Border & Local Rewards</h2>
+          <ShoppingBag className="w-5 h-5 text-black/70" />
+          <h2 className="text-base font-semibold text-black">Popular Cashback Categories</h2>
         </div>
         <p className="text-xs text-black/60 leading-relaxed">
-          Designed for Cambodian shoppers and frequent regional travelers navigating flights, boutique hotels, and regional luxury.
+          Earn rewards across multiple online shopping, travel, and tech categories.
         </p>
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1">
-          {REGIONAL_COVERAGE.map((item) => {
-            const CoverageIcon = item.icon
+          {POPULAR_CATEGORIES.map((item) => {
+            const CategoryIcon = item.icon
             return (
               <div
-                key={item.country}
+                key={item.title}
                 className="p-3.5 rounded-2xl bg-black/[0.02] border border-black/[0.04] flex flex-col justify-between"
               >
                 <div>
                   <div className="flex items-center gap-2 mb-2">
                     <div className="p-1.5 rounded-lg bg-white border border-black/[0.06]">
-                      <CoverageIcon className="w-3.5 h-3.5 text-black/80" />
+                      <CategoryIcon className="w-3.5 h-3.5 text-black/80" />
                     </div>
-                    <span className="text-xs font-semibold text-black">{item.country}</span>
+                    <span className="text-xs font-semibold text-black">{item.title}</span>
                   </div>
                   <p className="text-[11px] font-medium text-black/70">{item.type}</p>
                   <p className="text-[10px] text-black/50 leading-normal mt-1">{item.focus}</p>
@@ -249,7 +247,7 @@ export default function HowItWorksPage() {
           <h2 className="text-base font-semibold text-black">Confirmation Timelines</h2>
         </div>
         <p className="text-xs text-black/60 mb-5 leading-relaxed">
-          Validation schedules depend on merchant categories, cross-border settlement windows, and trip completion.
+          Payout schedules depend on merchant verification periods and return policies.
         </p>
 
         <div className="space-y-4">
@@ -302,7 +300,7 @@ export default function HowItWorksPage() {
           href="/"
           className="inline-flex items-center justify-center gap-2 px-8 py-3.5 rounded-full bg-black text-white text-xs font-medium hover:bg-black/90 active:scale-[0.98] transition-all shadow-md"
         >
-          <span>Explore Regional & Local Deals</span>
+          <span>Explore Partner Stores</span>
           <ArrowRight className="w-4 h-4" />
         </Link>
       </div>
