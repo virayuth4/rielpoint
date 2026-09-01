@@ -88,10 +88,10 @@ export default function Navigation() {
   const pathname = usePathname()
   const { currentUser } = useContext(AuthContext) ?? {}
   const [isVisible, setIsVisible] = useState(true)
+  const { cta } = useNavAction()
 
   const role = currentUser?.role
   const canManageMerchant = role === 'owner' || role === 'staff'
-  const { cta } = useNavAction()
 
   useEffect(() => {
     const handleToggleNav = (event) => {
@@ -101,10 +101,16 @@ export default function Navigation() {
     }
 
     window.addEventListener('toggle-bottom-nav', handleToggleNav)
+
     return () => {
       window.removeEventListener('toggle-bottom-nav', handleToggleNav)
     }
   }, [])
+
+  // Don't render navigation on auth pages
+  if (pathname === '/signup' || pathname === '/login') {
+    return null
+  }
 
   return (
     <div 

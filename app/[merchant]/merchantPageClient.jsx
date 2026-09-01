@@ -1,11 +1,12 @@
 "use client";
-import { useContext } from "react";
+import { useContext, useState } from "react";
 import { useRouter } from "next/navigation";
 
 import OfferCard from "../Components/offerCard";
 import CashbackExplainer from "../Components/cashbackExplainer";
 import SetNavCta from "../Components/setNavCta";
 import { AuthContext } from "../auth/authContext";
+import ShopSignupModal from "../Components/shopSignUpModal";
 
 // Plain (non-async) client component: safe to use hooks like useContext here.
 export default function MerchantPageClient({
@@ -17,6 +18,7 @@ export default function MerchantPageClient({
 }) {
   const router = useRouter();
   const { currentUser, loading } = useContext(AuthContext) ?? {};
+  const [showSignupModal, setShowSignupModal] = useState(false);
 
   function handleShopClick(e) {
     if (loading) {
@@ -27,13 +29,19 @@ export default function MerchantPageClient({
     }
     if (!currentUser) {
       e.preventDefault();
-      router.push(`/signup?callback=${encodeURIComponent(href)}`);
+      setShowSignupModal(true);
+      return;
     }
     // else: let the <a> navigate normally to `href`
   }
 
+   function handleConfirmSignup() {
+    setShowSignupModal(false);
+    router.push(`/signup?callback=${encodeURIComponent(href)}`);
+  }
+
   return (
-    <main className="mx-auto max-w-4xl px-4 py-12">
+    <main className="mx-auto max-w-4xl px-4 py-6">
       <SetNavCta href={href} label={`Shop ${merchant.name}`} onClick={handleShopClick} />
       {/* Header */}
       <div className="flex items-center gap-4">
@@ -120,6 +128,13 @@ export default function MerchantPageClient({
             {activeOffers.map((o) => (
               <OfferCard key={o.id} offer={o} merchant={merchant} />
             ))}
+
+             <ShopSignupModal
+        open={showSignupModal}
+        onClose={() => setShowSignupModal(false)}
+        onConfirm={handleConfirmSignup}
+        merchantName={merchant.name}
+      />
           </div>
         </div>
       )}

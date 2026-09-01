@@ -52,7 +52,7 @@ export default function LoginForm({ isMerchant = false }) {
 
 return (
   <div className="min-h-screen px-5 py-8 text-slate-900 md:px-6 md:py-12">
-    <div className="mx-auto flex min-h-[calc(100vh-6rem)] w-full max-w-sm flex-col justify-center">
+    <div className="mx-auto flex min-h-[calc(100vh-6rem)] w-full max-w-sm flex-col md:justify-center ">
 
       {/* Header */}
       <div className="mb-8">
