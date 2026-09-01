@@ -25,7 +25,7 @@ export default function SignUpForm() {
   const [otp, setOtp] = useState('');
   const [otpError, setOtpError] = useState('');
   const [isVerifying, setIsVerifying] = useState(false);
-  const [timeLeft, setTimeLeft] = useState(60);
+  const [timeLeft, setTimeLeft] = useState(10);
   const [attempts, setAttempts] = useState(1);
 
    const [referredBy] = useState(() => {

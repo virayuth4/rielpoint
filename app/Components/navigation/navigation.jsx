@@ -11,7 +11,8 @@ import {
   Trophy, 
   HelpCircle, 
   ArrowRight,
-  DollarSign
+  DollarSign,
+  Gift
 } from 'lucide-react'
 import { AuthContext } from '@/app/auth/authContext'
 import { useNavAction } from '@/app/context/navActionContext'
@@ -31,7 +32,7 @@ const TABS_LEFT = [
 
 const TABS_RIGHT = [
   { label: 'Wallet', href: '/wallet', icon: Wallet },
-  { label: 'Profile', href: '/profile', icon: User },
+  { label: 'Rewards', href: '/rewards', icon: Gift },
 ]
 
 const MERCHANT_ROW = [

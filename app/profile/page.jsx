@@ -135,7 +135,7 @@ export default function ProfilePage() {
     { label: 'Role', value: profile?.role },
     { label: 'Full name', value: profile?.fullname },
     { label: 'Customer number', value: profile?.customer_number },
-    { label: 'Role', value: profile?.role },
+    
     { label: 'Balance', value: profile?.balance },
     { label: 'Joined', value: formatDate(profile?.created_at) },
   ].map((row, i) => (

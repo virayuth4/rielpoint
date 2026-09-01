@@ -21,7 +21,7 @@ const mobileLinks = [
   // { href: "/hotels", label: "Hotels", icon: Tag },
   { href: "/info", label: "Info", icon: Info },
   { href: "/wallet", label: "Wallet", icon: Wallet },
-  { href: "/profile", label: "Profile", icon: User },
+  { href: "/rewards", label: "Rewards", icon: User },
 ];
 
 export default function TopNavigation() {
@@ -67,7 +67,7 @@ export default function TopNavigation() {
       </div>
 
       {/* Navigation bar with hide-scrollbar rules */}
-      <nav className="mx-auto flex md:max-w-5xl items-center gap-2 overflow-x-auto px-4 py-2 md:justify-center md:overflow-visible [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+      <nav className="mx-auto flex md:max-w-5xl items-center gap-1.5 md:gap-2 overflow-x-auto px-4 py-2 md:justify-center md:overflow-visible [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
         {mobileLinks.map(({ href, label, isHighlighted }) => {
           const isActive = pathname === href;
 
