@@ -39,7 +39,7 @@ export const useSignUpLogic = ({ isModal = false }) => {
   };
 
 
-const handleSuccessfulSignUp = async (user, fullName) => {
+const handleSuccessfulSignUp = async (user, fullName, referredBy) => {
   // Step A: the critical, must-succeed-or-rollback part
   let data;
   try {
@@ -47,7 +47,7 @@ const handleSuccessfulSignUp = async (user, fullName) => {
       method: "POST",
       credentials: 'include',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email: user.email, fullName })
+      body: JSON.stringify({ email: user.email, fullName, referredBy })
     });
 
     if (!response.ok) {
@@ -133,8 +133,8 @@ const handleSuccessfulSignUp = async (user, fullName) => {
     }
   };
 
-  const phoneEmailSignUp = async (phoneNumber, password, fullName) => {
-    console.log('[DEBUG] phoneEmailSignUp -> called with phoneNumber:', phoneNumber, 'fullName:', fullName, 'isLoading:', isLoading);
+  const phoneEmailSignUp = async (phoneNumber, password, fullName, referredBy) => {
+    console.log('[DEBUG] phoneEmailSignUp -> called with phoneNumber:', phoneNumber, 'fullName:', fullName, 'isLoading:', isLoading, 'referedBy:', referredBy);
 
     if (isLoading) return { success: false, error: 'Operation already in progress' };
     
@@ -155,14 +155,14 @@ const handleSuccessfulSignUp = async (user, fullName) => {
       }
 
       // Step 1: Create Firebase user
-      console.log('[DEBUG] phoneEmailSignUp -> calling createUserWithEmailAndPassword with:', phoneEmail);
+      // console.log('[DEBUG] phoneEmailSignUp -> calling createUserWithEmailAndPassword with:', phoneEmail);
       const userCredential = await createUserWithEmailAndPassword(auth, phoneEmail, password);
-      console.log('[DEBUG] phoneEmailSignUp -> Firebase user created:', userCredential.user.uid, userCredential.user.email);
+      // console.log('[DEBUG] phoneEmailSignUp -> Firebase user created:', userCredential.user.uid, userCredential.user.email);
       
       // Step 2: Register with backend
-      console.log('[DEBUG] phoneEmailSignUp -> calling handleSuccessfulSignUp');
-      const result = await handleSuccessfulSignUp(userCredential.user, fullName);
-      console.log('[DEBUG] phoneEmailSignUp -> handleSuccessfulSignUp result:', result);
+      // console.log('[DEBUG] phoneEmailSignUp -> calling handleSuccessfulSignUp');
+      const result = await handleSuccessfulSignUp(userCredential.user, fullName, referredBy);
+      // console.log('[DEBUG] phoneEmailSignUp -> handleSuccessfulSignUp result:', result);
       
       // If backend registration failed, delete the Firebase user to maintain consistency
       if (!result.success) {

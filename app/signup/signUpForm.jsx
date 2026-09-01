@@ -2,11 +2,12 @@
 
 import React, { useState } from 'react';
 import { Loader2, X } from 'lucide-react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useSignUpLogic } from '../auth/signUpLogic';
 
 export default function SignUpForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { phoneEmailSignUp } = useSignUpLogic({ isModal: false });
 
   // Signup fields — all local, never persisted
@@ -16,6 +17,8 @@ export default function SignUpForm() {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [isResending, setIsResending] = useState(false);
+
 
   // OTP modal state
   const [showOtpModal, setShowOtpModal] = useState(false);
@@ -24,6 +27,13 @@ export default function SignUpForm() {
   const [isVerifying, setIsVerifying] = useState(false);
   const [timeLeft, setTimeLeft] = useState(60);
   const [attempts, setAttempts] = useState(1);
+
+   const [referredBy] = useState(() => {
+    const ref = searchParams.get('ref');
+    return ref && /^\d+$/.test(ref) ? ref : null; // must be a plain integer id
+  });
+
+  // console.log("Refered By", referredBy)
 
   const handlePhoneChange = (e) => {
     const value = e.target.value.replace(/\D/g, '');
@@ -99,7 +109,7 @@ export default function SignUpForm() {
       // Backend already created the account using the password from step 1
       // (see backend notes below) — sign the user in client-side now
 
-      const result = await phoneEmailSignUp(formattedPhoneForApi(), password, fullName);
+      const result = await phoneEmailSignUp(formattedPhoneForApi(), password, fullName, referredBy);
 
       if (result.success) {
         setPassword(''); // clear from memory, done with it
@@ -114,16 +124,34 @@ export default function SignUpForm() {
     }
   };
 
-  const handleResendOTP = async () => {
-    setAttempts(a => a + 1);
-    await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/flutter/user/registration/otp/resend/${formattedPhoneForApi()}`, {
-      method: "POST",
-      credentials: 'include',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ fullName, attempts: attempts + 1 })
-    });
+const handleResendOTP = async () => {
+  setIsResending(true);
+  setOtpError('');
+
+  try {
+    const response = await fetch(
+      `${process.env.NEXT_PUBLIC_BACKEND}/api/user/registration/otp/resend/${formattedPhoneForApi()}`,
+      {
+        method: "POST",
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+      }
+    );
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.message || data.error || 'Failed to resend code');
+    }
+
+    setAttempts(data.resendCount);
     setTimeLeft(60);
-  };
+  } catch (err) {
+    setOtpError(err.message || 'Failed to resend code. Please try again.');
+  } finally {
+    setIsResending(false);
+  }
+};
 
   const formatTime = (seconds) =>
     `${Math.floor(seconds / 60).toString().padStart(2, '0')}:${(seconds % 60).toString().padStart(2, '0')}`;
@@ -371,10 +399,10 @@ return (
                 <button
                   type="button"
                   onClick={handleResendOTP}
-                  disabled={isVerifying}
+                  disabled={isVerifying || isResending}
                   className="text-sm font-medium text-slate-900 hover:underline disabled:opacity-50"
                 >
-                  Resend verification code
+                  {isResending ? "Resending..." : "Resend verification code"}
                 </button>
               )
             ) : (
