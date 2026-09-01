@@ -1,4 +1,4 @@
-import { RedirectLogos } from "./RedirectLogos";
+import { RedirectLogos } from "./redirectLogos";
 
 export default function Loading() {
   return (
