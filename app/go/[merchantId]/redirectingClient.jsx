@@ -1,7 +1,7 @@
 "use client";
 
-import Image from "next/image";
 import { useEffect, useState } from "react";
+import { RedirectLogos } from "./redirectLogos";
 
 const SEARCH_MESSAGES = [
   "Connecting you to our partner...",
@@ -9,9 +9,6 @@ const SEARCH_MESSAGES = [
   "Almost there...",
 ];
 
-// Click tracking already happened server-side in GoPage before this
-// component rendered — this delay exists purely so the user has time
-// to read the partner name/logo before being bounced onward.
 const DISPLAY_MS = 1800;
 
 export default function RedirectClient({ to, name, logo }) {
@@ -23,8 +20,6 @@ export default function RedirectClient({ to, name, logo }) {
       window.location.replace(to);
     }, DISPLAY_MS);
 
-    // Rotate messages evenly across the display window so the last
-    // message always gets a chance to be read.
     const messageDuration = DISPLAY_MS / SEARCH_MESSAGES.length;
     const messageInterval = setInterval(() => {
       setMessageIndex((prev) => (prev + 1) % SEARCH_MESSAGES.length);
@@ -46,26 +41,16 @@ export default function RedirectClient({ to, name, logo }) {
 
   useEffect(() => {
     if (!hasReturned) return;
-
     const timer = setTimeout(() => {
       window.location.replace("/");
-    }, 1500); // long enough to read, short enough not to feel stuck
-
+    }, 1500);
     return () => clearTimeout(timer);
   }, [hasReturned]);
 
   if (hasReturned) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-start pt-24 md:pt-32 bg-white px-4 text-center">
-        {logo && (
-          <Image
-            src={logo}
-            alt={name}
-            width={64}
-            height={64}
-            className="h-16 w-16 object-contain mb-6 rounded-xl shadow-sm"
-          />
-        )}
+        <RedirectLogos brandLogo={logo} brandName={name} />
         <div className="h-10 w-10 rounded-full bg-emerald-100 flex items-center justify-center mb-6">
           <svg
             className="h-6 w-6 text-emerald-600"
@@ -77,31 +62,18 @@ export default function RedirectClient({ to, name, logo }) {
             <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
           </svg>
         </div>
-        <h1 className="text-lg font-semibold text-gray-800">
-          You&apos;re all set!
-        </h1>
-        <p className="mt-1 text-sm text-gray-500">
-          Taking you back to your homepage...
-        </p>
+        <h1 className="text-lg font-semibold text-gray-800">You&apos;re all set!</h1>
+        <p className="mt-1 text-sm text-gray-500">Taking you back to your homepage...</p>
       </div>
     );
   }
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-start pt-24 md:pt-32 bg-white px-4 text-center">
-      {logo && (
-        <Image
-          src={logo}
-          alt={name}
-          width={64}
-          height={64}
-          priority
-          className="h-16 w-16 object-contain mb-6 rounded-xl shadow-sm"
-        />
-      )}
+      <RedirectLogos brandLogo={logo} brandName={name} />
       <div className="h-10 w-10 border-4 border-gray-200 border-t-black rounded-full motion-safe:animate-spin mb-6" />
       <h1 className="text-lg font-semibold text-gray-800">
-        Redirecting you to our partner: {name}
+        Redirecting to {name}
       </h1>
       <p className="mt-2 text-sm text-gray-500 transition-opacity duration-300">
         {SEARCH_MESSAGES[messageIndex]}
