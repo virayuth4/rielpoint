@@ -9,18 +9,26 @@ const SEARCH_MESSAGES = [
   "Almost there...",
 ];
 
+// Click tracking already happened server-side in GoPage before this
+// component rendered — this delay exists purely so the user has time
+// to read the partner name/logo before being bounced onward.
+const DISPLAY_MS = 1800;
+
 export default function RedirectClient({ to, name, logo }) {
   const [hasReturned, setHasReturned] = useState(false);
   const [messageIndex, setMessageIndex] = useState(0);
 
   useEffect(() => {
-    const timer = setTimeout(() => {
+    const redirectTimer = setTimeout(() => {
       window.location.replace(to);
-    }, 2500);
+    }, DISPLAY_MS);
 
+    // Rotate messages evenly across the display window so the last
+    // message always gets a chance to be read.
+    const messageDuration = DISPLAY_MS / SEARCH_MESSAGES.length;
     const messageInterval = setInterval(() => {
       setMessageIndex((prev) => (prev + 1) % SEARCH_MESSAGES.length);
-    }, 1100);
+    }, messageDuration);
 
     const handleVisibility = () => {
       if (document.visibilityState === "visible") {
@@ -30,7 +38,7 @@ export default function RedirectClient({ to, name, logo }) {
 
     document.addEventListener("visibilitychange", handleVisibility);
     return () => {
-      clearTimeout(timer);
+      clearTimeout(redirectTimer);
       clearInterval(messageInterval);
       document.removeEventListener("visibilitychange", handleVisibility);
     };
@@ -50,7 +58,7 @@ export default function RedirectClient({ to, name, logo }) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-start pt-24 md:pt-32 bg-white px-4 text-center">
         {logo && (
-         <Image
+          <Image
             src={logo}
             alt={name}
             width={64}
@@ -70,7 +78,7 @@ export default function RedirectClient({ to, name, logo }) {
           </svg>
         </div>
         <h1 className="text-lg font-semibold text-gray-800">
-          You&apos;re all set !
+          You&apos;re all set!
         </h1>
         <p className="mt-1 text-sm text-gray-500">
           Taking you back to your homepage...
@@ -82,7 +90,7 @@ export default function RedirectClient({ to, name, logo }) {
   return (
     <div className="min-h-screen flex flex-col items-center justify-start pt-24 md:pt-32 bg-white px-4 text-center">
       {logo && (
-       <Image
+        <Image
           src={logo}
           alt={name}
           width={64}
@@ -91,7 +99,7 @@ export default function RedirectClient({ to, name, logo }) {
           className="h-16 w-16 object-contain mb-6 rounded-xl shadow-sm"
         />
       )}
-      <div className="h-10 w-10 border-4 border-gray-200 border-t-black rounded-full animate-spin mb-6" />
+      <div className="h-10 w-10 border-4 border-gray-200 border-t-black rounded-full motion-safe:animate-spin mb-6" />
       <h1 className="text-lg font-semibold text-gray-800">
         Redirecting you to our partner: {name}
       </h1>
