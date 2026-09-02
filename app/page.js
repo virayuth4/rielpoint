@@ -51,28 +51,39 @@ export default async function HomePage() {
         className="mx-auto min-h-screen max-w-6xl px-4  sm:px-6 sm:py-14"
       >
         {/* Popular Stores */}
-        {merchants.length > 0 && (
-          <section>
-            <div className="mb-5">
-              <h2 className="text-2xl font-bold tracking-tight text-black sm:text-3xl">
-                Popular Stores
-              </h2>
+{merchants.length > 0 && (
+<section>
+  <div className="mb-5">
+    <h2 className="text-2xl font-bold tracking-tight text-black sm:text-3xl">
+      Popular Stores
+    </h2>
 
-              <p className="mt-1 text-sm text-slate-500">
-                Earn cashback when you shop.
-              </p>
-            </div>
+    <p className="mt-1 text-sm text-slate-500">
+      Earn cashback when you shop.
+    </p>
+  </div>
 
-            <div className="grid grid-cols-2 gap-3 sm:grid-cols-2 md:grid-cols-3 md:gap-5 lg:grid-cols-4">
-              {merchants.map((merchant) => (
-                <MerchantCard
-                  key={`merchant-${merchant.id}`}
-                  merchant={merchant}
-                />
-              ))}
-            </div>
-          </section>
-        )}
+  <div className="-mx-4 sm:mx-0">
+    <div
+      className="grid grid-flow-col grid-rows-2 gap-1 overflow-x-auto
+                 scroll-smooth snap-x snap-mandatory px-4 pb-2
+                 md:gap-5 md:px-0
+                 [&::-webkit-scrollbar]:hidden
+                 [-ms-overflow-style:none]
+                 [scrollbar-width:none]"
+    >
+      {merchants.map((merchant) => (
+        <div
+          key={`merchant-${merchant.id}`}
+          className="w-43 flex-shrink-0 snap-start sm:w-48 md:w-56"
+        >
+          <MerchantCard merchant={merchant} />
+        </div>
+      ))}
+    </div>
+  </div>
+</section>
+      )}
 
         {/* Popular Deals */}
         <section className="mt-14 sm:mt-20">
