@@ -16,9 +16,9 @@ export default function Banner() {
           </h1>
 
           {/* Subtext targeting regional travelers & local shoppers */}
-          <p className="max-w-2xl text-base font-normal leading-relaxed text-slate-600 sm:text-lg">
-            Turn every spend into real savings. Earn cash back on top brands at home in<strong className='text-slate-900 font-semibold'> Cambodia </strong>and when you travel across <strong className="text-slate-900 font-semibold">Singapore, Vietnam, Malaysia, and beyond</strong>.
-          </p>
+    <p className="max-w-2xl text-sm font-normal leading-relaxed text-slate-600 sm:text-lg">
+  Spend $10, get <strong className="text-slate-900 font-semibold">cash back</strong>. It&apos;s simple: brands pay us a commission for the business, and we split it with you.
+</p>
 
           {/* CTA & Trust Anchor */}
           <div className="flex flex-col items-center gap-3 pt-2">

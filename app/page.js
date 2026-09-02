@@ -54,7 +54,7 @@ export default async function HomePage() {
 
       <div
         id="offers"
-        className="mx-auto min-h-screen max-w-6xl px-4 py-10 sm:px-6 sm:py-14"
+        className="mx-auto min-h-screen max-w-6xl px-4  sm:px-6 sm:py-14"
       >
         {/* Popular Stores */}
         {merchants.length > 0 && (
