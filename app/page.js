@@ -65,7 +65,7 @@ export default async function HomePage() {
 
   <div className="-mx-4 sm:mx-0">
     <div
-      className="grid grid-flow-col grid-rows-2 gap-1 overflow-x-auto
+      className="grid grid-flow-col grid-rows-2 gap-0 overflow-x-auto
                  scroll-smooth snap-x snap-mandatory px-4 pb-2
                  md:gap-5 md:px-0
                  [&::-webkit-scrollbar]:hidden
@@ -75,7 +75,7 @@ export default async function HomePage() {
       {merchants.map((merchant) => (
         <div
           key={`merchant-${merchant.id}`}
-          className="w-43 flex-shrink-0 snap-start sm:w-48 md:w-56"
+          className="w-44 flex-shrink-0 snap-start sm:w-48 md:w-56"
         >
           <MerchantCard merchant={merchant} />
         </div>
