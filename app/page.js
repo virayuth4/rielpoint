@@ -21,28 +21,22 @@ async function getHomepageFeed() {
   };
 }
 
-function pinMerchantFirst(merchants, pinnedId) {
-  const pinned = merchants.find(
-    (m) => String(m.id) === String(pinnedId)
-  );
+function pinMerchantsFirst(merchants, pinnedIds) {
+  const pinned = pinnedIds
+    .map((id) => merchants.find((m) => String(m.id) === String(id)))
+    .filter(Boolean);
 
-  if (!pinned) return merchants;
+  const pinnedIdSet = new Set(pinned.map((m) => String(m.id)));
 
-  return [
-    pinned,
-    ...merchants.filter(
-      (m) => String(m.id) !== String(pinnedId)
-    ),
-  ];
+  const rest = merchants.filter((m) => !pinnedIdSet.has(String(m.id)));
+
+  return [...pinned, ...rest];
 }
 
 export default async function HomePage() {
   const feed = await getHomepageFeed();
 
-  const merchants = pinMerchantFirst(
-    feed.merchants || [],
-    1
-  );
+  const merchants = pinMerchantsFirst(feed.merchants || [], [1, 6, 7]);
 
   const categoryNames = Object.keys(
     feed.categories || {}
