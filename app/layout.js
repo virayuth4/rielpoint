@@ -48,6 +48,15 @@ export default function RootLayout({ children }) {
       lang="en"
       className={`${geistSans.variable} ${geistMono.variable} ${inter.variable} ${mono.variable} h-full antialiased`}
     >
+        <head>
+        <link rel="preconnect" href="https://apis.google.com" />
+<link rel="preconnect" href="https://accounts.google.com" />
+<link rel="preconnect" href="https://rielpoint.firebaseapp.com" />
+<link rel="dns-prefetch" href="https://apis.google.com" />
+<link rel="dns-prefetch" href="https://accounts.google.com" />
+<link rel="dns-prefetch" href="https://rielpoint.firebaseapp.com" />
+
+      </head>
       <body className="min-h-full flex flex-col">
        
         <AuthProvider>
