@@ -29,7 +29,7 @@ export function RedirectLogos({ brandLogo, brandName }) {
       </svg>
 
       {/* Brand logo (or skeleton while unknown) */}
-      <div className="h-16 w-16 shrink-0 rounded-2xl overflow-hidden bg-slate-100 ring-1 ring-gray-200 shadow-sm flex items-center justify-center">
+      <div className="h-16 w-16 shrink-0 rounded-2xl overflow-hidden  ring-1 ring-gray-200 shadow-sm flex items-center justify-center">
         {brandLogo ? (
           <Image
             src={brandLogo}

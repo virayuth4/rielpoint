@@ -7,6 +7,7 @@ import CashbackExplainer from "../Components/cashbackExplainer";
 import SetNavCta from "../Components/setNavCta";
 import { AuthContext } from "../auth/authContext";
 import ShopSignupModal from "../Components/shopSignUpModal";
+import decodeEntities from "@/lib/decodeEntities";
 
 // Plain (non-async) client component: safe to use hooks like useContext here.
 export default function MerchantPageClient({
@@ -98,7 +99,7 @@ export default function MerchantPageClient({
       {/* Description */}
       {merchant.general_description && (
         <p className="mt-6 text-sm leading-relaxed text-slate-600 whitespace-pre-wrap">
-          {merchant.general_description}
+          {decodeEntities(merchant.general_description)}
         </p>
       )}
 

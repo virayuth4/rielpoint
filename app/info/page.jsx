@@ -15,9 +15,11 @@ import {
   HelpCircle,
   Plane,
   Laptop,
-  Shirt
+  Shirt,
+  MessageCircle
 } from 'lucide-react'
 import icon512 from '@/public/icon-512.png'
+import { TELEGRAM_SUPPORT_URL, TELEGRAM_SUPPORT_HANDLE } from '@/lib/constants'
 
 export const metadata = {
   title: 'How Cashback Works | RielPoint Cambodia',
@@ -180,6 +182,8 @@ export default function HowItWorksPage() {
         </p>
       </section>
 
+
+
       {/* Popular Categories */}
       <section className="rounded-3xl bg-white border border-black/[0.06] p-6 shadow-sm mb-6 space-y-4">
         <div className="flex items-center gap-2">
@@ -277,6 +281,32 @@ export default function HowItWorksPage() {
           })}
         </div>
       </section>
+
+            {/* Missing Order / Support */}
+<section className="rounded-3xl bg-black text-white p-6 shadow-sm mb-6">
+  <div className="flex items-start gap-4">
+    <div className="flex-shrink-0 w-11 h-11 rounded-2xl bg-white/10 border border-white/10 flex items-center justify-center">
+      <MessageCircle className="w-5 h-5 text-white" strokeWidth={1.75} />
+    </div>
+    <div className="flex-1 min-w-0">
+      <h2 className="text-sm font-semibold text-white">Missing Order?</h2>
+      <p className="text-xs text-white/60 leading-relaxed mt-1">
+        If your cashback hasn&apos;t tracked after 48 hours, message our support team on
+        Telegram with your order details and we&apos;ll help you sort it out.
+      </p>
+      <a
+        href={TELEGRAM_SUPPORT_URL}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="inline-flex items-center gap-2 mt-4 px-5 py-2.5 rounded-full bg-white text-black text-xs font-medium hover:bg-white/90 active:scale-[0.98] transition-all"
+      >
+        <MessageCircle className="w-3.5 h-3.5" />
+        <span>Contact us on Telegram</span>
+      </a>
+      <p className="text-[10px] text-white/40 mt-2">{TELEGRAM_SUPPORT_HANDLE}</p>
+    </div>
+  </div>
+</section>
 
       {/* FAQ Section */}
       <section className="rounded-3xl bg-white border border-black/[0.06] p-6 shadow-sm mb-8 space-y-4">
