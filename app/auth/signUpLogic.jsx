@@ -133,8 +133,11 @@ const handleSuccessfulSignUp = async (user, fullName, referredBy) => {
     }
   };
 
-  const phoneEmailSignUp = async (phoneNumber, password, fullName, referredBy) => {
-    console.log('[DEBUG] phoneEmailSignUp -> called with phoneNumber:', phoneNumber, 'fullName:', fullName, 'isLoading:', isLoading, 'referedBy:', referredBy);
+  // fullName is no longer collected at signup — the backend fills in a
+  // "user" + phoneNumber placeholder when it's omitted, so we simply don't
+  // send it here.
+  const phoneEmailSignUp = async (phoneNumber, password, referredBy) => {
+    console.log('[DEBUG] phoneEmailSignUp -> called with phoneNumber:', phoneNumber, 'isLoading:', isLoading, 'referedBy:', referredBy);
 
     if (isLoading) return { success: false, error: 'Operation already in progress' };
     
@@ -155,14 +158,10 @@ const handleSuccessfulSignUp = async (user, fullName, referredBy) => {
       }
 
       // Step 1: Create Firebase user
-      // console.log('[DEBUG] phoneEmailSignUp -> calling createUserWithEmailAndPassword with:', phoneEmail);
       const userCredential = await createUserWithEmailAndPassword(auth, phoneEmail, password);
-      // console.log('[DEBUG] phoneEmailSignUp -> Firebase user created:', userCredential.user.uid, userCredential.user.email);
       
-      // Step 2: Register with backend
-      // console.log('[DEBUG] phoneEmailSignUp -> calling handleSuccessfulSignUp');
-      const result = await handleSuccessfulSignUp(userCredential.user, fullName, referredBy);
-      // console.log('[DEBUG] phoneEmailSignUp -> handleSuccessfulSignUp result:', result);
+      // Step 2: Register with backend (fullName omitted — backend substitutes a placeholder)
+      const result = await handleSuccessfulSignUp(userCredential.user, undefined, referredBy);
       
       // If backend registration failed, delete the Firebase user to maintain consistency
       if (!result.success) {
@@ -194,7 +193,7 @@ const handleSuccessfulSignUp = async (user, fullName, referredBy) => {
 
 
   const googleSignUp = async () => {
-    if (isLoading) return;
+    if (isLoading) return { success: false, error: 'Operation already in progress' };
     
     setIsLoading(true);
     setError('');
@@ -203,8 +202,10 @@ const handleSuccessfulSignUp = async (user, fullName, referredBy) => {
       const provider = new GoogleAuthProvider();
       const result = await signInWithPopup(auth, provider);
       
-      // Use the user from Google sign-in result
-      const signUpResult = await handleSuccessfulSignUp(result.user);
+      // Use the user from Google sign-in result. fullName comes from the
+      // Google profile when available, otherwise the backend falls back
+      // to its "user" + phoneNumber-style placeholder.
+      const signUpResult = await handleSuccessfulSignUp(result.user, result.user.displayName || undefined);
       
       if (!signUpResult.success) {
         // If backend registration failed, clean up
@@ -222,7 +223,8 @@ const handleSuccessfulSignUp = async (user, fullName, referredBy) => {
         'auth/popup-closed-by-user': 'Sign-up popup was closed. Please try again.',
         'auth/popup-blocked': 'Pop-up was blocked by your browser. Please allow pop-ups and try again.',
         'auth/cancelled-popup-request': 'Previous sign-up operation is still in progress.',
-        'auth/network-request-failed': 'Network error occurred. Please check your connection and try again.'
+        'auth/network-request-failed': 'Network error occurred. Please check your connection and try again.',
+        'auth/account-exists-with-different-credential': 'An account already exists with this email using a different sign-in method.'
       };
 
       setError(errorMessages[error.code] || 'Failed to sign up with Google. Please try again.');

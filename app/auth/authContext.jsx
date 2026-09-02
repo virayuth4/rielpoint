@@ -145,6 +145,23 @@ export const getUserPrefrences = async () => {
   }
 }
 
+// Pushes the Firebase ID token to our own httpOnly-cookie session endpoint
+// and waits for it to finish. Both the onIdTokenChanged listener and the
+// manual Google sign-up path call this — the listener alone was racing
+// against create-user-profile calls that need the cookie to already exist.
+const syncSessionCookie = async (firebaseUser) => {
+  if (!firebaseUser) {
+    await fetch('/api/session', { method: 'DELETE' });
+    return;
+  }
+  const idToken = await firebaseUser.getIdToken();
+  await fetch('/api/session', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ idToken }),
+  });
+};
+
 
 export const AuthProvider = ({ children }) => {
   const [currentUser, setCurrentUser] = useState(null);
@@ -180,16 +197,7 @@ useEffect(() => {
   
     const unsubscribe = onIdTokenChanged(auth, async (firebaseUser) => {
       try {
-        if (firebaseUser) {
-          const idToken = await firebaseUser.getIdToken();
-          await fetch('/api/session', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ idToken }),
-          });
-        } else {
-          await fetch('/api/session', { method: 'DELETE' });
-        }
+        await syncSessionCookie(firebaseUser);
       } catch (err) {
         console.error('Failed to sync session cookie:', err);
       }
@@ -198,29 +206,44 @@ useEffect(() => {
   }, []);
 
 
-  const createAndSetCurrentUserManually = async (result) => {
+  const createAndSetCurrentUserManually = async (firebaseUser) => {
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/create-user-profile`, {
+      // Make sure the httpOnly session cookie is set before calling any
+      // authenticated backend route. The onIdTokenChanged listener above
+      // also does this, but it fires asynchronously and isn't guaranteed
+      // to finish before we get here — that gap was why a refresh was
+      // needed to see the new user's data after signing up with Google.
+      await syncSessionCookie(firebaseUser);
+
+      const response = await authenticatedFetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/create-user-profile`, {
         method: "POST",
-        credential: 'include',
+        credentials: 'include',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ email: result.email })
+        body: JSON.stringify({
+          email: firebaseUser.email,
+          fullName: firebaseUser.displayName || undefined,
+        })
       })
-      
-      const userData = await response.json();
-      if (userData) {
-        setCurrentUser(userData);
+
+      if (!response.ok) {
+        throw new Error(`create-user-profile failed with status ${response.status}`);
+      }
+
+      const { user } = await response.json();
+      if (user) {
+        setCurrentUser(user);
         // Clear anonId from state when user logs in
         setAnonId(null);
         setLoading(false);
-        return userData;
+        return user;
       }
       return null;
     
     } catch (e) {
       console.error(`Unexpected Error with while create and set current user manually ${e}`)
+      return null;
     }
   }
 
