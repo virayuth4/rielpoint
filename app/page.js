@@ -36,7 +36,7 @@ function pinMerchantsFirst(merchants, pinnedIds) {
 export default async function HomePage() {
   const feed = await getHomepageFeed();
 
-  const merchants = pinMerchantsFirst(feed.merchants || [], [1, 6, 7]);
+  const merchants = pinMerchantsFirst(feed.merchants || [], [1, 6 ,3, 7]);
 
   const categoryNames = Object.keys(
     feed.categories || {}
