@@ -7,6 +7,7 @@ import CashbackExplainer from "../Components/cashbackExplainer";
 import SetNavCta from "../Components/setNavCta";
 import { AuthContext } from "../auth/authContext";
 import ShopSignupModal from "../Components/shopSignUpModal";
+import { TELEGRAM_SUPPORT_URL } from "@/lib/constants";
 
 // Plain (non-async) client component: safe to use hooks like useContext here.
 export default function MerchantPageClient({
@@ -84,16 +85,28 @@ export default function MerchantPageClient({
       </a>
 
         {/* Cashback tracking reminder */}
-      <div className="mt-6 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3">
-        <p className="text-sm font-semibold text-amber-900">
-          Important: Click “Shop” before every booking or purchasing
-        </p>
-        <p className="mt-1 text-xs leading-relaxed text-amber-800">
-          To make sure your booking/purchasing is tracked and your cashback is credited
-          correctly, please return to RielPoint and click the “Shop” button
-          again before making each new booking/purchase.
-        </p>
-      </div>
+     <div className="mt-6 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3">
+  <p className="text-sm font-semibold text-amber-900">
+    Important: Click “Shop” before every booking or purchasing
+  </p>
+  <p className="mt-1 text-xs leading-relaxed text-amber-800">
+    To make sure your booking/purchasing is tracked and your cashback is credited
+    correctly, please return to RielPoint and click the “Shop” button
+    again before making each new booking/purchase.
+  </p>
+  <p className="mt-2 text-xs leading-relaxed text-amber-800">
+    Not sure how it works?{" "}
+    <a
+      href={TELEGRAM_SUPPORT_URL}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="font-semibold underline underline-offset-2 hover:text-amber-900"
+    >
+      Contact us on Telegram
+    </a>
+    .
+  </p>
+</div>
 
       {/* Description */}
       {merchant.general_description && (
