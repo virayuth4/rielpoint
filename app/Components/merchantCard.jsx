@@ -45,13 +45,15 @@ export default function MerchantCard({ merchant }) {
         </h2>
 
         {/* Line 2: Cashback Label */}
-        {merchant.max_cashback && (
-          <div className="mt-1">
-            <span className="inline-block text-md font-medium tracking-wide text-black">
-              {merchant.max_cashback}
-            </span>
-          </div>
-        )}
+       {merchant.max_cashback && (
+  <div className="mt-1">
+    <span className="inline-block text-md font-medium tracking-wide text-black">
+      {merchant.max_cashback.replace(/\s*cashback$/i, "")}
+      <br className="sm:hidden" />
+      <span className="sm:ml-1">cashback</span>
+    </span>
+  </div>
+)}
 
         <div className="mt-3 flex w-full items-center justify-center gap-1.5 rounded-2xl bg-black py-2.5 text-xs font-semibold text-white transition-all duration-150 group-hover:bg-black/90"> 
         Earn cashback
