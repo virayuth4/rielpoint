@@ -120,6 +120,13 @@ export default function MerchantPageClient({
         </div>
       )}
 
+         <ShopSignupModal
+        open={showSignupModal}
+        onClose={() => setShowSignupModal(false)}
+        onConfirm={handleConfirmSignup}
+        merchantName={merchant.name}
+      />
+
       {/* Offers, pushed to the bottom */}
       {activeOffers.length > 0 && (
         <div className="mt-12 border-t border-slate-100 pt-10">
@@ -129,12 +136,7 @@ export default function MerchantPageClient({
               <OfferCard key={o.id} offer={o} merchant={merchant} />
             ))}
 
-             <ShopSignupModal
-        open={showSignupModal}
-        onClose={() => setShowSignupModal(false)}
-        onConfirm={handleConfirmSignup}
-        merchantName={merchant.name}
-      />
+          
           </div>
         </div>
       )}
