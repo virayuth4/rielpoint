@@ -32,7 +32,8 @@ const TABS_LEFT = [
 
 const TABS_RIGHT = [
   { label: 'Wallet', href: '/wallet', icon: Wallet },
-  { label: 'Rewards', href: '/rewards', icon: Gift },
+  { label: 'Profile', href: '/profile', icon: User },
+  // { label: 'Rewards', href: '/rewards', icon: Gift },
 ]
 
 const MERCHANT_ROW = [
