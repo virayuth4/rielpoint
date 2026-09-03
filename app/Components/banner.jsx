@@ -29,7 +29,7 @@ export default function Banner() {
               Sign Up and Start Earning
             </Link>
             <p className="text-xs text-slate-600">
-              Direct payout to local Cambodian bank accounts with <br /> Bakong / KHQR 
+              Direct payout to your ABA or Aceleda bank account
             </p>
           </div>
 
