@@ -28,6 +28,10 @@ export default function TopNavigation() {
   const { currentUser, loading } = useContext(AuthContext) ?? {};
   const pathname = usePathname();
 
+   if (pathname === '/telegram/redeem') {
+    return null
+  }
+
   return (
     <header className="sticky top-0 z-20 bg-white shadow-[0_1px_3px_rgba(0,0,0,0.05)]">
       <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-6 sm:py-4">
