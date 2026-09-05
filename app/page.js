@@ -14,12 +14,14 @@ async function getHomepageFeed() {
   }
 
   const json = await res.json();
-
+ 
   return json.data || {
     categories: {},
     merchants: [],
   };
 }
+
+
 
 function pinMerchantsFirst(merchants, pinnedIds) {
   const pinned = pinnedIds
@@ -36,7 +38,7 @@ function pinMerchantsFirst(merchants, pinnedIds) {
 export default async function HomePage() {
   const feed = await getHomepageFeed();
 
-  const merchants = pinMerchantsFirst(feed.merchants || [], [1, 6 ,3, 7]);
+  const merchants = pinMerchantsFirst(feed.merchants || [], [1, 6 ,3, 7, 12, 2]);
 
   const categoryNames = Object.keys(
     feed.categories || {}

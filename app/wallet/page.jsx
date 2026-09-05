@@ -6,6 +6,7 @@ import { getAuth, onAuthStateChanged } from 'firebase/auth';
 import authenticatedFetch from '../auth/authenticatedFetch';
 import { AuthContext } from '../auth/authContext';
 import WithdrawalRequestModal from './withdrawalRequestModal';
+import { TELEGRAM_SUPPORT_URL } from '@/lib/constants';
 
 // --- status metadata (transaction history) ------------------------------
 const STATUS_META = {
@@ -290,6 +291,21 @@ export default function WalletPage() {
                 Withdraw
               </span>
             </button>
+
+            <div className=" mb-6  text-center">
+            <p className="text-xs" style={{ color: '#9A9A9A' }}>
+              Missing cashback?{' '}
+              <a
+                href={TELEGRAM_SUPPORT_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="font-medium underline underline-offset-2"
+                style={{ color: '#0F0F0E' }}
+              >
+                Contact us on Telegram
+              </a>
+            </p>
+          </div>
 
             {/* Withdrawal history */}
             {withdrawals.length > 0 && (

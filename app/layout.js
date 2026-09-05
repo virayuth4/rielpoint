@@ -32,7 +32,7 @@ const mono = Space_Mono({
 
 export const metadata = {
   title: "Riel Point",
-  description: "Loyalty rewards platform",
+  description: "Cambodia Cashback & Rewards Platform",
   icons: {
     icon: "/icon-192.png",
   },

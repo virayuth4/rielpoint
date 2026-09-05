@@ -9,11 +9,19 @@ export default function MerchantCard({ merchant }) {
   const cashbackLabel = formatCashback(offer);
   const endsLabel = offer ? endsInLabel(offer.end_at) : null;
 
+  // Format the cashback display cleanly using the new columns
+  const formattedValue =
+    merchant.max_cashback_value != null
+      ? merchant.cashback_type === "percentage"
+        ? `Up to ${merchant.max_cashback_value}%`
+        : `Up to $${merchant.max_cashback_value}`
+      : null;
+
   return (
- <Link 
-  href={`/${merchant.slug}`} 
-  className="group block w-full rounded-2xl p-2.5 transition-all duration-150 ease-out active:scale-[0.98] active:opacity-80 active:bg-blue-100"
->
+    <Link 
+      href={`/${merchant.slug}`} 
+      className="group block w-full rounded-2xl p-2.5 transition-all duration-150 ease-out active:scale-[0.98] active:opacity-80 active:bg-blue-100"
+    >
       {/* Image container */}
       <div className="relative aspect-[16/9] w-full overflow-hidden rounded-xl bg-slate-100">
         {merchant.logo_url ? (
@@ -22,7 +30,7 @@ export default function MerchantCard({ merchant }) {
             alt={merchant.name}
             fill
             sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
-            className="object-cover "
+            className="object-cover"
           />
         ) : (
           <div className="flex h-full w-full items-center justify-center px-4 text-center text-sm font-medium text-slate-400">
@@ -44,20 +52,21 @@ export default function MerchantCard({ merchant }) {
           {merchant.name}
         </h2>
 
-        {/* Line 2: Cashback Label */}
-       {merchant.max_cashback && (
-  <div className="mt-1">
-    <span className="inline-block text-md font-medium tracking-wide text-black">
-      {merchant.max_cashback.replace(/\s*cashback$/i, "")}
-      <br className="sm:hidden" />
-      <span className="sm:ml-1">cashback</span>
-    </span>
-  </div>
-)}
+        {/* Line 2: Structured Cashback Label */}
+        {formattedValue && (
+          <div className="mt-1">
+            <span className="inline-block text-base font-medium tracking-wide text-black">
+              {formattedValue}
+              <br className="sm:hidden" />
+              <span className="sm:ml-1">cashback</span>
+            </span>
+          </div>
+        )}
 
         <div className="mt-3 flex w-full items-center justify-center gap-1.5 rounded-2xl bg-black py-2.5 text-xs font-semibold text-white transition-all duration-150 group-hover:bg-black/90"> 
-        Earn cashback
-        <span className="text-sm">→</span> </div>
+          Earn cashback
+          <span className="text-sm">→</span>
+        </div>
 
         {merchant.description && (
           <p className="mt-1 line-clamp-2 text-xs leading-relaxed text-slate-500">

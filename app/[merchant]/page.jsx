@@ -18,7 +18,7 @@ export async function generateStaticParams() {
 async function getMerchantBySlug(slug) {
   const res = await fetch(
     `${process.env.NEXT_PUBLIC_BACKEND}/api/merchant/affiliate/merchants`,
-    { next: { revalidate: 86400 } }
+    { next: { revalidate: 10 } }
   );
   if (!res.ok) throw new Error("Failed to load merchants");
   const json = await res.json();

@@ -121,7 +121,7 @@ export default function Navigation() {
     >
       <nav className={`${island} pointer-events-auto flex flex-col items-center px-3 py-2 w-[110%] sm:w-auto max-w-sm sm:max-w-none`}>
         {/* Top CTA Row (Visible when CTA exists) */}
-        {cta && (
+        {/* {cta && (
           <div className="w-full pb-2 mb-1 border-b border-black/[0.06] flex justify-center">
             <a
               href={cta.href}
@@ -134,7 +134,7 @@ export default function Navigation() {
               <ArrowRight className="h-4 w-4" strokeWidth={2} />
             </a>
           </div>
-        )}
+        )} */}
 
         {/* Main Navigation Row */}
         <div className="relative flex items-center justify-between w-full gap-2 sm:gap-6 sm:justify-center sm:w-auto h-16">
