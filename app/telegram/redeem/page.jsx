@@ -44,7 +44,7 @@ export default function RedeemPage() {
   return (
     <div className="min-h-screen bg-white px-4 py-6">
       <h1 className="text-lg font-semibold text-slate-900">Redeem coupon</h1>
-      <p className="mt-1 text-sm text-slate-500">Enter the customer's code and the total checkout amount.</p>
+      <p className="mt-1 text-sm text-slate-500">Enter the customer&apos;s code and the total checkout amount.</p>
 
       <div className="mt-6 space-y-4">
         <div>

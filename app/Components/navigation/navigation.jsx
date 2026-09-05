@@ -109,7 +109,7 @@ export default function Navigation() {
   }, [])
 
   // Don't render navigation on auth pages
-  if (pathname === '/signup' || pathname === '/login') {
+  if (pathname === '/signup' || pathname === '/login' || pathname === '/telegram/redeem') {
     return null
   }
 
