@@ -12,7 +12,7 @@ async function getRedirectData(merchantId, offer) {
   const anonId = cookieStore.get("anonId")?.value ?? null; 
   const ip = headerStore.get("x-forwarded-for")?.split(",")[0] ?? null;
   const userAgent = headerStore.get("user-agent") ?? null;
-  // console.log("anonId in getRedirectData", anonId)
+ 
   
 
  const res = await fetch(

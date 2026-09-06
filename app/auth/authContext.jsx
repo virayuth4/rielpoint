@@ -20,6 +20,8 @@ export const AuthContext = createContext({
 const generateAnonId = () => {
   return crypto.randomUUID();
 };
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 
 const ANON_ID_KEY = 'anonId';
 const ANON_ID_COOKIE_MAX_AGE = 60 * 60 * 24 * 400; // 400 days — the browser-enforced cap anyway
@@ -49,6 +51,13 @@ const deleteCookie = (name) => {
 const getOrCreateAnonId = () => {
   try {
     let id = getCookie(ANON_ID_KEY) || localStorage.getItem(ANON_ID_KEY);
+
+    // Discard legacy/malformed ids (e.g. pre-migration numeric ids)
+    if (id && !UUID_RE.test(id)) {
+      console.warn('Discarding non-UUID anonId:', id);
+      id = null;
+    }
+
     if (!id) {
       id = generateAnonId();
     }
