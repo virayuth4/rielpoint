@@ -88,45 +88,48 @@ async function handleCouponClick(e) {
   return (
     <main className="mx-auto max-w-4xl px-4 py-6">
       <SetNavCta href={href} label={`Shop ${merchant.name}`} onClick={handleShopClick} />
-      {/* Header */}
-      <div className="flex items-center gap-4">
-        <div className="h-16 w-16 overflow-hidden rounded-xl bg-slate-100">
-          {merchant.logo_url ? (
-            <img
-              src={merchant.logo_url}
-              alt={merchant.name}
-              className="h-full w-full object-cover"
-            />
-          ) : (
-            <div className="flex h-full w-full items-center justify-center text-xs text-slate-400">
-              {merchant.name}
-            </div>
-          )}
-        </div>
-
-        <div>
-          <h1 className="text-2xl font-semibold text-slate-900">
-            {merchant.name}
-          </h1>
-      
-            <p className="text-sm font-semibold text-emerald-600">
-              {merchant.max_cashback}
-            </p>
-        
-          
-        </div>
+     {/* Header */}
+<div className="flex flex-col items-center text-center">
+  <div className="h-16 w-16 overflow-hidden rounded-xl bg-slate-100">
+    {merchant.logo_url ? (
+      <img
+        src={merchant.logo_url}
+        alt={merchant.name}
+        className="h-full w-full object-cover"
+      />
+    ) : (
+      <div className="flex h-full w-full items-center justify-center text-xs text-slate-400">
+        {merchant.name}
       </div>
+    )}
+  </div>
 
-      {/* Shop CTA */}
-      <a
-        href={href}
-        target="_blank"
-        rel="noopener noreferrer sponsored"
-        onClick={handleShopClick}
-        className="mt-8 inline-block rounded-full bg-black px-6 py-3 text-sm font-semibold text-white hover:bg-black/90"
-      >
-        Shop {merchant.name}
-      </a>
+  <div className="mt-3">
+    <h1 className="text-2xl font-semibold text-slate-900">
+      {merchant.name}
+    </h1>
+
+    <p className="text-sm font-semibold text-emerald-600">
+      {merchant.max_cashback}
+    </p>
+  </div>
+</div>
+
+{/* Shop CTA */}
+<div className="mt-8 flex justify-center">
+  <a
+    href={href}
+    target="_blank"
+    rel="noopener noreferrer sponsored"
+    onClick={handleShopClick}
+    className="w-full max-w-sm rounded-full bg-black px-8 py-4 text-center text-base font-semibold text-white hover:bg-black/90"
+  >
+    Shop {merchant.name}
+  </a>
+</div>
+
+    
+
 {merchant.chat_commerce === true && (
  <div className="mt-8 space-y-3">
   

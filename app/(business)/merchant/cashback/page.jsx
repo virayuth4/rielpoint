@@ -27,7 +27,7 @@ const ACTIONABLE_STATUSES = ["pending", "merchant_confirmed"];
 
 const STATUS_STYLES = {
   pending: "bg-amber-100 text-amber-700 ring-1 ring-amber-600/20",
-  merchant_confirmed: "bg-amber-100 text-amber-700 ring-1 ring-amber-600/20",
+  merchant_confirmed: "bg-blue-100 text-blue-700 ring-1 ring-blue-600/20",
   rielpoint_confirmed: "bg-green-100 text-green-700 ring-1 ring-green-600/20",
   confirmed: "bg-green-100 text-green-700 ring-1 ring-green-600/20",
   rejected: "bg-red-100 text-red-700 ring-1 ring-red-600/20",

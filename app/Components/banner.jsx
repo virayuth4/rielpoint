@@ -11,8 +11,8 @@ export default function Banner() {
         
 
           {/* Title */}
-          <h1 className="text-4xl font-black uppercase tracking-tight text-black sm:text-6xl lg:text-7xl leading-tight">
-            Earn Up to <span className="underline decoration-2 underline-offset-8">20% Cashback</span>
+          <h1 className="text-4xl font-black  tracking-tight text-black sm:text-6xl lg:text-7xl leading-tight">
+            Earn up to <span className="underline decoration-2 underline-offset-8"> <br /> 20%</span>  Cashback
           </h1>
 
           {/* Subtext targeting regional travelers & local shoppers */}
