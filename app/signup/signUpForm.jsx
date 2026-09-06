@@ -38,6 +38,7 @@ export default function SignUpForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { phoneEmailSignUp, googleSignUp } = useSignUpLogic({ isModal: false });
+  const callback = searchParams.get('callback');
 
   // Wizard step
   const [step, setStep] = useState(STEPS.PHONE);
@@ -142,12 +143,12 @@ export default function SignUpForm() {
       // (see backend notes below) — sign the user in client-side now
       const result = await phoneEmailSignUp(formattedPhoneForApi(), password, referredBy);
 
-      if (result.success) {
-        setPassword(''); // clear from memory, done with it
-        router.push('/');
-      } else {
-        throw new Error(result.error || 'Failed to complete sign in');
-      }
+    if (result.success) {
+      setPassword('');
+      router.push(callback || '/');
+    } else {
+      throw new Error(result.error || 'Failed to complete sign in');
+    }
     } catch (error) {
       setOtpError(error.message || 'Failed to verify code. Please try again.');
     } finally {
@@ -437,13 +438,13 @@ export default function SignUpForm() {
         {step === STEPS.PHONE && (
           <div className="mt-8 text-center text-sm">
             <span className="text-slate-500">Already have an account?</span>{' '}
-            <button
-              type="button"
-              onClick={() => router.push('/login')}
-              className="font-semibold text-slate-900 hover:underline"
-            >
-              Sign in
-            </button>
+           <button
+            type="button"
+            onClick={() => router.push(callback ? `/login?callback=${encodeURIComponent(callback)}` : '/login')}
+            className="font-semibold text-slate-900 hover:underline"
+          >
+            Sign in
+          </button>
           </div>
         )}
 

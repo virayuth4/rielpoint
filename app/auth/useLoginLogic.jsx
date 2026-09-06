@@ -8,7 +8,7 @@ import { AuthContext, checkUserSession, setCurrentUserManually} from './authCont
 const STORAGE_KEY = 'shopping-cart';
 const CART_UPDATED_EVENT = 'cartUpdated';
 
-export const useLoginLogic = ({ isModal = false }) => {
+export const useLoginLogic = ({ isModal = false, callback: callbackOverride  }) => {
 const [isOpen, setIsOpen] = useState(false)
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -17,7 +17,7 @@ const [isOpen, setIsOpen] = useState(false)
   const router = useRouter();
   const auth = getAuth();
   const searchParams = useSearchParams();
-  const callbackUrl = searchParams.get('callback');
+  const callbackUrl = callbackOverride ?? searchParams.get('callback');
   const {setCurrentUserManually, createAndSetCurrentUserManually} = useContext(AuthContext)
 
  

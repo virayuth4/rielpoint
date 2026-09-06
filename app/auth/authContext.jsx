@@ -16,28 +16,72 @@ export const AuthContext = createContext({
   logout: async () => {}
 });
 
-// Function to generate random integer anonymous ID
+// Function to generate random anonymous ID
 const generateAnonId = () => {
-  // Generate a random integer between 100000 and 999999999
-  return Math.floor(100000 + Math.random() * 900000000);
+  return crypto.randomUUID();
 };
 
-const sendUniqueAnonIdToServer = async (anonId) => {
- try{
-  const response = await authenticatedFetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/user/anonId`, {
-    method: 'POST',
-    credentials: 'include',
-    headers: {
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify({ anonId })
-  });
- } catch (error) {
-    console.error('Failed to send anonymous ID to server:', error);
- }
- 
+const ANON_ID_KEY = 'anonId';
+const ANON_ID_COOKIE_MAX_AGE = 60 * 60 * 24 * 400; // 400 days — the browser-enforced cap anyway
+
+// --- cookie helpers -------------------------------------------------
+
+const setCookie = (name, value, maxAge = ANON_ID_COOKIE_MAX_AGE) => {
+  if (typeof document === 'undefined') return;
+  document.cookie = `${name}=${encodeURIComponent(value)}; path=/; max-age=${maxAge}; SameSite=Lax`;
 };
-  
+
+const getCookie = (name) => {
+  if (typeof document === 'undefined') return null;
+  const match = document.cookie.match(new RegExp('(?:^|; )' + name + '=([^;]*)'));
+  return match ? decodeURIComponent(match[1]) : null;
+};
+
+const deleteCookie = (name) => {
+  if (typeof document === 'undefined') return;
+  document.cookie = `${name}=; path=/; max-age=0; SameSite=Lax`;
+};
+
+// --- unified anonId storage ------------------------------------------
+// Reads from cookie first, falls back to localStorage, creates if neither
+// exists, and always re-syncs both so they never drift apart.
+
+const getOrCreateAnonId = () => {
+  try {
+    let id = getCookie(ANON_ID_KEY) || localStorage.getItem(ANON_ID_KEY);
+    if (!id) {
+      id = generateAnonId();
+    }
+    localStorage.setItem(ANON_ID_KEY, id);
+    setCookie(ANON_ID_KEY, id);
+    return id;
+  } catch (error) {
+    console.error('Error getting/creating anonymous ID:', error);
+    return generateAnonId();
+  }
+};
+
+const clearAnonIdStorage = () => {
+  localStorage.removeItem(ANON_ID_KEY);
+  deleteCookie(ANON_ID_KEY);
+};
+
+// const sendUniqueAnonIdToServer = async (anonId) => {
+//  try{
+//   const response = await authenticatedFetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/user/anonId`, {
+//     method: 'POST',
+//     credentials: 'include',
+//     headers: {
+//       'Content-Type': 'application/json'
+//     },
+//     body: JSON.stringify({ anonId })
+//   });
+//  } catch (error) {
+//     console.error('Failed to send anonymous ID to server:', error);
+//  }
+ 
+// };
+
 
 let cachedUserSessionPromise = null;
 
@@ -79,7 +123,7 @@ export const checkUserSession = async (forceRefresh = false) => {
 
       if (response.ok) {
         const data = await response.json();
-        
+
         // Save to sessionStorage
         if (typeof window !== 'undefined') {
           sessionStorage.setItem(
@@ -102,10 +146,10 @@ export const checkUserSession = async (forceRefresh = false) => {
 export const clearUserData = () => {
   try {
     clearUserSessionCache();
-    localStorage.removeItem('anonId');
+    clearAnonIdStorage();
     localStorage.removeItem('event_tracker_history');
     sessionStorage.removeItem('user_session_cache');
-    fetch('/api/session', { method: 'DELETE' }).catch(() => {}); // ← add
+    fetch('/api/session', { method: 'DELETE' }).catch(() => {});
     console.log('User data cleared');
   } catch (error) {
     console.error('Error clearing user data:', error);
@@ -173,18 +217,13 @@ export const AuthProvider = ({ children }) => {
 
   useEffect(() => {
     const fetchInitialSession = async () => {
-      console.log("AuthProvider Mounted")
+      // console.log("AuthProvider Mounted")
       const userData = await checkUserSession();
       setCurrentUser(userData?.user ?? null);
       setCurrentSession(userData?.session ?? null);
 
       if (!userData) {
-        let storedAnonId = localStorage.getItem('anonId');
-        if (!storedAnonId) {
-          storedAnonId = generateAnonId();
-          localStorage.setItem('anonId', storedAnonId);
-        }
-        setAnonId(storedAnonId);
+        setAnonId(getOrCreateAnonId());
       }
 
       setLoading(false);
@@ -194,7 +233,7 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
 useEffect(() => {
-  
+
     const unsubscribe = onIdTokenChanged(auth, async (firebaseUser) => {
       try {
         await syncSessionCookie(firebaseUser);
@@ -215,6 +254,8 @@ useEffect(() => {
       // needed to see the new user's data after signing up with Google.
       await syncSessionCookie(firebaseUser);
 
+      const priorAnonId = anonId ?? getCookie(ANON_ID_KEY) ?? localStorage.getItem(ANON_ID_KEY);
+
       const response = await authenticatedFetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/create-user-profile`, {
         method: "POST",
         credentials: 'include',
@@ -224,6 +265,7 @@ useEffect(() => {
         body: JSON.stringify({
           email: firebaseUser.email,
           fullName: firebaseUser.displayName || undefined,
+          anonId: priorAnonId, // let the backend merge/claim this anonId's history into the new account
         })
       })
 
@@ -234,13 +276,15 @@ useEffect(() => {
       const { user } = await response.json();
       if (user) {
         setCurrentUser(user);
-        // Clear anonId from state when user logs in
+        // Anon identity has been merged server-side (via priorAnonId above) —
+        // safe to clear it from local state/storage now that it's attached to the account.
+        clearAnonIdStorage();
         setAnonId(null);
         setLoading(false);
         return user;
       }
       return null;
-    
+
     } catch (e) {
       console.error(`Unexpected Error with while create and set current user manually ${e}`)
       return null;
@@ -250,7 +294,7 @@ useEffect(() => {
  const setCurrentUserManually = async () => {
   try {
     const userData = await checkUserSession(true); // { user, session } or null
-    
+
     if (userData) {
       setCurrentUser(userData.user);
       setCurrentSession(userData.session);
@@ -260,12 +304,7 @@ useEffect(() => {
     }
 
     if (!anonId) {
-      let storedAnonId = localStorage.getItem('anonId');
-      if (!storedAnonId) {
-        storedAnonId = generateAnonId();
-        localStorage.setItem('anonId', storedAnonId);
-      }
-      setAnonId(storedAnonId);
+      setAnonId(getOrCreateAnonId());
     }
 
     return null;
@@ -277,36 +316,21 @@ useEffect(() => {
 
 
 
-  const getAnonId = () => {
-  try {
-    // Try to get existing anonId from localStorage
-    let storedAnonId = localStorage.getItem('anonId');
-    
-    // If no anonId exists in localStorage, generate and store a new one
-    if (!storedAnonId) {
-      storedAnonId = generateAnonId().toString();
-      localStorage.setItem('anonId', storedAnonId);
-    }
-    
-    // Convert to number if it's a string
-    return parseInt(storedAnonId, 10);
-  } catch (error) {
-    console.error('Error getting anonymous ID:', error);
-    // Fallback: generate a new ID without storing it
-    return generateAnonId();
-  }
+const getAnonId = () => {
+  return getOrCreateAnonId();
 };
 
   // Function to clear anonId (can be used during logout)
   const clearAnonId = () => {
-    localStorage.removeItem('anonId');
+    clearAnonIdStorage();
     setAnonId(null);
   };
 
   // Function to regenerate anonId
   const regenerateAnonId = () => {
     const newAnonId = generateAnonId();
-    localStorage.setItem('anonId', newAnonId);
+    localStorage.setItem(ANON_ID_KEY, newAnonId);
+    setCookie(ANON_ID_KEY, newAnonId);
     setAnonId(newAnonId);
     return newAnonId;
   };

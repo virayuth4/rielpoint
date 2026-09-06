@@ -21,10 +21,13 @@ export default function MerchantPageClient({
   href,
 }) {
   const router = useRouter();
-  const { currentUser, loading } = useContext(AuthContext) ?? {};
+  const { currentUser, anonId, loading } = useContext(AuthContext) ?? {};
   const [showSignupModal, setShowSignupModal] = useState(false);
   const [signupIntent, setSignupIntent] = useState("shop");
   const [coupon, setCoupon] = useState({ open: false, loading: false, code: null, error: null });
+  // console.log("Current AnonId", anonId)
+
+
 
 
 async function handleCouponClick(e) {
@@ -68,11 +71,12 @@ async function handleCouponClick(e) {
       e.preventDefault();
       return;
     }
-    if (!currentUser) {
-      e.preventDefault();
-      setShowSignupModal(true);
-      return;
-    }
+    // if (!currentUser) {
+    //   e.preventDefault();
+    //   setShowSignupModal(true);
+    //   return;
+    // }
+    console.log("Current Anon Id clicked", anonId)
     // else: let the <a> navigate normally to `href`
   }
 

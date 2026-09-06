@@ -1,7 +1,9 @@
 
+import { useContext } from "react";
 import Banner from "./Components/banner";
 import CategorySection from "./Components/homepage/categorySection";
 import MerchantCard from "./Components/merchantCard";
+import { AuthContext } from "./auth/authContext";
 
 async function getHomepageFeed() {
   const res = await fetch(
@@ -37,6 +39,7 @@ function pinMerchantsFirst(merchants, pinnedIds) {
 
 export default async function HomePage() {
   const feed = await getHomepageFeed();
+
 
   const merchants = pinMerchantsFirst(feed.merchants || [], [1, 6 ,3, 7, 12, 2]);
 

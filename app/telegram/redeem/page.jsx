@@ -1,44 +1,57 @@
 // app/telegram/redeem/page.js
 "use client";
-import { useEffect, useState } from "react";
-import { TELEGRAM_SUPPORT_URL } from "@/lib/constants";
+
+import authenticatedFetch from "@/app/auth/authenticatedFetch";
+import LoginForm from "@/app/login/loginForm";
+import { useState, useEffect } from "react";
+import { usePathname } from "next/navigation";
 
 export default function RedeemPage() {
   const [checking, setChecking] = useState(true);
   const [merchant, setMerchant] = useState(null);
+  const [authError, setAuthError] = useState(false);
 
   const [code, setCode] = useState("");
   const [amount, setAmount] = useState("");
   const [redeemStatus, setRedeemStatus] = useState("idle");
   const [redeemMessage, setRedeemMessage] = useState("");
+   const pathname = usePathname();
+
+   console.log("currentPath nae", pathname)
 
   useEffect(() => {
-    window.Telegram?.WebApp?.ready();
-    window.Telegram?.WebApp?.expand();
-    checkStatus();
-  }, []);
+    let cancelled = false;
 
-  async function checkStatus() {
-    setChecking(true);
-    try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/merchant/merchant-status`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ initData: window.Telegram?.WebApp?.initData }),
-      });
-      const data = await res.json();
-      if (data.linked) setMerchant(data.merchant);
-    } catch {
-      // treat as not linked
-    } finally {
-      setChecking(false);
+    async function loadCurrentUser() {
+      setChecking(true);
+      setAuthError(false);
+      try {
+        const res = await authenticatedFetch(
+          `${process.env.NEXT_PUBLIC_BACKEND}/api/merchant/profile`
+        );
+        if (!res.ok) throw new Error("Failed to load user");
+        const currentUser = await res.json();
+        console.log("currentUser", currentUser);
+
+        if (!cancelled) setMerchant(currentUser.user);
+      } catch (err) {
+        if (!cancelled) setAuthError(true);
+      } finally {
+        if (!cancelled) setChecking(false);
+      }
     }
-  }
+
+    loadCurrentUser();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   async function handleRedeem() {
     if (!code.trim() || !amount) return;
     setRedeemStatus("loading");
     setRedeemMessage("");
+
     try {
       const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/api/merchant/coupon/redeem`, {
         method: "POST",
@@ -49,8 +62,10 @@ export default function RedeemPage() {
           amount: parseFloat(amount),
         }),
       });
+
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Something went wrong");
+
       setRedeemMessage(`✅ Applied — $${data.cashback_amount} cashback`);
       setRedeemStatus("success");
       setCode("");
@@ -62,42 +77,55 @@ export default function RedeemPage() {
   }
 
   if (checking) {
-    return <div className="p-6 text-sm text-slate-500">Checking your account…</div>;
-  }
-
-  // NOT LINKED — simple contact-support message, no self-serve form
-  if (!merchant) {
     return (
-      <div className="min-h-screen bg-white px-4 py-6">
-        <h1 className="text-lg font-semibold text-slate-900">Account not set up yet</h1>
-        <p className="mt-2 text-sm text-slate-500 leading-relaxed">
-          Your Telegram account isn't linked to a merchant yet. Contact us and
-          we'll get you connected.
-        </p>
-        <a
-          href={TELEGRAM_SUPPORT_URL}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="mt-6 inline-block rounded-full bg-violet-600 px-6 py-3 text-sm font-semibold text-white"
-        >
-          Contact support
-        </a>
+      <div className="flex min-h-screen items-center justify-center bg-white">
+        <p className="text-sm text-slate-500">Checking access…</p>
       </div>
     );
   }
 
-  // LINKED — merchant info + redeem form
-  return (
-    <div className="min-h-screen bg-white px-4 py-6">
-      <div className="flex items-center gap-3">
-        {merchant.logo_url && (
-          <img src={merchant.logo_url} alt={merchant.name} className="h-10 w-10 rounded-lg object-cover" />
-        )}
-        <div>
-          <p className="text-sm font-semibold text-slate-900">{merchant.name}</p>
-          <p className="text-xs text-slate-500">{merchant.cashback_rate}% cashback</p>
+  if (authError || merchant?.role !== "affiliate-merchant") {
+    return (
+      <>
+        <div className="flex items-center justify-center bg-white">
+          <p className="text-sm text-slate-500">
+            You must be logged in as an active affiliate merchant to redeem coupons.
+          </p>
         </div>
-      </div>
+        <LoginForm isMerchant={true} callback={pathname} />
+      </>
+    );
+  }
+
+  const affiliateMerchant = merchant.affiliate_merchant;
+
+  return (
+    <div className="md:max-w-5xl mx-auto min-h-screen bg-white px-4 py-6">
+      {affiliateMerchant && (
+        <div className="flex items-center gap-3 rounded-xl border border-slate-200 p-3">
+          {affiliateMerchant.logo_url && (
+            <img
+              src={affiliateMerchant.logo_url}
+              alt={affiliateMerchant.name}
+              className="h-12 w-12 rounded-lg object-cover"
+            />
+          )}
+          <div className="min-w-0">
+            <p className="truncate text-sm font-semibold text-slate-900">
+              {affiliateMerchant.name}
+            </p>
+            <p className="text-xs text-slate-500">
+              {affiliateMerchant.cashback_rate}% cashback
+              {affiliateMerchant.coupon_prefix && ` · ${affiliateMerchant.coupon_prefix}-XXXX`}
+            </p>
+          </div>
+          {!affiliateMerchant.is_active && (
+            <span className="ml-auto shrink-0 rounded-full bg-amber-100 px-2 py-1 text-xs font-medium text-amber-700">
+              Inactive
+            </span>
+          )}
+        </div>
+      )}
 
       <h2 className="mt-6 text-base font-semibold text-slate-900">Redeem coupon</h2>
       <div className="mt-4 space-y-4">

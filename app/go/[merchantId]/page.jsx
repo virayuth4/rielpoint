@@ -1,16 +1,21 @@
 import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 import RedirectClient from "./redirectingClient";
+import { useContext } from "react";
+import { AuthContext } from "@/app/auth/authContext";
 
 async function getRedirectData(merchantId, offer) {
   const cookieStore = await cookies();
   const headerStore = await headers();
 
   const idToken = cookieStore.get("firebase_token")?.value;
+  const anonId = cookieStore.get("anonId")?.value ?? null; 
   const ip = headerStore.get("x-forwarded-for")?.split(",")[0] ?? null;
   const userAgent = headerStore.get("user-agent") ?? null;
+  // console.log("anonId in getRedirectData", anonId)
+  
 
-  const res = await fetch(
+ const res = await fetch(
     `${process.env.NEXT_PUBLIC_BACKEND}/api/merchant/affiliate/click`,
     {
       method: "POST",
@@ -21,6 +26,7 @@ async function getRedirectData(merchantId, offer) {
       body: JSON.stringify({
         merchant_id: Number(merchantId),
         offer_id: offer ? Number(offer) : null,
+        anon_id: anonId,
         ip_address: ip,
         user_agent: userAgent,
       }),
